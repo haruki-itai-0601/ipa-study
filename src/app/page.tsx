@@ -71,6 +71,28 @@ const exams = [
     borderColor: "border-teal-200",
     textColor: "text-teal-600",
   },
+  {
+    id: "sm",
+    name: "ITサービスマネージャ試験",
+    shortName: "SM",
+    description: "ITサービスの運用・管理・改善を問う高度試験",
+    categories: ["サービス運用", "障害管理", "変更管理", "SLA"],
+    color: "from-cyan-500 to-cyan-600",
+    bgColor: "bg-cyan-50",
+    borderColor: "border-cyan-200",
+    textColor: "text-cyan-600",
+  },
+  {
+    id: "au",
+    name: "システム監査技術者試験",
+    shortName: "AU",
+    description: "ITシステムの監査・評価・リスク管理を問う高度試験",
+    categories: ["監査計画", "内部統制", "リスク評価", "コンプライアンス"],
+    color: "from-slate-500 to-slate-600",
+    bgColor: "bg-slate-50",
+    borderColor: "border-slate-200",
+    textColor: "text-slate-600",
+  },
 ];
 
 const stats = {
