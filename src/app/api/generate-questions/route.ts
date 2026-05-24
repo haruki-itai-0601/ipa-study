@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "exam_id is required" }, { status: 400 });
     }
 
-    const safeCount = Math.min(count, 5);
+    const safeCount = Math.min(count, 20);
     const exam = getExam(exam_id);
     if (!exam) {
       return NextResponse.json({ error: "Invalid exam_id" }, { status: 400 });
@@ -105,6 +105,7 @@ export async function POST(request: NextRequest) {
 
     const rows = questions.map((q) => ({
       exam_id,
+      type: "ai",
       category: q.category,
       question: q.question,
       option_a: q.option_a,
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save questions" }, { status: 500 });
     }
 
-    return NextResponse.json({ questions: insertedRows });
+    return NextResponse.json({ saved_count: insertedRows?.length ?? 0 });
   } catch (error) {
     console.error("Unexpected error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

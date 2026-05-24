@@ -43,19 +43,17 @@ export default function AIExamPage() {
       setIsLoading(true);
       setLoadError(null);
       try {
-        const res = await fetch("/api/generate-questions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ exam_id: examId, count: 5 }),
-        });
+        const res = await fetch(
+          `/api/questions?exam_id=${encodeURIComponent(examId)}&type=ai&count=5`
+        );
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.error || "問題の生成に失敗しました");
+          throw new Error(data.error || "問題の取得に失敗しました");
         }
         const data = await res.json();
         setQuestions(data.questions);
       } catch (err) {
-        setLoadError(err instanceof Error ? err.message : "問題の生成に失敗しました");
+        setLoadError(err instanceof Error ? err.message : "問題の取得に失敗しました");
       } finally {
         setIsLoading(false);
       }
@@ -82,6 +80,21 @@ export default function AIExamPage() {
         <XCircle className="w-10 h-10 text-red-500" />
         <p className="text-base font-semibold text-gray-700">エラーが発生しました</p>
         <p className="text-sm text-gray-500">{loadError}</p>
+        <Link
+          href={`/exam/${examId}`}
+          className="mt-4 text-sm text-indigo-600 hover:underline"
+        >
+          試験ページに戻る
+        </Link>
+      </div>
+    );
+  }
+
+  if (!isLoading && !loadError && questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-4">
+        <Loader2 className="w-10 h-10 text-gray-300" />
+        <p className="text-base font-semibold text-gray-700">問題を準備中です。しばらくお待ちください。</p>
         <Link
           href={`/exam/${examId}`}
           className="mt-4 text-sm text-indigo-600 hover:underline"
