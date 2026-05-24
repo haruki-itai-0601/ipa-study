@@ -111,9 +111,12 @@ export default function Home() {
 
         {/* 今日の進捗 */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            今日の進捗
-          </h2>
+          <div className="flex items-baseline gap-2 mb-3">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              今日の進捗
+            </h2>
+            <span className="text-xs text-gray-400">全試験の合計</span>
+          </div>
           <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-4">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 text-center">
