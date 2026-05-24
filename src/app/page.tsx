@@ -100,10 +100,15 @@ export default function Home() {
               <div className="font-bold text-gray-900 text-base leading-tight">問題演習道場</div>
             </div>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            <Zap className="w-3 h-3 mr-1" />
-            AI予想問題
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            <Badge variant="secondary" className="text-xs">
+              📚 過去問演習
+            </Badge>
+            <Badge variant="secondary" className="text-xs">
+              <Zap className="w-3 h-3 mr-1" />
+              IPAシラバスより作成したAI予想問題
+            </Badge>
+          </div>
         </div>
       </header>
 
