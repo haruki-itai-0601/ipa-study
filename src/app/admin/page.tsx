@@ -142,9 +142,9 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-2">
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="w-full px-0">
+        <div className="flex items-center justify-between mb-2 px-6">
           <h1 className="text-2xl font-bold text-gray-900">管理者ページ</h1>
           <button
             onClick={fetchCounts}
@@ -155,7 +155,7 @@ export default function AdminPage() {
             更新
           </button>
         </div>
-        <p className="text-sm text-gray-500 mb-8">
+        <p className="text-sm text-gray-500 mb-8 px-6">
           各試験のAI予想問題をDBに生成・保存します（{GENERATE_COUNT}問/回）
         </p>
 
@@ -242,33 +242,39 @@ export default function AdminPage() {
                     ) : (
                       <div className="divide-y divide-gray-50">
                         {/* ヘッダー */}
-                        <div className="grid grid-cols-[2rem_1fr_5rem_3rem] gap-2 px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        <div className="grid grid-cols-[2rem_3rem_1fr_3rem] gap-3 px-6 py-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                           <div>#</div>
-                          <div>カテゴリ / 問題文</div>
-                          <div>シラバス区分</div>
                           <div className="text-center">難易度</div>
+                          <div>シラバス参照 / 問題文</div>
+                          <div className="text-center">一致</div>
                         </div>
                         {questions.map((q, i) => {
                           const diff = difficultyLabel[q.difficulty] ?? { label: q.difficulty, color: "text-gray-500 bg-gray-50" };
-                          // シラバスカテゴリを exam.categories から検索
-                          const syllabusCategory = exam.categories.find((cat) =>
+                          // シラバスカテゴリと完全一致・部分一致を確認
+                          const exactMatch = exam.categories.find((cat) => cat === q.category);
+                          const partialMatch = !exactMatch && exam.categories.find((cat) =>
                             q.category.includes(cat) || cat.includes(q.category)
-                          ) ?? q.category;
+                          );
+                          const isMatched = !!(exactMatch || partialMatch);
                           return (
                             <div
                               key={q.id}
-                              className="grid grid-cols-[2rem_1fr_5rem_3rem] gap-2 px-4 py-3 items-start hover:bg-gray-50 transition-colors"
+                              className="grid grid-cols-[2rem_3rem_1fr_3rem] gap-3 px-6 py-3 items-start hover:bg-gray-50 transition-colors"
                             >
                               <div className="text-xs text-gray-400 pt-0.5">{i + 1}</div>
-                              <div>
-                                <div className="text-xs font-medium text-indigo-600 mb-0.5">{q.category}</div>
-                                <div className="text-sm text-gray-700 leading-snug line-clamp-2">{q.question}</div>
-                              </div>
-                              <div className="text-xs text-gray-500 pt-0.5">{syllabusCategory}</div>
                               <div className="flex justify-center pt-0.5">
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff.color}`}>
                                   {diff.label}
                                 </span>
+                              </div>
+                              <div>
+                                <div className={`text-xs font-semibold mb-0.5 ${exactMatch ? "text-green-600" : partialMatch ? "text-yellow-600" : "text-gray-500"}`}>
+                                  {q.category}
+                                </div>
+                                <div className="text-sm text-gray-700 leading-snug line-clamp-2">{q.question}</div>
+                              </div>
+                              <div className="flex justify-center pt-0.5 text-base">
+                                {exactMatch ? "✅" : partialMatch ? "🟡" : "❓"}
                               </div>
                             </div>
                           );

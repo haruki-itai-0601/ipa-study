@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
     const prompt = `あなたはIPA（情報処理推進機構）の「${exam.name}」試験の問題作成専門家です。
 本試験と同等レベルの4択問題を${safeCount}問作成してください。
 
-試験の出題カテゴリ：${exam.categories.join("、")}
+IPAシラバスの出題分野（以下のいずれかを category に指定すること）：
+${exam.categories.map((c, i) => `${i + 1}. ${c}`).join("\n")}
 
 以下の要件を厳守してください：
 - 実際のIPA高度情報処理技術者試験のレベルと形式に準拠すること
@@ -45,12 +46,13 @@ export async function POST(request: NextRequest) {
 - 正解は必ずa, b, c, dのいずれかであること
 - 解説は正解の理由と不正解の理由を含む詳細なものにすること
 - 難易度は easy / medium / hard のいずれかにすること
+- categoryは必ず上記シラバス分野のいずれかを正確に記載すること
 
 必ず以下のJSON形式のみで回答してください（マークダウンや余分なテキストは含めないこと）：
 {
   "questions": [
     {
-      "category": "カテゴリ名",
+      "category": "プロジェクトリスクマネジメント",
       "question": "問題文",
       "option_a": "選択肢Aの内容",
       "option_b": "選択肢Bの内容",
