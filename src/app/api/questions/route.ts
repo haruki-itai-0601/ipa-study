@@ -15,11 +15,15 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createSupabaseServerClient();
 
+    const allParam = searchParams.get("all");
+    const returnAll = allParam === "true";
+
     const { data, error } = await supabase
       .from("questions")
       .select("*")
       .eq("exam_id", exam_id)
-      .eq("type", type);
+      .eq("type", type)
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Supabase select error:", error);
@@ -27,6 +31,10 @@ export async function GET(request: NextRequest) {
     }
 
     const all = data ?? [];
+
+    if (returnAll) {
+      return NextResponse.json({ questions: all });
+    }
 
     // ランダムにcount件を取得（足りない場合はある分だけ）
     const shuffled = all.sort(() => Math.random() - 0.5);
