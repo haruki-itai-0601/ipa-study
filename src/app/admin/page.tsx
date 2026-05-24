@@ -12,7 +12,7 @@ interface ExamState {
   count: number | null;
 }
 
-const GENERATE_COUNT = 10;
+const GENERATE_COUNT = 5;
 
 export default function AdminPage() {
   const [states, setStates] = useState<Record<string, ExamState>>(() =>
