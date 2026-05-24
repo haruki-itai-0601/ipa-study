@@ -95,7 +95,10 @@ export default function Home() {
             <div className="bg-indigo-600 rounded-lg p-1.5">
               <Brain className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-gray-900 text-lg">問題演習道場</span>
+            <div>
+              <div className="text-xs text-gray-500 leading-none">高度情報処理技術者試験</div>
+              <div className="font-bold text-gray-900 text-base leading-tight">問題演習道場</div>
+            </div>
           </div>
           <Badge variant="secondary" className="text-xs">
             <Zap className="w-3 h-3 mr-1" />
