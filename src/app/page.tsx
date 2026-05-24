@@ -90,7 +90,7 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-indigo-600 rounded-lg p-1.5">
               <Brain className="w-5 h-5 text-white" />
@@ -107,14 +107,14 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
 
         {/* 今日の進捗 */}
         <section>
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
             今日の進捗
           </h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-4">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-1">
@@ -179,7 +179,7 @@ export default function Home() {
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
             高度情報処理技術者試験から選ぶ
           </h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {exams.map((exam) => (
               <Link key={exam.id} href={`/exam/${exam.id}`}>
                 <Card
