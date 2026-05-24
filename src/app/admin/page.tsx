@@ -202,18 +202,11 @@ export default function AdminPage() {
                     )}
 
                     <button
-                      onClick={() => handleGenerate(exam.id)}
-                      disabled={isLoading}
-                      className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-300 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                      disabled
+                      title="現在API利用を停止中です"
+                      className="flex items-center gap-2 bg-gray-300 text-gray-500 text-sm font-semibold px-4 py-2 rounded-lg cursor-not-allowed whitespace-nowrap"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          生成中...
-                        </>
-                      ) : (
-                        "問題生成"
-                      )}
+                      🚫 停止中
                     </button>
 
                     {/* 展開ボタン */}
