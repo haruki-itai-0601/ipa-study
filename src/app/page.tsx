@@ -188,9 +188,9 @@ export default function Home() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {exams.map((exam) => (
-              <Link key={exam.id} href={`/exam/${exam.id}`}>
+              <Link key={exam.id} href={`/exam/${exam.id}`} className="h-full">
                 <Card
-                  className={`border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${exam.bgColor} ${exam.borderColor}`}
+                  className={`h-full border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${exam.bgColor} ${exam.borderColor}`}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between">
