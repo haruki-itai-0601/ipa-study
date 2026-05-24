@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IPA Study | IPA高度試験 AI予想問題",
-  description: "AIが過去問から予想問題を無限生成。IPA高度試験をスキマ時間に効率よく対策。",
+  title: "高度情報処理技術者試験 問題演習道場",
+  description: "AIが過去問から予想問題を無限生成。高度情報処理技術者試験をスキマ時間に効率よく対策。",
 };
 
 export default function RootLayout({

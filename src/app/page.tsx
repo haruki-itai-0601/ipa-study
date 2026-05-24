@@ -95,7 +95,7 @@ export default function Home() {
             <div className="bg-indigo-600 rounded-lg p-1.5">
               <Brain className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-gray-900 text-lg">IPA Study</span>
+            <span className="font-bold text-gray-900 text-lg">問題演習道場</span>
           </div>
           <Badge variant="secondary" className="text-xs">
             <Zap className="w-3 h-3 mr-1" />
@@ -174,7 +174,7 @@ export default function Home() {
         {/* 試験一覧 */}
         <section>
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            試験を選んで学習開始
+            高度情報処理技術者試験から選ぶ
           </h2>
           <div className="space-y-3">
             {exams.map((exam) => (
