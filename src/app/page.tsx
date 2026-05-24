@@ -73,7 +73,6 @@ const exams = [
   },
 ];
 
-// 仮のダッシュボードデータ
 const stats = {
   todayAnswered: 0,
   todayCorrect: 0,
@@ -90,21 +89,21 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-indigo-600 rounded-lg p-1.5">
-              <Brain className="w-5 h-5 text-white" />
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-600 rounded-lg p-2">
+              <Brain className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="text-xs text-gray-500 leading-none">高度情報処理技術者試験</div>
-              <div className="font-bold text-gray-900 text-base leading-tight">問題演習道場</div>
+              <div className="text-sm text-gray-500 leading-none">高度情報処理技術者試験</div>
+              <div className="font-bold text-gray-900 text-xl leading-tight">問題演習道場</div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-sm">
               📚 過去問演習
             </Badge>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-sm">
               <Zap className="w-3 h-3 mr-1" />
               IPAシラバスより作成したAI予想問題
             </Badge>
@@ -117,43 +116,43 @@ export default function Home() {
         {/* 今日の進捗 */}
         <section>
           <div className="flex items-baseline gap-2 mb-3">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide">
               今日の進捗
             </h2>
-            <span className="text-xs text-gray-400">全試験の合計</span>
+            <span className="text-sm text-gray-400">全試験の合計</span>
           </div>
-          <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-1">
-                  <BookOpen className="w-4 h-4 text-indigo-500" />
+                  <BookOpen className="w-5 h-5 text-indigo-500" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-gray-900">
                   {stats.todayAnswered}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">解答数</div>
+                <div className="text-sm text-gray-500 mt-1">解答数</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-1">
-                  <Target className="w-4 h-4 text-green-500" />
+                  <Target className="w-5 h-5 text-green-500" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-gray-900">
                   {todayAccuracy}%
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">正解率</div>
+                <div className="text-sm text-gray-500 mt-1">正解率</div>
               </CardContent>
             </Card>
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-1">
-                  <TrendingUp className="w-4 h-4 text-orange-500" />
+                  <TrendingUp className="w-5 h-5 text-orange-500" />
                 </div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-gray-900">
                   {stats.streak}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">連続日数</div>
+                <div className="text-sm text-gray-500 mt-1">連続日数</div>
               </CardContent>
             </Card>
           </div>
@@ -162,19 +161,19 @@ export default function Home() {
           <Card className="border-0 shadow-sm mt-3">
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-base font-medium text-gray-700">
                   今日の目標
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-base text-gray-500">
                   {stats.todayAnswered} / 10問
                 </span>
               </div>
               <Progress
                 value={(stats.todayAnswered / 10) * 100}
-                className="h-2"
+                className="h-2.5"
               />
               {stats.todayAnswered === 0 && (
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-sm text-gray-400 mt-2">
                   今日はまだ解いていません。1問から始めましょう！
                 </p>
               )}
@@ -184,7 +183,7 @@ export default function Home() {
 
         {/* 試験一覧 */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
             高度情報処理技術者試験から選ぶ
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -193,21 +192,21 @@ export default function Home() {
                 <Card
                   className={`border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${exam.bgColor} ${exam.borderColor}`}
                 >
-                  <CardContent className="p-4">
+                  <CardContent className="p-5">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
                         <div
-                          className={`bg-gradient-to-br ${exam.color} rounded-xl w-12 h-12 flex items-center justify-center flex-shrink-0`}
+                          className={`bg-gradient-to-br ${exam.color} rounded-xl w-14 h-14 flex items-center justify-center flex-shrink-0`}
                         >
-                          <span className="text-white font-bold text-sm">
+                          <span className="text-white font-bold text-base">
                             {exam.shortName}
                           </span>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900 text-sm leading-tight">
+                          <h3 className="font-semibold text-gray-900 text-base leading-tight">
                             {exam.name}
                           </h3>
-                          <p className="text-xs text-gray-500 mt-0.5 leading-snug">
+                          <p className="text-sm text-gray-500 mt-1 leading-snug">
                             {exam.description}
                           </p>
                           <div className="flex flex-wrap gap-1 mt-2">
@@ -215,7 +214,7 @@ export default function Home() {
                               <Badge
                                 key={cat}
                                 variant="secondary"
-                                className={`text-xs px-1.5 py-0 ${exam.textColor} bg-white/70`}
+                                className={`text-sm px-2 py-0 ${exam.textColor} bg-white/70`}
                               >
                                 {cat}
                               </Badge>
@@ -223,7 +222,7 @@ export default function Home() {
                           </div>
                         </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                      <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0 ml-2" />
                     </div>
                   </CardContent>
                 </Card>
@@ -234,7 +233,7 @@ export default function Home() {
 
         {/* プライバシー表示 */}
         <div className="border-t border-gray-200 pt-4 pb-8">
-          <p className="text-xs text-gray-400 text-center leading-relaxed">
+          <p className="text-sm text-gray-400 text-center leading-relaxed">
             🔒 本サービスは学習進捗の管理のためにブラウザの機能を使用しています。<br />
             メールアドレス・氏名などの個人情報は一切取得していません。
           </p>
