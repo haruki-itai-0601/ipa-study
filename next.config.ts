@@ -28,6 +28,7 @@ const nextConfig: NextConfig = {
     // .env.local の値を優先し、なければ process.env（Vercel の設定値）にフォールバック
     ANTHROPIC_API_KEY: envLocal.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? "",
     ADMIN_SECRET: envLocal.ADMIN_SECRET ?? process.env.ADMIN_SECRET ?? "",
+    TOTP_SECRET: envLocal.TOTP_SECRET ?? process.env.TOTP_SECRET ?? "",
   },
 };
 
