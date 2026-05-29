@@ -24,6 +24,8 @@ function readEnvLocal(): Record<string, string> {
 const envLocal = readEnvLocal();
 
 const nextConfig: NextConfig = {
+  // Node.js ネイティブ API を使うパッケージは webpack バンドル対象から除外
+  serverExternalPackages: ["otplib", "qrcode"],
   env: {
     // .env.local の値を優先し、なければ process.env（Vercel の設定値）にフォールバック
     ANTHROPIC_API_KEY: envLocal.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? "",
