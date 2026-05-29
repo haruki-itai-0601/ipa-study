@@ -17,10 +17,9 @@ export default function AdminSetupPage() {
           setError(data.error);
         } else {
           setSecret(data.secret);
-          // QR コードはブラウザ側で生成（Turbopack サーバーバンドル対象外）
-          const QRCode = (await import("qrcode")).default;
-          const dataURL = await QRCode.toDataURL(data.uri, { width: 200 });
-          setQrCode(dataURL);
+          // 外部 QR コード API で画像 URL を生成（npm パッケージ不要）
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(data.uri)}&size=200x200`;
+          setQrCode(qrUrl);
         }
       })
       .catch(() => setError("エラーが発生しました"));
