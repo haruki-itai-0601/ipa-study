@@ -1,5 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verify } from "otplib";
+import { createHmac } from "crypto";
+
+/** Base32 → Buffer（crypto のみ、otplib 不要） */
+function base32Decode(base32: string): Buffer {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const clean = base32.toUpperCase().replace(/[^A-Z2-7]/g, "");
+  let buffer = 0;
+  let bitsLeft = 0;
+  const result: number[] = [];
+  for (const char of clean) {
+    const idx = alphabet.indexOf(char);
+    if (idx === -1) continue;
+    buffer = (buffer << 5) | idx;
+    bitsLeft += 5;
+    if (bitsLeft >= 8) {
+      result.push((buffer >>> (bitsLeft - 8)) & 0xff);
+      bitsLeft -= 8;
+    }
+  }
+  return Buffer.from(result);
+}
+
+/** 指定タイムステップの TOTP コードを計算 */
+function getTOTPCode(secret: string, timeStep: number): string {
+  const key = base32Decode(secret);
+  const msg = Buffer.alloc(8);
+  msg.writeBigUInt64BE(BigInt(timeStep));
+  const hmac = createHmac("sha1", key).update(msg).digest();
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code =
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff);
+  return String(code % 1_000_000).padStart(6, "0");
+}
+
+/** ±1 タイムステップ許容で検証 */
+function verifyTOTP(token: string, secret: string): boolean {
+  const step = Math.floor(Date.now() / 1000 / 30);
+  for (const delta of [-1, 0, 1]) {
+    if (getTOTPCode(secret, step + delta) === token) return true;
+  }
+  return false;
+}
 
 export async function POST(request: NextRequest) {
   const { password, totp } = await request.json();
@@ -20,9 +64,11 @@ export async function POST(request: NextRequest) {
     if (!totp) {
       return NextResponse.json({ error: "認証コードを入力してください" }, { status: 401 });
     }
-    const result = await verify({ token: totp, secret: totpSecret });
-    if (!result.valid) {
-      return NextResponse.json({ error: "認証コードが違います（時刻がずれている場合は再生成してください）" }, { status: 401 });
+    if (!verifyTOTP(totp, totpSecret)) {
+      return NextResponse.json(
+        { error: "認証コードが違います（時刻がずれている場合は再生成してください）" },
+        { status: 401 }
+      );
     }
   }
 
