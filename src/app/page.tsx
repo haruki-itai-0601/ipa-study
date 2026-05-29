@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { BookOpen, Brain, Target, TrendingUp, ChevronRight, Zap } from "lucide-react";
+import { TodayStats } from "@/components/today-stats";
+import { Brain, ChevronRight, Zap } from "lucide-react";
 import Link from "next/link";
 
 const exams = [
@@ -95,18 +95,7 @@ const exams = [
   },
 ];
 
-const stats = {
-  todayAnswered: 0,
-  todayCorrect: 0,
-  streak: 0,
-};
-
 export default function Home() {
-  const todayAccuracy =
-    stats.todayAnswered > 0
-      ? Math.round((stats.todayCorrect / stats.todayAnswered) * 100)
-      : 0;
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
@@ -143,64 +132,7 @@ export default function Home() {
             </h2>
             <span className="text-sm text-gray-400">全試験の合計</span>
           </div>
-          <div className="grid grid-cols-3 gap-3 md:gap-4">
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <BookOpen className="w-5 h-5 text-indigo-500" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {stats.todayAnswered}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">解答数</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <Target className="w-5 h-5 text-green-500" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {todayAccuracy}%
-                </div>
-                <div className="text-sm text-gray-500 mt-1">正解率</div>
-              </CardContent>
-            </Card>
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-4 text-center">
-                <div className="flex items-center justify-center mb-1">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {stats.streak}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">連続日数</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 今日の目標進捗バー */}
-          <Card className="border-0 shadow-sm mt-3">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-base font-medium text-gray-700">
-                  今日の目標
-                </span>
-                <span className="text-base text-gray-500">
-                  {stats.todayAnswered} / 10問
-                </span>
-              </div>
-              <Progress
-                value={(stats.todayAnswered / 10) * 100}
-                className="h-2.5"
-              />
-              {stats.todayAnswered === 0 && (
-                <p className="text-sm text-gray-400 mt-2">
-                  今日はまだ解いていません。1問から始めましょう！
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <TodayStats />
         </section>
 
         {/* 試験一覧 */}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getExam } from "@/lib/exams";
+import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle, XCircle, ChevronRight, Loader2 } from "lucide-react";
@@ -111,7 +112,7 @@ export default function AIExamPage() {
   const isCorrect = selectedAnswer === question.correct_answer;
   const isLastQuestion = currentIndex === questions.length - 1;
 
-  const optionLabels: Record<string, string> = { a: "A", b: "B", c: "C", d: "D" };
+  const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
 
   const options: [string, string][] = [
     ["a", question.option_a],
@@ -127,11 +128,29 @@ export default function AIExamPage() {
     return "border-gray-200 bg-white opacity-60";
   };
 
-  const handleSelect = (key: string) => {
+  const handleSelect = async (key: string) => {
     if (isAnswered) return;
     setSelectedAnswer(key);
     setIsAnswered(true);
-    setResults((prev) => [...prev, key === question.correct_answer]);
+    const correct = key === question.correct_answer;
+    setResults((prev) => [...prev, correct]);
+
+    // 進捗をSupabaseに記録
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("user_progress").insert({
+          user_id: user.id,
+          question_id: question.id,
+          exam_id: examId,
+          year: "AI生成",
+          is_correct: correct,
+        });
+      }
+    } catch {
+      // 記録失敗しても演習は続ける
+    }
   };
 
   const handleNext = () => {
