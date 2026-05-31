@@ -56,7 +56,7 @@ export default async function ExamPage({
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
             この試験の進捗
           </h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid gap-4 ${examId === "am1" ? "grid-cols-1" : "grid-cols-2"}`}>
             {/* 過去問 */}
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4">
@@ -76,25 +76,27 @@ export default async function ExamPage({
                 </div>
               </CardContent>
             </Card>
-            {/* AI予想問題 */}
-            <Card className="border-0 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Zap className="w-5 h-5 text-yellow-500" />
-                  <span className="font-semibold text-gray-700">AI予想問題</span>
-                </div>
-                <div className="flex items-end gap-3">
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">{mockStats.ai.answered}</div>
-                    <div className="text-sm text-gray-500">解答数</div>
+            {/* AI予想問題（午前Ⅰは対象外） */}
+            {examId !== "am1" && (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="w-5 h-5 text-yellow-500" />
+                    <span className="font-semibold text-gray-700">AI予想問題</span>
                   </div>
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">{aiAccuracy}%</div>
-                    <div className="text-sm text-gray-500">正解率</div>
+                  <div className="flex items-end gap-3">
+                    <div>
+                      <div className="text-3xl font-bold text-gray-900">{mockStats.ai.answered}</div>
+                      <div className="text-sm text-gray-500">解答数</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-gray-900">{aiAccuracy}%</div>
+                      <div className="text-sm text-gray-500">正解率</div>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </section>
 
@@ -121,7 +123,7 @@ export default async function ExamPage({
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
             演習モードを選ぶ
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 gap-4 ${examId === "am1" ? "" : "md:grid-cols-2"}`}>
 
             {/* 過去問演習 */}
             <Link href={`/exam/${examId}/past`}>
@@ -151,7 +153,8 @@ export default async function ExamPage({
               </Card>
             </Link>
 
-            {/* AI予想問題演習 */}
+            {/* AI予想問題演習（午前Ⅰは対象外） */}
+            {examId !== "am1" && (
             <Link href={`/exam/${examId}/ai`}>
               <Card className="border-2 border-yellow-200 bg-yellow-50 hover:shadow-lg hover:border-yellow-400 transition-all duration-200 cursor-pointer h-full">
                 <CardContent className="p-6">
@@ -178,6 +181,7 @@ export default async function ExamPage({
                 </CardContent>
               </Card>
             </Link>
+            )}
 
           </div>
         </section>

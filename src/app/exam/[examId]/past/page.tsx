@@ -24,12 +24,22 @@ type Question = {
 
 const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
 
+// 年度ラベルを新しい順に並べるためのソートキー（令和元年度や春期/秋期を正しく扱う）
+function yearSortKey(y: string): number {
+  const m = y.match(/令和(元|\d+)年度\s*(春期|秋期)/);
+  if (!m) return 0;
+  const yr = m[1] === "元" ? 1 : parseInt(m[1], 10);
+  const season = m[2] === "秋期" ? 2 : 1; // 同一年度では秋期を新しい扱い
+  return yr * 10 + season;
+}
+
 export default function PastExamPage() {
   const params = useParams();
   const examId = params.examId as string;
   const exam = getExam(examId);
 
   const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [yearCounts, setYearCounts] = useState<Record<string, number>>({});
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,8 +60,13 @@ export default function PastExamPage() {
         .eq("type", "past");
 
       if (data) {
-        const years = [...new Set(data.map((q: { year: string }) => q.year))].sort().reverse();
+        const counts: Record<string, number> = {};
+        data.forEach((q: { year: string }) => {
+          counts[q.year] = (counts[q.year] || 0) + 1;
+        });
+        const years = Object.keys(counts).sort((a, b) => yearSortKey(b) - yearSortKey(a));
         setAvailableYears(years);
+        setYearCounts(counts);
       }
       setLoading(false);
     }
@@ -106,7 +121,7 @@ export default function PastExamPage() {
         <main className="max-w-3xl mx-auto px-4 md:px-8 py-8">
           <div className="mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-1">年度を選んでください</h2>
-            <p className="text-sm text-gray-500">各年度25問から出題されます</p>
+            <p className="text-sm text-gray-500">本物のIPA過去問（午前{examId === "am1" ? "Ⅰ" : "Ⅱ"}）から出題されます</p>
           </div>
 
           {loading ? (
@@ -127,7 +142,7 @@ export default function PastExamPage() {
                       <span className="font-semibold text-gray-900">{year}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">25問</span>
+                      <span className="text-sm text-gray-400">{yearCounts[year] ?? 0}問</span>
                       <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-400 transition-colors" />
                     </div>
                   </div>

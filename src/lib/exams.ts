@@ -1,5 +1,28 @@
 export const exams = [
   {
+    id: "am1",
+    name: "午前Ⅰ（高度共通）",
+    shortName: "AM1",
+    description: "全高度区分で共通の午前Ⅰ。テクノロジ・マネジメント・ストラテジを幅広く問う",
+    categories: [
+      "基礎理論",
+      "アルゴリズムとプログラミング",
+      "コンピュータ構成・システム",
+      "データベース",
+      "ネットワーク",
+      "セキュリティ",
+      "システム開発技術",
+      "プロジェクト・サービスマネジメント",
+      "システム戦略・経営戦略",
+      "企業活動・法務",
+    ],
+    color: "from-indigo-500 to-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    textColor: "text-indigo-600",
+    badgeBg: "bg-indigo-100",
+  },
+  {
     id: "pm",
     name: "プロジェクトマネージャ試験",
     shortName: "PM",

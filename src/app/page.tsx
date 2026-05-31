@@ -6,6 +6,17 @@ import Link from "next/link";
 
 const exams = [
   {
+    id: "am1",
+    name: "午前Ⅰ（高度共通）",
+    shortName: "AM1",
+    description: "全高度区分で共通の午前Ⅰ。基礎理論〜経営戦略まで幅広く出題",
+    categories: ["テクノロジ系", "マネジメント系", "ストラテジ系"],
+    color: "from-indigo-500 to-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    textColor: "text-indigo-600",
+  },
+  {
     id: "pm",
     name: "プロジェクトマネージャ試験",
     shortName: "PM",
@@ -112,7 +123,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col items-end gap-1">
             <Badge variant="secondary" className="text-sm">
-              📚 過去問演習
+              📚 過去問演習（令和元〜令和7年度）
             </Badge>
             <Badge variant="secondary" className="text-sm">
               <Zap className="w-3 h-3 mr-1" />
