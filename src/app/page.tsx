@@ -4,18 +4,20 @@ import { TodayStats } from "@/components/today-stats";
 import { Brain, ChevronRight, Zap } from "lucide-react";
 import Link from "next/link";
 
+// 午前Ⅰは全高度区分で共通なので、試験区分一覧とは分けて別枠で表示する
+const am1Exam = {
+  id: "am1",
+  name: "午前Ⅰ（高度共通）",
+  shortName: "午前Ⅰ",
+  description: "全高度区分で共通の午前Ⅰ。基礎理論〜経営戦略まで幅広く出題",
+  categories: ["テクノロジ系", "マネジメント系", "ストラテジ系"],
+  color: "from-indigo-500 to-indigo-600",
+  bgColor: "bg-indigo-50",
+  borderColor: "border-indigo-200",
+  textColor: "text-indigo-600",
+};
+
 const exams = [
-  {
-    id: "am1",
-    name: "午前Ⅰ（高度共通）",
-    shortName: "午前Ⅰ",
-    description: "全高度区分で共通の午前Ⅰ。基礎理論〜経営戦略まで幅広く出題",
-    categories: ["テクノロジ系", "マネジメント系", "ストラテジ系"],
-    color: "from-indigo-500 to-indigo-600",
-    bgColor: "bg-indigo-50",
-    borderColor: "border-indigo-200",
-    textColor: "text-indigo-600",
-  },
   {
     id: "pm",
     name: "プロジェクトマネージャ試験",
@@ -144,6 +146,52 @@ export default function Home() {
             <span className="text-sm text-gray-400">全試験の合計</span>
           </div>
           <TodayStats />
+        </section>
+
+        {/* 午前Ⅰ（全区分共通） */}
+        <section className="border-t border-gray-200 pt-6">
+          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            高度試験の午前Ⅰ（全区分共通）はこちら
+          </h2>
+          <Link href={`/exam/${am1Exam.id}`} className="block">
+            <Card
+              className={`border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${am1Exam.bgColor} ${am1Exam.borderColor}`}
+            >
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`bg-gradient-to-br ${am1Exam.color} rounded-xl w-14 h-14 flex items-center justify-center flex-shrink-0`}
+                    >
+                      <span className="text-white font-bold text-sm leading-none whitespace-nowrap">
+                        {am1Exam.shortName}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                        {am1Exam.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1 leading-snug">
+                        {am1Exam.description}
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {am1Exam.categories.map((cat) => (
+                          <Badge
+                            key={cat}
+                            variant="secondary"
+                            className={`text-sm px-2 py-0 ${am1Exam.textColor} bg-white/70`}
+                          >
+                            {cat}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0 ml-2" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </section>
 
         {/* 試験一覧 */}
