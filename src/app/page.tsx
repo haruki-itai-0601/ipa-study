@@ -151,7 +151,7 @@ export default function Home() {
         {/* 午前Ⅰ（全区分共通） */}
         <section className="border-t border-gray-200 pt-6">
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            高度試験の午前Ⅰ（全区分共通）はこちら
+            高度情報処理技術者試験の午前Ⅰ（全区分共通）はこちら
           </h2>
           <Link href={`/exam/${am1Exam.id}`} className="block">
             <Card
