@@ -111,21 +111,21 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <div className="bg-indigo-600 rounded-lg p-2">
               <Brain className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="text-sm text-gray-500 leading-none">高度情報処理技術者試験</div>
-              <div className="font-bold text-gray-900 text-xl leading-tight">問題演習道場</div>
+              <div className="text-sm text-gray-500 leading-none whitespace-nowrap">高度情報処理技術者試験</div>
+              <div className="font-bold text-gray-900 text-xl leading-tight whitespace-nowrap">問題演習道場</div>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <Badge variant="secondary" className="text-sm">
+          <div className="flex flex-row flex-wrap items-center gap-2 md:flex-col md:items-end md:gap-1">
+            <Badge variant="secondary" className="text-xs md:text-sm">
               📚 過去問演習（令和元〜令和7年度）
             </Badge>
-            <Badge variant="secondary" className="text-sm">
+            <Badge variant="secondary" className="text-xs md:text-sm">
               <Zap className="w-3 h-3 mr-1" />
               IPAシラバスより作成したAI予想問題
             </Badge>
