@@ -2,7 +2,7 @@ export const exams = [
   {
     id: "am1",
     name: "午前Ⅰ（高度共通）",
-    shortName: "AM1",
+    shortName: "午前Ⅰ",
     description: "全高度区分で共通の午前Ⅰ。テクノロジ・マネジメント・ストラテジを幅広く問う",
     categories: [
       "基礎理論",

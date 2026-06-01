@@ -39,7 +39,7 @@ export default async function ExamPage({
           </Link>
           <div className="flex items-center gap-3">
             <div className={`bg-gradient-to-br ${exam.color} rounded-xl w-10 h-10 flex items-center justify-center`}>
-              <span className="text-white font-bold text-sm">{exam.shortName}</span>
+              <span className={`text-white font-bold leading-none whitespace-nowrap ${exam.shortName.length > 2 ? "text-[10px]" : "text-sm"}`}>{exam.shortName}</span>
             </div>
             <div>
               <div className="text-sm text-gray-500">高度情報処理技術者試験</div>

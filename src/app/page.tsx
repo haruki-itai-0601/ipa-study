@@ -8,7 +8,7 @@ const exams = [
   {
     id: "am1",
     name: "午前Ⅰ（高度共通）",
-    shortName: "AM1",
+    shortName: "午前Ⅰ",
     description: "全高度区分で共通の午前Ⅰ。基礎理論〜経営戦略まで幅広く出題",
     categories: ["テクノロジ系", "マネジメント系", "ストラテジ系"],
     color: "from-indigo-500 to-indigo-600",
@@ -163,7 +163,7 @@ export default function Home() {
                         <div
                           className={`bg-gradient-to-br ${exam.color} rounded-xl w-14 h-14 flex items-center justify-center flex-shrink-0`}
                         >
-                          <span className="text-white font-bold text-base">
+                          <span className={`text-white font-bold leading-none whitespace-nowrap ${exam.shortName.length > 2 ? "text-sm" : "text-base"}`}>
                             {exam.shortName}
                           </span>
                         </div>
