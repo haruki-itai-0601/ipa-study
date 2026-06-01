@@ -197,7 +197,7 @@ export default function Home() {
         {/* 試験一覧 */}
         <section>
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            高度情報処理技術者試験から選ぶ
+            高度情報処理技術者試験の午前Ⅱは試験区分から選ぶ
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {exams.map((exam) => (
