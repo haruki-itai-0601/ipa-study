@@ -256,8 +256,14 @@ export default function PastExamPage() {
   };
 
   useEffect(() => {
-    // 試験を切り替えたらハブに戻す
-    setView("hub");
+    // 学習分析などから ?mode=category&category=... で来たら、その分野演習を直接開始
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("mode") === "category" && sp.get("category")) {
+      startCategory(sp.get("category") as string);
+    } else {
+      setView("hub");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examId]);
 
   if (!exam) return null;

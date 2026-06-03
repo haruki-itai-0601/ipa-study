@@ -4,8 +4,12 @@ import { useState, useEffect } from "react";
 import { exams, getExam } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ChevronDown, TrendingUp, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ChevronDown, TrendingUp, AlertTriangle, ChevronRight } from "lucide-react";
 import Link from "next/link";
+
+function categoryHref(examId: string, category: string) {
+  return `/exam/${examId}/past?mode=category&category=${encodeURIComponent(category)}`;
+}
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
 
@@ -144,9 +148,10 @@ export default function AnalysisPage() {
                     const c = accuracyColor(w.acc);
                     const ex = getExam(w.exam_id);
                     return (
-                      <div
+                      <Link
                         key={`${w.exam_id}-${w.category}`}
-                        className="bg-white border border-gray-200 rounded-xl p-4"
+                        href={categoryHref(w.exam_id, w.category)}
+                        className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:bg-indigo-50/40 transition-colors"
                       >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex items-start gap-2 min-w-0">
@@ -159,8 +164,14 @@ export default function AnalysisPage() {
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div className={`h-full ${c.bar}`} style={{ width: `${w.acc}%` }} />
                         </div>
-                        <div className="text-xs text-gray-400 mt-1">{w.answered}問 解答済み</div>
-                      </div>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-gray-400">{w.answered}問 解答済み</span>
+                          <span className="flex items-center gap-0.5 text-xs font-semibold text-indigo-600">
+                            この分野を解く
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -222,18 +233,23 @@ export default function AnalysisPage() {
                             {cats.map((cat) => {
                               const cc = accuracyColor(cat.acc);
                               return (
-                                <div key={cat.category}>
+                                <Link
+                                  key={cat.category}
+                                  href={categoryHref(exam.id, cat.category)}
+                                  className="block rounded-lg -mx-1 px-1 py-1 hover:bg-white transition-colors"
+                                >
                                   <div className="flex items-center justify-between gap-2 mb-1">
                                     <span className="text-sm text-gray-700 leading-snug">{cat.category}</span>
                                     <span className="flex items-center gap-2 flex-shrink-0">
                                       <span className={`text-sm font-semibold ${cc.text}`}>{cat.acc}%</span>
                                       <span className="text-xs text-gray-400">{cat.correct}/{cat.answered}</span>
+                                      <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
                                     </span>
                                   </div>
                                   <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                     <div className={`h-full ${cc.bar}`} style={{ width: `${cat.acc}%` }} />
                                   </div>
-                                </div>
+                                </Link>
                               );
                             })}
                           </div>
