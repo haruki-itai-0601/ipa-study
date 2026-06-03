@@ -1,28 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getExam } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle, XCircle, ChevronRight, BookOpen } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  BookOpen,
+  Shuffle,
+  Layers,
+  RotateCcw,
+  Timer,
+} from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import QuizRunner, { type Question } from "@/components/quiz-runner";
 
-type Question = {
-  id: string;
-  category: string;
-  year: string;
-  question: string;
-  option_a: string;
-  option_b: string;
-  option_c: string;
-  option_d: string;
-  correct_answer: "a" | "b" | "c" | "d";
-  explanation: string;
-};
+type Mode = "year" | "random" | "category" | "wrong" | "exam";
 
-const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
+const RANDOM_COUNT = 20;
+const CATEGORY_COUNT = 20;
 
 // 年度ラベルを新しい順に並べるためのソートキー（令和元年度や春期/秋期を正しく扱う）
 function yearSortKey(y: string): number {
@@ -33,315 +31,376 @@ function yearSortKey(y: string): number {
   return yr * 10 + season;
 }
 
+// Fisher-Yates シャッフル
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const MODES: {
+  key: Mode;
+  title: string;
+  desc: string;
+  icon: typeof BookOpen;
+  color: string;
+  iconBg: string;
+}[] = [
+  { key: "year", title: "年度別（問1順）", desc: "1回分を問1から順に解く", icon: BookOpen, color: "border-indigo-200 bg-indigo-50 hover:border-indigo-400", iconBg: "bg-indigo-600" },
+  { key: "random", title: "ランダム", desc: `全年度から${RANDOM_COUNT}問をシャッフル出題`, icon: Shuffle, color: "border-sky-200 bg-sky-50 hover:border-sky-400", iconBg: "bg-sky-600" },
+  { key: "category", title: "分野別", desc: "苦手な分野をまとめて演習", icon: Layers, color: "border-violet-200 bg-violet-50 hover:border-violet-400", iconBg: "bg-violet-600" },
+  { key: "wrong", title: "誤答復習", desc: "過去に間違えた問題だけ再挑戦", icon: RotateCcw, color: "border-rose-200 bg-rose-50 hover:border-rose-400", iconBg: "bg-rose-600" },
+  { key: "exam", title: "模試（タイマー）", desc: "本番と同じ問数・制限時間で挑戦", icon: Timer, color: "border-amber-200 bg-amber-50 hover:border-amber-400", iconBg: "bg-amber-600" },
+];
+
 export default function PastExamPage() {
   const params = useParams();
   const examId = params.examId as string;
   const exam = getExam(examId);
 
+  // 画面: hub(モード選択) / year(年度選択) / category(分野選択) / quiz(演習)
+  const [view, setView] = useState<"hub" | "year" | "category" | "quiz">("hub");
+  const [loading, setLoading] = useState(false);
+
+  // year/category 選択肢
   const [availableYears, setAvailableYears] = useState<string[]>([]);
   const [yearCounts, setYearCounts] = useState<Record<string, number>>({});
-  const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [results, setResults] = useState<boolean[]>([]);
+  const [categories, setCategories] = useState<{ name: string; count: number }[]>([]);
 
-  // 利用可能な年度を取得
-  useEffect(() => {
-    async function fetchYears() {
-      setLoading(true);
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase
-        .from("questions")
-        .select("year")
-        .eq("exam_id", examId)
-        .eq("type", "past");
+  // 演習データ
+  const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
+  const [quizTitle, setQuizTitle] = useState("");
+  const [quizSubtitle, setQuizSubtitle] = useState<string | undefined>(undefined);
+  const [quizTimer, setQuizTimer] = useState<number | undefined>(undefined);
 
-      if (data) {
-        const counts: Record<string, number> = {};
-        data.forEach((q: { year: string }) => {
-          counts[q.year] = (counts[q.year] || 0) + 1;
-        });
-        const years = Object.keys(counts).sort((a, b) => yearSortKey(b) - yearSortKey(a));
-        setAvailableYears(years);
-        setYearCounts(counts);
-      }
-      setLoading(false);
+  const backToHub = useCallback(() => {
+    setView("hub");
+    setQuizQuestions([]);
+    setQuizTimer(undefined);
+  }, []);
+
+  const startQuiz = (questions: Question[], title: string, subtitle?: string, timer?: number) => {
+    setQuizQuestions(questions);
+    setQuizTitle(title);
+    setQuizSubtitle(subtitle);
+    setQuizTimer(timer);
+    setView("quiz");
+  };
+
+  // 年度選択画面に入るときに年度一覧を取得
+  const enterYearSelect = async () => {
+    setView("year");
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase
+      .from("questions")
+      .select("year")
+      .eq("exam_id", examId)
+      .eq("type", "past");
+    if (data) {
+      const counts: Record<string, number> = {};
+      data.forEach((q: { year: string }) => {
+        counts[q.year] = (counts[q.year] || 0) + 1;
+      });
+      const years = Object.keys(counts).sort((a, b) => yearSortKey(b) - yearSortKey(a));
+      setAvailableYears(years);
+      setYearCounts(counts);
     }
-    fetchYears();
+    setLoading(false);
+  };
+
+  // 分野選択画面に入るときにカテゴリ一覧を取得
+  const enterCategorySelect = async () => {
+    setView("category");
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase
+      .from("questions")
+      .select("category")
+      .eq("exam_id", examId)
+      .eq("type", "past");
+    if (data) {
+      const counts: Record<string, number> = {};
+      data.forEach((q: { category: string }) => {
+        counts[q.category] = (counts[q.category] || 0) + 1;
+      });
+      const list = Object.entries(counts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+      setCategories(list);
+    }
+    setLoading(false);
+  };
+
+  // 年度別: 選んだ年度を問1順で
+  const startYear = async (year: string) => {
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("exam_id", examId)
+      .eq("year", year)
+      .eq("type", "past")
+      .order("q_number");
+    setLoading(false);
+    startQuiz((data as Question[]) ?? [], "年度別演習", year);
+  };
+
+  // ランダム: 全年度からシャッフルしてN問
+  const startRandom = async () => {
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("exam_id", examId)
+      .eq("type", "past");
+    setLoading(false);
+    const picked = shuffle((data as Question[]) ?? []).slice(0, RANDOM_COUNT);
+    startQuiz(picked, "ランダム演習", `${exam?.name} ・ ${picked.length}問`);
+  };
+
+  // 分野別: 選んだカテゴリからシャッフルしてN問
+  const startCategory = async (category: string) => {
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("exam_id", examId)
+      .eq("type", "past")
+      .eq("category", category);
+    setLoading(false);
+    const picked = shuffle((data as Question[]) ?? []).slice(0, CATEGORY_COUNT);
+    startQuiz(picked, "分野別演習", category);
+  };
+
+  // 誤答復習: 過去に間違えた問題だけ
+  const startWrong = async () => {
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      startQuiz([], "誤答復習");
+      return;
+    }
+    const { data: prog } = await supabase
+      .from("user_progress")
+      .select("question_id")
+      .eq("exam_id", examId)
+      .eq("is_correct", false);
+    const ids = [...new Set((prog ?? []).map((p: { question_id: string }) => p.question_id))];
+    if (ids.length === 0) {
+      setLoading(false);
+      startQuiz([], "誤答復習");
+      return;
+    }
+    const { data } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("type", "past")
+      .in("id", ids);
+    setLoading(false);
+    startQuiz(shuffle((data as Question[]) ?? []), "誤答復習", `${exam?.name} ・ 間違えた問題`);
+  };
+
+  // 模試: 最新年度を問1順・制限時間つき
+  const startExam = async () => {
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const { data: yearRows } = await supabase
+      .from("questions")
+      .select("year")
+      .eq("exam_id", examId)
+      .eq("type", "past");
+    const years = [...new Set((yearRows ?? []).map((r: { year: string }) => r.year))];
+    const latest = years.sort((a, b) => yearSortKey(b) - yearSortKey(a))[0];
+    if (!latest) {
+      setLoading(false);
+      startQuiz([], "模試");
+      return;
+    }
+    const { data } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("exam_id", examId)
+      .eq("year", latest)
+      .eq("type", "past")
+      .order("q_number");
+    setLoading(false);
+    // 午前Ⅰ=50分/30問、午前Ⅱ=40分/25問
+    const timer = examId === "am1" ? 50 * 60 : 40 * 60;
+    startQuiz((data as Question[]) ?? [], "模試", `${latest} ・ 制限${timer / 60}分`, timer);
+  };
+
+  const onSelectMode = (mode: Mode) => {
+    switch (mode) {
+      case "year":
+        return enterYearSelect();
+      case "category":
+        return enterCategorySelect();
+      case "random":
+        return startRandom();
+      case "wrong":
+        return startWrong();
+      case "exam":
+        return startExam();
+    }
+  };
+
+  useEffect(() => {
+    // 試験を切り替えたらハブに戻す
+    setView("hub");
   }, [examId]);
-
-  // 年度選択後に問題を取得
-  useEffect(() => {
-    if (!selectedYear) return;
-
-    async function fetchQuestions() {
-      setLoading(true);
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase
-        .from("questions")
-        .select("*")
-        .eq("exam_id", examId)
-        .eq("year", selectedYear)
-        .eq("type", "past")
-        .order("q_number");
-
-      if (data) {
-        setQuestions(data);
-      }
-      setCurrentIndex(0);
-      setSelectedAnswer(null);
-      setIsAnswered(false);
-      setResults([]);
-      setLoading(false);
-    }
-    fetchQuestions();
-  }, [examId, selectedYear]);
 
   if (!exam) return null;
 
-  // 年度選択画面
-  if (!selectedYear) {
+  // 演習画面
+  if (view === "quiz") {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
-            <Link href={`/exam/${examId}`} className="text-gray-400 hover:text-gray-600">
-              <ArrowLeft className="w-6 h-6" />
-            </Link>
-            <div>
-              <div className="text-sm text-gray-500">{exam.name}</div>
-              <div className="font-bold text-gray-900">過去問演習</div>
-            </div>
-          </div>
-        </header>
-
-        <main className="max-w-3xl mx-auto px-4 md:px-8 py-8">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">年度を選んでください</h2>
-            <p className="text-sm text-gray-500">本物のIPA過去問（午前{examId === "am1" ? "Ⅰ" : "Ⅱ"}）から出題されます</p>
-          </div>
-
-          {loading ? (
-            <div className="text-center text-gray-400 py-12">読み込み中...</div>
-          ) : availableYears.length === 0 ? (
-            <div className="text-center text-gray-400 py-12">問題が見つかりませんでした</div>
-          ) : (
-            <div className="space-y-3">
-              {availableYears.map((year) => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200 group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <BookOpen className={`w-5 h-5 ${exam.textColor}`} />
-                      <span className="font-semibold text-gray-900">{year}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">{yearCounts[year] ?? 0}問</span>
-                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-400 transition-colors" />
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
+      <QuizRunner
+        examId={examId}
+        questions={quizQuestions}
+        title={quizTitle}
+        subtitle={quizSubtitle}
+        timerSeconds={quizTimer}
+        onBack={backToHub}
+      />
     );
   }
 
-  // 問題読み込み中
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-400">問題を読み込み中...</div>
-      </div>
+  const headerBack =
+    view === "hub" ? (
+      <Link href={`/exam/${examId}`} className="text-gray-400 hover:text-gray-600">
+        <ArrowLeft className="w-6 h-6" />
+      </Link>
+    ) : (
+      <button onClick={() => setView("hub")} className="text-gray-400 hover:text-gray-600">
+        <ArrowLeft className="w-6 h-6" />
+      </button>
     );
-  }
-
-  const question = questions[currentIndex];
-  if (!question) return null;
-
-  const options: Record<string, string> = {
-    a: question.option_a,
-    b: question.option_b,
-    c: question.option_c,
-    d: question.option_d,
-  };
-
-  const isCorrect = selectedAnswer === question.correct_answer;
-  const isLastQuestion = currentIndex === questions.length - 1;
-
-  const handleSelect = async (key: string) => {
-    if (isAnswered) return;
-    setSelectedAnswer(key);
-    setIsAnswered(true);
-    const correct = key === question.correct_answer;
-    setResults((prev) => [...prev, correct]);
-
-    // 進捗をSupabaseに記録
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("user_progress").insert({
-          user_id: user.id,
-          question_id: question.id,
-          exam_id: examId,
-          year: question.year,
-          is_correct: correct,
-        });
-      }
-    } catch {
-      // 記録失敗しても演習は続ける
-    }
-  };
-
-  const handleNext = () => {
-    setSelectedAnswer(null);
-    setIsAnswered(false);
-    setCurrentIndex((prev) => prev + 1);
-  };
-
-  const optionColors = (key: string) => {
-    if (!isAnswered)
-      return "border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50";
-    if (key === question.correct_answer) return "border-green-400 bg-green-50";
-    if (key === selectedAnswer && !isCorrect) return "border-red-400 bg-red-50";
-    return "border-gray-200 bg-white opacity-60";
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSelectedYear(null)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <div>
-              <div className="text-sm text-gray-500">{selectedYear}</div>
-              <div className="font-bold text-gray-900">過去問演習</div>
-            </div>
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
+          {headerBack}
+          <div>
+            <div className="text-sm text-gray-500">{exam.name}</div>
+            <div className="font-bold text-gray-900">過去問演習</div>
           </div>
-          <div className="text-base font-semibold text-gray-500">
-            {currentIndex + 1} / {questions.length}
-          </div>
-        </div>
-        {/* 進捗バー */}
-        <div className="h-1.5 bg-gray-100">
-          <div
-            className="h-full bg-indigo-500 transition-all duration-300"
-            style={{
-              width: `${((currentIndex + (isAnswered ? 1 : 0)) / questions.length) * 100}%`,
-            }}
-          />
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-4">
-        {/* 問題メタ情報 */}
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className={`text-sm ${exam.textColor} ${exam.badgeBg}`}>
-            {question.category}
-          </Badge>
-          <span className="text-sm text-gray-400">{question.year}</span>
-        </div>
-
-        {/* 問題文 */}
-        <Card className="border-0 shadow-sm">
-          <CardContent className="p-5">
-            <p className="text-base leading-relaxed text-gray-900">{question.question}</p>
-          </CardContent>
-        </Card>
-
-        {/* 選択肢 */}
-        <div className="space-y-3">
-          {(Object.entries(options) as [string, string][]).map(([key, value]) => (
-            <button
-              key={key}
-              onClick={() => handleSelect(key)}
-              disabled={isAnswered}
-              className={`w-full text-left border-2 rounded-xl p-4 transition-all duration-200 ${optionColors(key)}`}
-            >
-              <div className="flex items-start gap-3">
-                <span
-                  className={`font-bold text-base flex-shrink-0 w-6 ${
-                    isAnswered && key === question.correct_answer
-                      ? "text-green-600"
-                      : isAnswered && key === selectedAnswer && !isCorrect
-                        ? "text-red-600"
-                        : "text-gray-400"
-                  }`}
-                >
-                  {optionLabels[key]}
-                </span>
-                <span className="text-base text-gray-800 leading-relaxed">{value}</span>
-                {isAnswered && key === question.correct_answer && (
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 ml-auto" />
-                )}
-                {isAnswered && key === selectedAnswer && !isCorrect && (
-                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 ml-auto" />
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* 解説 */}
-        {isAnswered && (
-          <Card className={`border-0 shadow-sm ${isCorrect ? "bg-green-50" : "bg-red-50"}`}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                {isCorrect ? (
-                  <>
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="font-bold text-green-700 text-base">正解！</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="w-5 h-5 text-red-600" />
-                    <span className="font-bold text-red-700 text-base">不正解</span>
-                    <span className="text-sm text-red-500">
-                      正解は {optionLabels[question.correct_answer]}
-                    </span>
-                  </>
-                )}
-              </div>
-              <p className="text-base text-gray-700 leading-relaxed">{question.explanation}</p>
-            </CardContent>
-          </Card>
+      <main className="max-w-3xl mx-auto px-4 md:px-8 py-8">
+        {/* ハブ: モード選択 */}
+        {view === "hub" && (
+          <>
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">出題モードを選んでください</h2>
+              <p className="text-sm text-gray-500">本物のIPA過去問（午前{examId === "am1" ? "Ⅰ" : "Ⅱ"}）から出題されます</p>
+            </div>
+            <div className="space-y-3">
+              {MODES.map((m) => {
+                const Icon = m.icon;
+                return (
+                  <button
+                    key={m.key}
+                    onClick={() => onSelectMode(m.key)}
+                    disabled={loading}
+                    className={`w-full text-left border-2 rounded-xl p-5 transition-all duration-200 ${m.color} disabled:opacity-50`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`${m.iconBg} rounded-xl p-2.5 flex-shrink-0`}>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-900 text-base">{m.title}</div>
+                        <div className="text-sm text-gray-500">{m.desc}</div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            {loading && <div className="text-center text-gray-400 py-6">準備中...</div>}
+          </>
         )}
 
-        {/* 次へボタン */}
-        {isAnswered && (
-          <div className="flex justify-end">
-            {isLastQuestion ? (
-              <Link
-                href={`/exam/${examId}`}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
-              >
-                演習を終える
-              </Link>
+        {/* 年度選択 */}
+        {view === "year" && (
+          <>
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">年度を選んでください</h2>
+              <p className="text-sm text-gray-500">問1から順に出題されます</p>
+            </div>
+            {loading ? (
+              <div className="text-center text-gray-400 py-12">読み込み中...</div>
             ) : (
-              <button
-                onClick={handleNext}
-                className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
-              >
-                次の問題へ
-                <ChevronRight className="w-5 h-5" />
-              </button>
+              <div className="space-y-3">
+                {availableYears.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => startYear(year)}
+                    className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <BookOpen className={`w-5 h-5 ${exam.textColor}`} />
+                        <span className="font-semibold text-gray-900">{year}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-400">{yearCounts[year] ?? 0}問</span>
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-400 transition-colors" />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             )}
-          </div>
+          </>
+        )}
+
+        {/* 分野選択 */}
+        {view === "category" && (
+          <>
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">分野を選んでください</h2>
+              <p className="text-sm text-gray-500">選んだ分野から最大{CATEGORY_COUNT}問をランダム出題</p>
+            </div>
+            {loading ? (
+              <div className="text-center text-gray-400 py-12">読み込み中...</div>
+            ) : (
+              <div className="space-y-3">
+                {categories.map((c) => (
+                  <button
+                    key={c.name}
+                    onClick={() => startCategory(c.name)}
+                    className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-violet-300 hover:bg-violet-50 transition-all duration-200 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Layers className={`w-5 h-5 ${exam.textColor}`} />
+                        <span className="font-semibold text-gray-900">{c.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-400">{c.count}問</span>
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-violet-400 transition-colors" />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
