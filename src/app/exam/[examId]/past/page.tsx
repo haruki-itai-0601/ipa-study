@@ -86,7 +86,7 @@ export default function PastExamPage() {
         .eq("exam_id", examId)
         .eq("year", selectedYear)
         .eq("type", "past")
-        .order("created_at");
+        .order("q_number");
 
       if (data) {
         setQuestions(data);

@@ -4,6 +4,15 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // /admin/setup は TOTP_SECRET 未設定時のみ通過
+  if (pathname.startsWith("/admin/setup")) {
+    if (process.env.TOTP_SECRET) {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
+    }
+    // TOTP未設定なら素通り（初期セットアップ画面）
+    return NextResponse.next({ request });
+  }
+
   // /admin ルートの保護（/admin/login は除外）
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
     const token = request.cookies.get("admin_token")?.value;
