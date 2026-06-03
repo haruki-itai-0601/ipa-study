@@ -8,7 +8,7 @@ import { ArrowLeft, ChevronDown, TrendingUp, AlertTriangle, ChevronRight } from 
 import Link from "next/link";
 
 function categoryHref(examId: string, category: string) {
-  return `/exam/${examId}/past?mode=category&category=${encodeURIComponent(category)}`;
+  return `/exam/${examId}/study?category=${encodeURIComponent(category)}`;
 }
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
@@ -166,8 +166,8 @@ export default function AnalysisPage() {
                         </div>
                         <div className="flex items-center justify-between mt-1">
                           <span className="text-xs text-gray-400">{w.answered}問 解答済み</span>
-                          <span className="flex items-center gap-0.5 text-xs font-semibold text-indigo-600">
-                            この分野を解く
+                          <span className="flex items-center gap-0.5 text-xs font-semibold text-violet-600">
+                            学ぶ・解き直す
                             <ChevronRight className="w-3.5 h-3.5" />
                           </span>
                         </div>

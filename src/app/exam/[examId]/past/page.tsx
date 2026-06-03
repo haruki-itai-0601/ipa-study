@@ -179,6 +179,34 @@ export default function PastExamPage() {
     startQuiz(picked, "分野別演習", category);
   };
 
+  // 分野別 × 誤答: その分野で間違えた問題だけ
+  const startCategoryWrong = async (category: string) => {
+    setLoading(true);
+    const supabase = createSupabaseBrowserClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    let wrongIds: string[] = [];
+    if (user) {
+      const { data: prog } = await supabase
+        .from("user_progress")
+        .select("question_id")
+        .eq("exam_id", examId)
+        .eq("is_correct", false);
+      wrongIds = [...new Set((prog ?? []).map((p: { question_id: string }) => p.question_id))];
+    }
+    const { data } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("exam_id", examId)
+      .eq("type", "past")
+      .eq("category", category);
+    setLoading(false);
+    const set = new Set(wrongIds);
+    const picked = shuffle(((data as Question[]) ?? []).filter((q) => set.has(q.id)));
+    startQuiz(picked, "誤答を解き直す", `${category} ・ 間違えた問題`);
+  };
+
   // 誤答復習: 過去に間違えた問題だけ
   const startWrong = async () => {
     setLoading(true);
@@ -259,7 +287,12 @@ export default function PastExamPage() {
     // 学習分析などから ?mode=category&category=... で来たら、その分野演習を直接開始
     const sp = new URLSearchParams(window.location.search);
     if (sp.get("mode") === "category" && sp.get("category")) {
-      startCategory(sp.get("category") as string);
+      const cat = sp.get("category") as string;
+      if (sp.get("wrong") === "1") {
+        startCategoryWrong(cat);
+      } else {
+        startCategory(cat);
+      }
     } else {
       setView("hub");
     }
