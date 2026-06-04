@@ -315,6 +315,9 @@ export default function QuizRunner({
                 )}
               </div>
               <p className="text-base text-gray-700 leading-relaxed">{question.explanation}</p>
+              <p className="mt-3 text-[11px] text-gray-400 leading-relaxed">
+                ※この解説はIPA公式の解答解説ではなく、本サービスが独自に作成したものです。
+              </p>
             </CardContent>
           </Card>
         )}

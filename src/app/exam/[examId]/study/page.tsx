@@ -182,6 +182,10 @@ export default function StudyPage() {
                       <p className="text-sm text-gray-700 leading-relaxed">{q.explanation}</p>
                     </div>
 
+                    <p className="text-[11px] text-gray-400 leading-relaxed">
+                      ※この解説はIPA公式の解答解説ではなく、本サービスが独自に作成したものです。
+                    </p>
+
                     {/* 出典 */}
                     <p className="text-xs text-gray-400">{questionSource(examId, q.year, q.q_number)}</p>
                   </CardContent>
