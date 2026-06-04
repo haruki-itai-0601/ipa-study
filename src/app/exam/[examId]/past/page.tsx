@@ -49,11 +49,11 @@ const MODES: {
   color: string;
   iconBg: string;
 }[] = [
-  { key: "year", title: "年度別（問1順）", desc: "1回分を問1から順に解く", icon: BookOpen, color: "border-indigo-200 bg-indigo-50 hover:border-indigo-400", iconBg: "bg-indigo-600" },
+  { key: "year", title: "年度別（問1順）", desc: "年度を選んで問1から順に解く", icon: BookOpen, color: "border-indigo-200 bg-indigo-50 hover:border-indigo-400", iconBg: "bg-indigo-600" },
   { key: "random", title: "ランダム", desc: `全年度から${RANDOM_COUNT}問をシャッフル出題`, icon: Shuffle, color: "border-sky-200 bg-sky-50 hover:border-sky-400", iconBg: "bg-sky-600" },
   { key: "category", title: "分野別", desc: "苦手な分野をまとめて演習", icon: Layers, color: "border-violet-200 bg-violet-50 hover:border-violet-400", iconBg: "bg-violet-600" },
   { key: "wrong", title: "誤答復習", desc: "過去に間違えた問題だけ再挑戦", icon: RotateCcw, color: "border-rose-200 bg-rose-50 hover:border-rose-400", iconBg: "bg-rose-600" },
-  { key: "exam", title: "模試（タイマー）", desc: "本番と同じ問数・制限時間で挑戦", icon: Timer, color: "border-amber-200 bg-amber-50 hover:border-amber-400", iconBg: "bg-amber-600" },
+  { key: "exam", title: "模試（タイマー）", desc: "年度を選んで本番形式・制限時間で挑戦", icon: Timer, color: "border-amber-200 bg-amber-50 hover:border-amber-400", iconBg: "bg-amber-600" },
 ];
 
 export default function PastExamPage() {
@@ -64,6 +64,8 @@ export default function PastExamPage() {
   // 画面: hub(モード選択) / year(年度選択) / category(分野選択) / quiz(演習)
   const [view, setView] = useState<"hub" | "year" | "category" | "quiz">("hub");
   const [loading, setLoading] = useState(false);
+  // 年度選択画面が「年度別演習」用か「模試」用か
+  const [yearTarget, setYearTarget] = useState<"year" | "exam">("year");
 
   // year/category 選択肢
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -90,8 +92,9 @@ export default function PastExamPage() {
     setView("quiz");
   };
 
-  // 年度選択画面に入るときに年度一覧を取得
-  const enterYearSelect = async () => {
+  // 年度選択画面に入るときに年度一覧を取得（target: 年度別演習 or 模試）
+  const enterYearSelect = async (target: "year" | "exam") => {
+    setYearTarget(target);
     setView("year");
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
@@ -239,39 +242,27 @@ export default function PastExamPage() {
     startQuiz(shuffle((data as Question[]) ?? []), "誤答復習", `${exam?.name} ・ 間違えた問題`);
   };
 
-  // 模試: 最新年度を問1順・制限時間つき
-  const startExam = async () => {
+  // 模試: 選んだ年度を問1順・制限時間つき
+  const startExamForYear = async (year: string) => {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
-    const { data: yearRows } = await supabase
-      .from("questions")
-      .select("year")
-      .eq("exam_id", examId)
-      .eq("type", "past");
-    const years = [...new Set((yearRows ?? []).map((r: { year: string }) => r.year))];
-    const latest = years.sort((a, b) => yearSortKey(b) - yearSortKey(a))[0];
-    if (!latest) {
-      setLoading(false);
-      startQuiz([], "模試");
-      return;
-    }
     const { data } = await supabase
       .from("questions")
       .select("*")
       .eq("exam_id", examId)
-      .eq("year", latest)
+      .eq("year", year)
       .eq("type", "past")
       .order("q_number");
     setLoading(false);
     // 午前Ⅰ=50分/30問、午前Ⅱ=40分/25問
     const timer = examId === "am1" ? 50 * 60 : 40 * 60;
-    startQuiz((data as Question[]) ?? [], "模試", `${latest} ・ 制限${timer / 60}分`, timer);
+    startQuiz((data as Question[]) ?? [], "模試", `${year} ・ 制限${timer / 60}分`, timer);
   };
 
   const onSelectMode = (mode: Mode) => {
     switch (mode) {
       case "year":
-        return enterYearSelect();
+        return enterYearSelect("year");
       case "category":
         return enterCategorySelect();
       case "random":
@@ -279,7 +270,7 @@ export default function PastExamPage() {
       case "wrong":
         return startWrong();
       case "exam":
-        return startExam();
+        return enterYearSelect("exam");
     }
   };
 
@@ -379,7 +370,11 @@ export default function PastExamPage() {
           <>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">年度を選んでください</h2>
-              <p className="text-sm text-gray-500">問1から順に出題されます</p>
+              <p className="text-sm text-gray-500">
+                {yearTarget === "exam"
+                  ? `選んだ年度を本番形式・制限${examId === "am1" ? 50 : 40}分で出題します`
+                  : "選んだ年度を問1から順に出題します"}
+              </p>
             </div>
             {loading ? (
               <div className="text-center text-gray-400 py-12">読み込み中...</div>
@@ -388,7 +383,7 @@ export default function PastExamPage() {
                 {availableYears.map((year) => (
                   <button
                     key={year}
-                    onClick={() => startYear(year)}
+                    onClick={() => (yearTarget === "exam" ? startExamForYear(year) : startYear(year))}
                     className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200 group"
                   >
                     <div className="flex items-center justify-between">
