@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { exams, getExam } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, ChevronDown, TrendingUp, AlertTriangle, ChevronRight } from "lucide-react";
+import { ArrowLeft, TrendingUp, AlertTriangle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 function categoryHref(examId: string, category: string) {
@@ -24,7 +24,6 @@ function accuracyColor(acc: number): { text: string; bar: string; dot: string } 
 export default function AnalysisPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -72,6 +71,12 @@ export default function AnalysisPage() {
   const totalCorrect = rows.reduce((s, r) => s + r.correct, 0);
   const totalAcc = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
 
+  // 解答した区分（解答数が多い順に自動並び替え）と、未着手の区分
+  const answeredExams = perExam
+    .filter((p) => p.answered > 0)
+    .sort((a, b) => b.answered - a.answered);
+  const notStarted = perExam.filter((p) => p.answered === 0);
+
   // 全区分横断の弱点分野（最低解答数を満たすもののうち低正答率順）
   const weakCategories = rows
     .filter((r) => r.answered >= MIN_FOR_WEAK)
@@ -87,7 +92,7 @@ export default function AnalysisPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <Link href="/" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft className="w-6 h-6" />
           </Link>
@@ -98,7 +103,7 @@ export default function AnalysisPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-8">
         {loading ? (
           <div className="text-center text-gray-400 py-16">読み込み中...</div>
         ) : totalAnswered === 0 ? (
@@ -178,86 +183,80 @@ export default function AnalysisPage() {
               </section>
             )}
 
-            {/* 区分横断ダッシュボード */}
+            {/* 区分ごとの進捗（解答した区分をジャンル別の棒グラフで表示） */}
             <section>
               <h2 className="text-base font-semibold text-gray-700 mb-3">区分ごとの進捗</h2>
-              <div className="space-y-2">
-                {perExam
-                  .slice()
-                  .sort((a, b) => b.answered - a.answered)
-                  .map(({ exam, answered, acc, cats }) => {
-                    const c = accuracyColor(acc);
-                    const isOpen = expanded === exam.id;
-                    return (
-                      <div key={exam.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                        <button
-                          onClick={() => setExpanded(isOpen ? null : exam.id)}
-                          disabled={answered === 0}
-                          className="w-full text-left p-4 disabled:opacity-50"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {answeredExams.map(({ exam, answered, acc, cats }) => {
+                  const c = accuracyColor(acc);
+                  return (
+                    <div key={exam.id} className="bg-white border border-gray-200 rounded-xl p-4 h-full">
+                      {/* 区分ヘッダー */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className={`bg-gradient-to-br ${exam.color} rounded-lg w-10 h-10 flex items-center justify-center flex-shrink-0`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`bg-gradient-to-br ${exam.color} rounded-lg w-10 h-10 flex items-center justify-center flex-shrink-0`}
-                            >
-                              <span className={`text-white font-bold leading-none whitespace-nowrap ${exam.shortName.length > 2 ? "text-[10px]" : "text-sm"}`}>
-                                {exam.shortName}
-                              </span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-semibold text-gray-900 truncate">{exam.name}</span>
-                                {answered > 0 ? (
-                                  <span className={`font-bold ${c.text} flex-shrink-0`}>{acc}%</span>
-                                ) : (
-                                  <span className="text-xs text-gray-400 flex-shrink-0">未着手</span>
-                                )}
-                              </div>
-                              <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-2">
-                                <div className={`h-full ${c.bar}`} style={{ width: `${acc}%` }} />
-                              </div>
-                              <div className="flex items-center justify-between mt-1">
-                                <span className="text-xs text-gray-400">{answered}問 解答済み</span>
-                                {answered > 0 && (
-                                  <ChevronDown
-                                    className={`w-4 h-4 text-gray-300 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                                  />
-                                )}
-                              </div>
-                            </div>
+                          <span className={`text-white font-bold leading-none whitespace-nowrap ${exam.shortName.length > 2 ? "text-[10px]" : "text-sm"}`}>
+                            {exam.shortName}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-gray-900 truncate">{exam.name}</span>
+                            <span className={`font-bold ${c.text} flex-shrink-0`}>{acc}%</span>
                           </div>
-                        </button>
-
-                        {/* 分野別内訳 */}
-                        {isOpen && cats.length > 0 && (
-                          <div className="border-t border-gray-100 px-4 py-3 space-y-2 bg-gray-50">
-                            {cats.map((cat) => {
-                              const cc = accuracyColor(cat.acc);
-                              return (
-                                <Link
-                                  key={cat.category}
-                                  href={categoryHref(exam.id, cat.category)}
-                                  className="block rounded-lg -mx-1 px-1 py-1 hover:bg-white transition-colors"
-                                >
-                                  <div className="flex items-center justify-between gap-2 mb-1">
-                                    <span className="text-sm text-gray-700 leading-snug">{cat.category}</span>
-                                    <span className="flex items-center gap-2 flex-shrink-0">
-                                      <span className={`text-sm font-semibold ${cc.text}`}>{cat.acc}%</span>
-                                      <span className="text-xs text-gray-400">{cat.correct}/{cat.answered}</span>
-                                      <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-                                    </span>
-                                  </div>
-                                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                    <div className={`h-full ${cc.bar}`} style={{ width: `${cat.acc}%` }} />
-                                  </div>
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
+                          <div className="text-xs text-gray-400">{answered}問 解答済み</div>
+                        </div>
                       </div>
-                    );
-                  })}
+
+                      {/* ジャンル別の棒グラフ（正答率の低い順に自動並び替え・タップで学習へ） */}
+                      <div className="space-y-2">
+                        {cats.map((cat) => {
+                          const cc = accuracyColor(cat.acc);
+                          return (
+                            <Link
+                              key={cat.category}
+                              href={categoryHref(exam.id, cat.category)}
+                              className="block rounded-lg p-1 -m-1 hover:bg-gray-50 transition-colors"
+                            >
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <span className="text-sm text-gray-700 leading-snug">{cat.category}</span>
+                                <span className="flex items-center gap-1.5 flex-shrink-0">
+                                  <span className={`text-sm font-semibold ${cc.text}`}>{cat.acc}%</span>
+                                  <span className="text-xs text-gray-400">{cat.correct}/{cat.answered}</span>
+                                  <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                                </span>
+                              </div>
+                              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div className={`h-full ${cc.bar}`} style={{ width: `${cat.acc}%` }} />
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+
+              {/* 未着手の区分 */}
+              {notStarted.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-xs font-semibold text-gray-400 mb-2">未着手の区分</div>
+                  <div className="flex flex-wrap gap-2">
+                    {notStarted.map(({ exam }) => (
+                      <Link
+                        key={exam.id}
+                        href={`/exam/${exam.id}`}
+                        className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                      >
+                        <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${exam.color}`} />
+                        {exam.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
           </>
         )}
