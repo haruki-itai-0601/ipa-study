@@ -197,3 +197,15 @@ export const exams = [
 export function getExam(id: string) {
   return exams.find((e) => e.id === id);
 }
+
+// 問題ごとの正式な出典表記を生成する。
+// 例(午前Ⅱ): 出典：IPA プロジェクトマネージャ試験 令和6年度 秋期 午前Ⅱ 問1
+// 例(午前Ⅰ): 出典：IPA 高度情報処理技術者試験 午前Ⅰ（全区分共通） 令和6年度 春期 問1
+export function questionSource(examId: string, year: string, qNumber?: number | null) {
+  const q = qNumber ? ` 問${qNumber}` : "";
+  if (examId === "am1") {
+    return `出典：IPA 高度情報処理技術者試験 午前Ⅰ（全区分共通） ${year}${q}`;
+  }
+  const e = getExam(examId);
+  return `出典：IPA ${e?.name ?? ""} ${year} 午前Ⅱ${q}`;
+}

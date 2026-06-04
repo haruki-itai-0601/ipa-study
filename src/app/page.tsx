@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TodayStats } from "@/components/today-stats";
-import { Brain, ChevronRight, Zap, BarChart3 } from "lucide-react";
+import { Brain, ChevronRight, Zap, BarChart3, BookMarked } from "lucide-react";
 import Link from "next/link";
 
 // 午前Ⅰは全高度区分で共通なので、試験区分一覧とは分けて別枠で表示する
@@ -136,6 +136,15 @@ export default function Home() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
+
+        {/* 出典の明記（IPA公式過去問） */}
+        <div className="flex items-start gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+          <BookMarked className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-gray-600 leading-relaxed">
+            本サービスの過去問は、<span className="font-semibold text-gray-800">IPA（独立行政法人情報処理推進機構）</span>が公開している情報処理技術者試験・情報処理安全確保支援士試験の過去問題を、出典を明記のうえ使用しています。
+            <span className="text-gray-500">（各問題の解説は本サービスが独自に作成したものです）</span>
+          </p>
+        </div>
 
         {/* 今日の進捗 */}
         <section>

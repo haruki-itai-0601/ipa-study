@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getExam } from "@/lib/exams";
+import { getExam, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -181,6 +181,9 @@ export default function StudyPage() {
                       <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-gray-700 leading-relaxed">{q.explanation}</p>
                     </div>
+
+                    {/* 出典 */}
+                    <p className="text-xs text-gray-400">{questionSource(examId, q.year, q.q_number)}</p>
                   </CardContent>
                 </Card>
               ))}

@@ -135,7 +135,7 @@ export default async function ExamPage({
                     </div>
                     <div>
                       <div className="font-bold text-gray-900 text-lg">過去問演習</div>
-                      <div className="text-sm text-gray-500">IPA公式の過去問を解く</div>
+                      <div className="text-sm text-gray-500">IPA公式の本物の過去問（午前{examId === "am1" ? "Ⅰ" : "Ⅱ"}）を解く</div>
                     </div>
                   </div>
                   <ul className="space-y-1.5 text-sm text-gray-600">
@@ -148,7 +148,7 @@ export default async function ExamPage({
                       出題傾向をつかむ
                     </li>
                   </ul>
-                  <div className="mt-4 text-xs text-gray-400">出典：IPA 情報処理技術者試験</div>
+                  <div className="mt-4 text-xs text-gray-400">出典：IPA（独立行政法人情報処理推進機構）情報処理技術者試験・情報処理安全確保支援士試験</div>
                 </CardContent>
               </Card>
             </Link>

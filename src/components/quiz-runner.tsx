@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getExam } from "@/lib/exams";
+import { getExam, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ export type Question = {
   option_d: string;
   correct_answer: "a" | "b" | "c" | "d";
   explanation: string;
+  q_number?: number | null;
 };
 
 const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
@@ -256,6 +257,9 @@ export default function QuizRunner({
             <p className="text-base leading-relaxed text-gray-900">{question.question}</p>
           </CardContent>
         </Card>
+
+        {/* 出典 */}
+        <p className="text-xs text-gray-400">{questionSource(examId, question.year, question.q_number)}</p>
 
         {/* 選択肢 */}
         <div className="space-y-3">
