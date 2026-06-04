@@ -133,7 +133,9 @@ export default function StudyPage() {
                   {wrongCount > 0 ? "間違えた問題を解く" : "問題を解く"}
                 </span>
               </div>
-              <p className="text-xs text-gray-500">回答モードへ →</p>
+              <p className="text-xs text-gray-500">
+                {wrongCount > 0 ? "演習モード（誤答回答）へ →" : "演習モード（この分野を解く）へ →"}
+              </p>
             </Link>
           </div>
         </div>
