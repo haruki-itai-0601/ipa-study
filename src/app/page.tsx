@@ -267,13 +267,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* プライバシー表示 */}
-        <div className="border-t border-gray-200 pt-4 pb-8">
-          <p className="text-sm text-gray-400 text-center leading-relaxed">
-            🔒 本サービスは学習進捗の管理のためにブラウザの機能を使用しています。<br />
-            メールアドレス・氏名などの個人情報は一切取得していません。
-          </p>
-        </div>
       </main>
     </div>
   );
