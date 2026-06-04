@@ -85,7 +85,7 @@ export default function StudyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <Link href="/analysis" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft className="w-6 h-6" />
           </Link>
@@ -96,7 +96,7 @@ export default function StudyPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-5">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-5">
         {/* この分野をどうする？選択 */}
         <div>
           <h2 className="text-lg font-bold text-gray-900 mb-1">この分野を復習しましょう</h2>
