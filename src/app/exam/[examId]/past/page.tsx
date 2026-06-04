@@ -24,11 +24,13 @@ const CATEGORY_COUNT = 20;
 
 // 年度ラベルを新しい順に並べるためのソートキー（令和元年度や春期/秋期を正しく扱う）
 function yearSortKey(y: string): number {
-  const m = y.match(/令和(元|\d+)年度\s*(春期|秋期)/);
+  const m = y.match(/(令和|平成)(元|\d+)年度\s*(春期|秋期)/);
   if (!m) return 0;
-  const yr = m[1] === "元" ? 1 : parseInt(m[1], 10);
-  const season = m[2] === "秋期" ? 2 : 1; // 同一年度では秋期を新しい扱い
-  return yr * 10 + season;
+  const n = m[2] === "元" ? 1 : parseInt(m[2], 10);
+  // 絶対年に変換（令和元=2019, 平成30=2018, 平成31=2019）して時系列で比較できるようにする
+  const absYear = m[1] === "令和" ? 2018 + n : 1988 + n;
+  const season = m[3] === "秋期" ? 2 : 1; // 同一年度では秋期を新しい扱い
+  return absYear * 10 + season;
 }
 
 // Fisher-Yates シャッフル
