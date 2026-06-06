@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TodayStats } from "@/components/today-stats";
-import { Brain, ChevronRight, Zap, BarChart3, BookMarked } from "lucide-react";
+import { Brain, ChevronRight, Zap, BarChart3, BookMarked, Trophy } from "lucide-react";
 import Link from "next/link";
 
 // 午前Ⅰは全高度区分で共通なので、試験区分一覧とは分けて別枠で表示する
@@ -164,6 +164,20 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="font-bold text-gray-900">学習分析・弱点ダッシュボード</div>
                   <div className="text-sm text-gray-500">区分横断で進捗と苦手分野をチェック</div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/challenge" className="block mt-3">
+            <Card className="border-2 border-amber-200 bg-amber-50 hover:border-amber-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="bg-amber-500 rounded-xl p-2.5 flex-shrink-0">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-gray-900">5問チャレンジ</div>
+                  <div className="text-sm text-gray-500">区分を選んで腕試し・結果をシェアしよう</div>
                 </div>
                 <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
               </CardContent>
