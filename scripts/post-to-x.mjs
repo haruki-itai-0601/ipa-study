@@ -13,8 +13,10 @@
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { writeFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 import { TwitterApi } from "twitter-api-v2";
+import { renderCard } from "./question-card.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -42,8 +44,31 @@ const EXAM = {
 };
 
 function xlen(s) { s = s.replace(/https?:\/\/\S+/g, "x".repeat(23)); let n = 0; for (const c of s) n += c.codePointAt(0) <= 0x7f ? 1 : 2; return n; }
+
+// スパム判定(同一文反復)回避のため、見出し・誘導文をローテーション
+const INTROS = ["【今日の1問】", "【過去問チャレンジ】", "📝 今日の過去問", "🎯 腕試し1問", "💡 今日の1問"];
+const CTAS = [
+  "ぜひサイトに来て回答してみてください😊\n選択肢・解答・解説はこちら👇",
+  "あなたは解けますか？選択肢・解答・解説はこちら👇",
+  "サイトで実際に解いて答え合わせ！選択肢・解答・解説はこちら👇",
+  "ア〜エ、どれだと思う？答え合わせはこちら👇",
+  "解けたらすごい💪 選択肢・解答・解説はこちら👇",
+];
+// 問題ID＋日付で決定的にバリアントを選ぶ（毎回ランダムではなく安定だが多様）
+function variantSeed(q) {
+  const s = q.id + new Date().toISOString().slice(0, 10);
+  let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h;
+}
+// 計測用UTM付きの問題ページURL
+function qUrl(q) {
+  return `${LINK}/q/${q.id}?utm_source=x&utm_medium=social&utm_campaign=daily_quiz`;
+}
 function tweetText(q, em) {
-  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nぜひサイトに来て回答してみてください😊\n選択肢・解答・解説はこちら👇\n${LINK}/q/${q.id}\n${em.tags.join(" ")}`;
+  const h = variantSeed(q);
+  const intro = INTROS[h % INTROS.length];
+  const cta = CTAS[(h >>> 3) % CTAS.length];
+  return `${intro}〔${em.name}／${q.year}〕\n${q.question}\n\n${cta}\n${qUrl(q)}\n${em.tags.join(" ")}`;
 }
 
 async function pick(supabase) {
@@ -74,9 +99,14 @@ async function main() {
   const q = await pick(supabase);
   const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
   const text = tweetText(q, em);
+  const img = renderCard(q, em); // 問題カード画像（滞在時間UP・リンク投稿の弱さを補う）
   console.log(`question ${q.id} (${q.exam_id}/${q.year}) / ${xlen(text)}字\n--- TWEET ---\n${text}`);
 
-  if (dry) { console.log("\n[dry-run] 投稿・記録はしませんでした。"); return; }
+  if (dry) {
+    writeFileSync("/tmp/last-card.png", img);
+    console.log("\n[dry-run] 投稿しません。カード画像は /tmp/last-card.png に保存しました。");
+    return;
+  }
 
   const { X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET } = process.env;
   if (!X_API_KEY || !X_API_SECRET || !X_ACCESS_TOKEN || !X_ACCESS_SECRET) {
@@ -87,7 +117,8 @@ async function main() {
     accessToken: X_ACCESS_TOKEN, accessSecret: X_ACCESS_SECRET,
   }).readWrite;
 
-  const t = await x.v2.tweet(text);
+  const mediaId = await x.v1.uploadMedia(img, { mimeType: "image/png" });
+  const t = await x.v2.tweet({ text, media: { media_ids: [mediaId] } });
   await supabase.from("social_posts").insert({ question_id: q.id, slot: "x", tweet_id: t.data.id });
   console.log(`\n投稿完了: https://x.com/i/web/status/${t.data.id}`);
 }
