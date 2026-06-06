@@ -47,7 +47,7 @@ const SLOT = ["朝", "昼", "夕"];
 function xlen(s) { s = s.replace(/https?:\/\/\S+/g, "x".repeat(23)); let n = 0; for (const c of s) n += c.codePointAt(0) <= 0x7f ? 1 : 2; return n; }
 // メイン投稿＝問題のみ（選択肢と正解はリプで）
 function mainPost(q, em) {
-  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nわかる人いる？選択肢と正解はリプで👇\n${em.tags.join(" ")}`;
+  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nわかった方は、ぜひリプで教えてください😊\n選択肢・正解はリプ欄に👇\n${em.tags.join(" ")}`;
 }
 // リプ＝選択肢＋正解。締めは「○○試験の対策は過去問サイトで！」（収まらなければ短い締めに自動調整）
 function reply(q, em) {
