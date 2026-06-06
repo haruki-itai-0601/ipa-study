@@ -43,15 +43,27 @@ const EXAM = {
 const KANA = { a: "ア", b: "イ", c: "ウ", d: "エ" };
 const SLOT = ["朝", "昼", "夕"];
 
-function wlen(s) { let n = 0; for (const c of s) n += c.charCodeAt(0) <= 0x7f ? 0.5 : 1; return Math.ceil(n); }
+// X実効長（日本語など=2、半角=1、URLは23固定）
+function xlen(s) { s = s.replace(/https?:\/\/\S+/g, "x".repeat(23)); let n = 0; for (const c of s) n += c.codePointAt(0) <= 0x7f ? 1 : 2; return n; }
+function clip(s, max) { const a = [...(s || "")]; return a.length <= max ? s : a.slice(0, max).join("") + "…"; }
+// メイン投稿＝問題（選択肢つき）。答えはリプで。
 function mainFull(q, em) {
-  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nア ${q.option_a}\nイ ${q.option_b}\nウ ${q.option_c}\nエ ${q.option_d}\n\n正解・解説はアプリで👇（出典：IPA）\n${LINK}\n${em.tags.join(" ")}`;
+  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nア ${q.option_a}\nイ ${q.option_b}\nウ ${q.option_c}\nエ ${q.option_d}\n\n答えはリプ欄で👇\n${em.tags.join(" ")}`;
 }
 function mainShort(q, em) {
-  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nア〜エ、どれ？🤔\n選択肢・正解・解説はアプリで👇（出典：IPA）\n${LINK}\n${em.tags.join(" ")}`;
+  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nア〜エ、どれ？答えはリプ欄で👇\n${em.tags.join(" ")}`;
 }
+// メイン投稿（フルが280に収まればフル、ダメなら選択肢省略版）
+function mainPost(q, em) {
+  const full = mainFull(q, em);
+  return xlen(full) <= 278 ? full : mainShort(q, em);
+}
+// リプ＝正解＋解説（締めは「○○試験の対策は過去問サイトで！」）。解説は残り予算に合わせて自動カット。
 function reply(q, em) {
-  return `正解：${KANA[q.correct_answer]}（${q[`option_${q.correct_answer}`]}）\n\n${q.explanation}\n\n本物の過去問2,200問超を無料演習👇\n${LINK}（出典：IPA）`;
+  const head = `正解：${KANA[q.correct_answer]}\n\n`;
+  const tail = `\n\n${em.name}の対策は過去問サイトで📚👇（出典：IPA）\n${LINK}`;
+  const budgetCjk = Math.max(20, Math.floor((276 - xlen(head) - xlen(tail)) / 2));
+  return head + clip(q.explanation, budgetCjk) + tail;
 }
 
 async function main() {
@@ -72,7 +84,7 @@ async function main() {
     .eq("type", "past");
   if (error) throw new Error("questions: " + error.message);
   let pool = data.filter(
-    (q) => q.question && q.question.length >= 18 && q.question.length <= 80 &&
+    (q) => q.question && q.question.length >= 18 && q.question.length <= 72 &&
       !/[図表]/.test(q.question) && !/アローダイアグラム|グラフ|次のプログラム|流れ図/.test(q.question)
   );
 
@@ -92,14 +104,12 @@ async function main() {
 
   const blocks = picked.map((q, i) => {
     const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
-    const full = mainFull(q, em);
-    const m = wlen(full) <= 140 ? full : mainShort(q, em);
-    return `━━━━━ ${i + 1}日目 ━━━━━\n\n【メイン投稿】\n${m}\n\n【正解リプ（任意：メイン投稿のスレッドにぶら下げると答え合わせに）】\n${reply(q, em)}`;
+    return `━━━━━ ${i + 1}日目 ━━━━━\n\n【メイン投稿（問題）】\n${mainPost(q, em)}\n\n【リプ（正解＋解説）→メイン投稿のスレッドにぶら下げる】\n${reply(q, em)}`;
   });
   const body =
     `今週のX投稿ネタ（${picked.length}本＝1日1本×${picked.length}日分）です。\n` +
-    `Xの予約投稿で、各「メイン投稿」を1日1本ずつセットしてください。\n` +
-    `「正解リプ」は任意。付ける場合はメイン投稿のスレッドとして一緒に予約すると◎。\n` +
+    `使い方：各「メイン投稿（問題）」を1日1本ずつ予約 → その下に「リプ（正解＋解説）」をスレッドでぶら下げる。\n` +
+    `Xの作成画面で「＋」を押すとメイン＋リプを1セットで作って一緒に予約できます。\n` +
     `※手動投稿ならURL付きでも無料です。\n\n` +
     blocks.join("\n\n\n");
   const subject = `📚 今週のX投稿ネタ ${picked.length}本（過去問道場）`;
