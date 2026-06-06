@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-// 1週間分(既定21本=1日3回×7日)のX投稿文を生成し、LINE（Messaging API）で自分に届ける。
+// 1週間分(既定21本=1日3回×7日)のX投稿文を生成し、メールで自分に届ける（Resend利用）。
 //   環境変数（.env.local もしくは GitHub Secrets）:
 //     SUPABASE_URL（無ければ NEXT_PUBLIC_SUPABASE_URL）
 //     SUPABASE_ANON_KEY（無ければ NEXT_PUBLIC_SUPABASE_ANON_KEY）  ※questions読み取りのみ
-//     LINE_CHANNEL_ACCESS_TOKEN   LINE Messaging API のチャネルアクセストークン（長期）
-//     LINE_USER_ID                送信先（自分）のuserID（LINE Developers の Basic settings の「Your user ID」）
+//     RESEND_API_KEY   Resend の API キー（https://resend.com で無料取得）
+//     MAIL_TO          送信先（自分のメールアドレス。Resend登録メールなら独自ドメイン不要）
+//     MAIL_FROM        差出人（省略時 "過去問道場 <onboarding@resend.dev>"）
 //   使い方:
-//     node scripts/send-to-line.mjs            # LINEへ送信
-//     node scripts/send-to-line.mjs --dry-run  # 送らず内容だけ表示
-//     node scripts/send-to-line.mjs --count 21 # 本数指定（既定21）
+//     node scripts/send-email.mjs            # メール送信
+//     node scripts/send-email.mjs --dry-run  # 送らず本文だけ表示
+//     node scripts/send-email.mjs --count 21 # 本数指定（既定21）
 
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -73,47 +74,36 @@ async function main() {
     (q) => q.question && q.question.length >= 18 && q.question.length <= 80 &&
       !/[図表]/.test(q.question) && !/アローダイアグラム|グラフ|次のプログラム|流れ図/.test(q.question)
   );
-  // シャッフルして count 本
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]]; }
   const picked = pool.slice(0, count);
 
-  // 1本ずつブロック整形
   const blocks = picked.map((q, i) => {
     const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
     const full = mainFull(q, em);
     const m = wlen(full) <= 280 ? full : mainShort(q, em);
     const day = Math.floor(i / 3) + 1;
-    const slot = SLOT[i % 3];
-    return `━━━ ${i + 1}本目（${day}日目・${slot}）━━━\n【メイン投稿】\n${m}\n\n【正解リプ】\n${reply(q, em)}`;
+    return `━━━━━ ${i + 1}本目（${day}日目・${SLOT[i % 3]}）━━━━━\n\n【メイン投稿】\n${m}\n\n【正解リプ（メインへのリプライ）】\n${reply(q, em)}`;
   });
+  const body =
+    `今週のX投稿ネタ（${picked.length}本＝1日3回×${Math.ceil(picked.length / 3)}日分）です。\n` +
+    `Xの予約投稿で、各「メイン投稿」を朝/昼/夕にセットし、「正解リプ」はメインへのリプとしてぶら下げてください。\n` +
+    `※手動投稿ならURL付きでも無料です。\n\n` +
+    blocks.join("\n\n\n");
+  const subject = `📚 今週のX投稿ネタ ${picked.length}本（過去問道場）`;
 
-  // LINEメッセージは1通5000字まで。ブロックを連結して ≤4500字ごとに分割（最大5通）
-  const messages = [];
-  let buf = "";
-  for (const b of blocks) {
-    if (wlen(buf) + wlen(b) > 4500 && buf) { messages.push(buf.trim()); buf = ""; }
-    buf += b + "\n\n";
-  }
-  if (buf.trim()) messages.push(buf.trim());
-  const header = `📚 今週のX投稿ネタ（${picked.length}本＝1日3回×${Math.ceil(picked.length / 3)}日分）\nXの予約投稿で朝/昼/夕にセットしてね`;
-  messages.unshift(header);
-  const chunks = messages.slice(0, 5); // LINE push は1リクエスト最大5メッセージ
+  if (dry) { console.log("件名:", subject, "\n\n", body); return; }
 
-  if (dry) {
-    console.log(`[dry-run] ${picked.length}本 / LINEメッセージ${chunks.length}通\n`);
-    console.log(chunks.join("\n\n========【メッセージ区切り】========\n\n"));
-    return;
-  }
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  const to = process.env.LINE_USER_ID;
-  if (!token || !to) throw new Error("LINE_CHANNEL_ACCESS_TOKEN / LINE_USER_ID が必要です");
-  const res = await fetch("https://api.line.me/v2/bot/message/push", {
+  const apiKey = process.env.RESEND_API_KEY;
+  const to = process.env.MAIL_TO;
+  const from = process.env.MAIL_FROM || "過去問道場 <onboarding@resend.dev>";
+  if (!apiKey || !to) throw new Error("RESEND_API_KEY / MAIL_TO が必要です");
+  const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ to, messages: chunks.map((t) => ({ type: "text", text: t })) }),
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ from, to, subject, text: body }),
   });
-  if (!res.ok) throw new Error(`LINE push失敗: ${res.status} ${await res.text()}`);
-  console.log(`LINEへ送信しました（${picked.length}本 / ${chunks.length}通）`);
+  if (!res.ok) throw new Error(`メール送信失敗: ${res.status} ${await res.text()}`);
+  console.log(`メール送信しました → ${to}（${picked.length}本）`);
 }
 
 main().catch((e) => { console.error("ERROR:", e.message); process.exit(1); });
