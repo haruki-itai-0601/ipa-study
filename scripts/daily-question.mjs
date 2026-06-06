@@ -145,7 +145,7 @@ async function main() {
     console.log(`\n================ ${label}（${d.toISOString().slice(0, 10)}） ================`);
     console.log(`■ メイン投稿（${weightedLen(main)}/280）`);
     console.log(main);
-    if (weightedLen(main) > 280) {
+    if (weightedLen(main) > 140) {
       console.log(`\n  ↑280超のため、選択肢省略版（${weightedLen(short)}/280）を推奨:`);
       console.log(short);
     }

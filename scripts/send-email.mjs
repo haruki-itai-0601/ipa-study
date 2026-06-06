@@ -58,7 +58,7 @@ async function main() {
   const args = process.argv.slice(2);
   const dry = args.includes("--dry-run");
   const ci = args.indexOf("--count");
-  const count = ci >= 0 ? parseInt(args[ci + 1] || "21", 10) : 21;
+  const count = ci >= 0 ? parseInt(args[ci + 1] || "7", 10) : 7;
 
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   // 送信済み記録(social_posts)の読み書きには service_role が必要。無ければ anon にフォールバック（重複除外なし）。
@@ -93,13 +93,13 @@ async function main() {
   const blocks = picked.map((q, i) => {
     const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
     const full = mainFull(q, em);
-    const m = wlen(full) <= 280 ? full : mainShort(q, em);
-    const day = Math.floor(i / 3) + 1;
-    return `━━━━━ ${i + 1}本目（${day}日目・${SLOT[i % 3]}）━━━━━\n\n【メイン投稿】\n${m}\n\n【正解リプ（メインへのリプライ）】\n${reply(q, em)}`;
+    const m = wlen(full) <= 140 ? full : mainShort(q, em);
+    return `━━━━━ ${i + 1}日目 ━━━━━\n\n【メイン投稿】\n${m}\n\n【正解リプ（任意：メイン投稿のスレッドにぶら下げると答え合わせに）】\n${reply(q, em)}`;
   });
   const body =
-    `今週のX投稿ネタ（${picked.length}本＝1日3回×${Math.ceil(picked.length / 3)}日分）です。\n` +
-    `Xの予約投稿で、各「メイン投稿」を朝/昼/夕にセットし、「正解リプ」はメインへのリプとしてぶら下げてください。\n` +
+    `今週のX投稿ネタ（${picked.length}本＝1日1本×${picked.length}日分）です。\n` +
+    `Xの予約投稿で、各「メイン投稿」を1日1本ずつセットしてください。\n` +
+    `「正解リプ」は任意。付ける場合はメイン投稿のスレッドとして一緒に予約すると◎。\n` +
     `※手動投稿ならURL付きでも無料です。\n\n` +
     blocks.join("\n\n\n");
   const subject = `📚 今週のX投稿ネタ ${picked.length}本（過去問道場）`;
