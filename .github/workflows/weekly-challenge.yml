@@ -1,10 +1,10 @@
 name: weekly-challenge
 
-# 毎週 土曜 朝10:00(JST) に「5問チャレンジ」を告知投稿。区分は毎週ローテーション。
-#   土10:00 JST = 土01:00 UTC
+# 毎週 日曜 朝10:00(JST) に「5問チャレンジ」を告知投稿。区分は毎週ローテーション。
+#   日10:00 JST = 日01:00 UTC
 on:
   schedule:
-    - cron: "0 1 * * 6"
+    - cron: "0 1 * * 0"
   workflow_dispatch: {}
 
 concurrency:
