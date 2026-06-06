@@ -3,9 +3,8 @@ name: weekly-email
 # 毎週月曜 朝7:00(JST)に、1週間分(21本)のX投稿ネタをメールで送る。
 #   月曜07:00 JST = 日曜22:00 UTC
 on:
-  schedule:
-    - cron: "0 22 * * 0"
-  workflow_dispatch: {} # 手動実行（テスト用）
+  # X自動投稿(daily-tweet)に移行したため定期配信は停止。手動実行のみ残す（バックアップ用）。
+  workflow_dispatch: {}
 
 concurrency:
   group: weekly-email
