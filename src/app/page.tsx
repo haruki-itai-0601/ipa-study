@@ -125,7 +125,7 @@ export default function Home() {
           </div>
           <div className="flex flex-row flex-wrap items-center gap-2 md:flex-col md:items-end md:gap-1">
             <Badge variant="secondary" className="text-xs md:text-sm">
-              📚 過去問演習（令和元〜令和7年度）
+              📚 過去問演習（平成25〜令和7年度）
             </Badge>
             <Badge variant="secondary" className="text-xs md:text-sm">
               <Zap className="w-3 h-3 mr-1" />
