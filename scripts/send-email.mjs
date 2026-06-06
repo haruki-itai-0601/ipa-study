@@ -47,7 +47,7 @@ const SLOT = ["朝", "昼", "夕"];
 function xlen(s) { s = s.replace(/https?:\/\/\S+/g, "x".repeat(23)); let n = 0; for (const c of s) n += c.codePointAt(0) <= 0x7f ? 1 : 2; return n; }
 // 投稿＝問題文＋「答え・解説はこちら」専用ページへのリンク（1ツイートで完結・リプ不要）
 function mainPost(q, em) {
-  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nわかった方は、ぜひリプで教えてください😊\n答え・解説はこちら👇\n${LINK}/q/${q.id}\n${em.tags.join(" ")}`;
+  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nわかった方は、ぜひリプで教えてください😊\n選択肢・解答・解説はこちらから👇\n${LINK}/q/${q.id}\n${em.tags.join(" ")}`;
 }
 
 async function main() {
