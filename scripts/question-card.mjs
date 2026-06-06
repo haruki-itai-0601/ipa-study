@@ -101,6 +101,38 @@ export function renderCard(q, em) {
   return c.toBuffer("image/png");
 }
 
+// 「5問チャレンジ」告知バナー
+export function renderChallengeCard(em) {
+  const c = createCanvas(W, H);
+  const x = c.getContext("2d");
+  const g = x.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, "#f59e0b");
+  g.addColorStop(1, "#b45309");
+  x.fillStyle = g;
+  x.fillRect(0, 0, W, H);
+
+  x.textAlign = "center";
+  x.fillStyle = "rgba(255,255,255,0.95)";
+  x.font = "bold 40px NotoJP";
+  x.fillText("週末の腕試し", W / 2, 130);
+  x.font = "bold 120px NotoJP";
+  x.fillText("5問チャレンジ", W / 2, 290);
+  x.font = "bold 48px NotoJP";
+  x.fillText(em.name, W / 2, 400);
+  x.font = "40px NotoJP";
+  x.fillStyle = "rgba(255,255,255,0.95)";
+  x.fillText("あなたは何問解ける？", W / 2, 480);
+  x.font = "30px NotoJP";
+  x.fillStyle = "rgba(255,255,255,0.85)";
+  x.fillText("1分でできる・結果はその場で答え合わせ", W / 2, 540);
+
+  x.font = "bold 30px NotoJP";
+  x.fillStyle = "rgba(255,255,255,0.95)";
+  x.fillText("過去問道場", W / 2, H - 50);
+  x.textAlign = "left";
+  return c.toBuffer("image/png");
+}
+
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);

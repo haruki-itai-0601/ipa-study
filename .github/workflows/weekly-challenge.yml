@@ -1,0 +1,30 @@
+name: weekly-challenge
+
+# 毎週 土曜 朝10:00(JST) に「5問チャレンジ」を告知投稿。区分は毎週ローテーション。
+#   土10:00 JST = 土01:00 UTC
+on:
+  schedule:
+    - cron: "0 1 * * 6"
+  workflow_dispatch: {}
+
+concurrency:
+  group: weekly-challenge
+  cancel-in-progress: false
+
+jobs:
+  challenge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Post weekly challenge to X
+        run: node scripts/post-challenge.mjs
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
