@@ -45,20 +45,9 @@ const SLOT = ["朝", "昼", "夕"];
 
 // X実効長（日本語など=2、半角=1、URLは23固定）
 function xlen(s) { s = s.replace(/https?:\/\/\S+/g, "x".repeat(23)); let n = 0; for (const c of s) n += c.codePointAt(0) <= 0x7f ? 1 : 2; return n; }
-// メイン投稿＝問題のみ（選択肢と正解はリプで）
+// 投稿＝問題文＋「答え・解説はこちら」専用ページへのリンク（1ツイートで完結・リプ不要）
 function mainPost(q, em) {
-  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nわかった方は、ぜひリプで教えてください😊\n選択肢・正解はリプ欄に👇\n${em.tags.join(" ")}`;
-}
-// リプ＝選択肢＋正解。締めは「○○試験の対策は過去問サイトで！」（収まらなければ短い締めに自動調整）
-function reply(q, em) {
-  const opts = `ア ${q.option_a}\nイ ${q.option_b}\nウ ${q.option_c}\nエ ${q.option_d}\n\n正解：${KANA[q.correct_answer]}`;
-  const ctas = [
-    `\n\n${em.name}の対策は過去問サイトで📚👇（出典：IPA）\n${LINK}`,
-    `\n\n過去問サイトで対策👇（出典：IPA）\n${LINK}`,
-    `\n👇（出典：IPA）\n${LINK}`,
-  ];
-  for (const c of ctas) if (xlen(opts + c) <= 280) return opts + c;
-  return opts + ctas[2];
+  return `【今日の1問】〔${em.name}／${q.year}〕\n${q.question}\n\nわかった方は、ぜひリプで教えてください😊\n答え・解説はこちら👇\n${LINK}/q/${q.id}\n${em.tags.join(" ")}`;
 }
 
 async function main() {
@@ -79,11 +68,10 @@ async function main() {
     .eq("type", "past");
   if (error) throw new Error("questions: " + error.message);
   let pool = data.filter(
-    (q) => q.question && q.question.length >= 18 && q.question.length <= 72 &&
+    (q) => q.question && q.question.length >= 18 &&
       !/[図表]/.test(q.question) && !/アローダイアグラム|グラフ|次のプログラム|流れ図/.test(q.question) &&
-      // メイン(問題)もリプ(選択肢+正解)も280字に収まるものだけ
-      xlen(mainPost(q, EXAM[q.exam_id] || { name: q.exam_id, tags: [] })) <= 280 &&
-      xlen(reply(q, EXAM[q.exam_id] || { name: q.exam_id, tags: [] })) <= 280
+      // 投稿(問題＋リンク)が280字に収まるものだけ
+      xlen(mainPost(q, EXAM[q.exam_id] || { name: q.exam_id, tags: [] })) <= 280
   );
 
   // 過去に送った問題を除外（social_posts に記録。service_role時のみ有効）
@@ -102,12 +90,12 @@ async function main() {
 
   const blocks = picked.map((q, i) => {
     const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
-    return `━━━━━ ${i + 1}日目 ━━━━━\n\n【メイン投稿（問題）】\n${mainPost(q, em)}\n\n【リプ（選択肢＋正解）→メイン投稿のスレッドにぶら下げる】\n${reply(q, em)}`;
+    return `━━━━━ ${i + 1}日目 ━━━━━\n${mainPost(q, em)}`;
   });
   const body =
     `今週のX投稿ネタ（${picked.length}本＝1日1本×${picked.length}日分）です。\n` +
-    `使い方：各「メイン投稿（問題）」を1日1本ずつ予約 → その下に「リプ（選択肢＋正解）」をスレッドでぶら下げる。\n` +
-    `Xの作成画面で「＋」を押すとメイン＋リプを1セットで作って一緒に予約できます。\n` +
+    `各「投稿」を1日1本ずつXの予約投稿でセットしてください（リプ不要・1ツイートで完結）。\n` +
+    `選択肢・正解・解説は、投稿内のリンク先ページ（/q/問題ID）に載っています。\n` +
     `※手動投稿ならURL付きでも無料です。\n\n` +
     blocks.join("\n\n\n");
   const subject = `📚 今週のX投稿ネタ ${picked.length}本（過去問道場）`;
