@@ -61,21 +61,34 @@ async function main() {
   const count = ci >= 0 ? parseInt(args[ci + 1] || "21", 10) : 21;
 
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("SUPABASE_URL / SUPABASE_ANON_KEY が必要です");
+  // 送信済み記録(social_posts)の読み書きには service_role が必要。無ければ anon にフォールバック（重複除外なし）。
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error("SUPABASE_URL / キー が必要です");
   const supabase = createClient(url, key, { auth: { persistSession: false } });
 
   const { data, error } = await supabase
     .from("questions")
-    .select("exam_id,year,question,option_a,option_b,option_c,option_d,correct_answer,explanation")
+    .select("id,exam_id,year,question,option_a,option_b,option_c,option_d,correct_answer,explanation")
     .eq("type", "past");
   if (error) throw new Error("questions: " + error.message);
-  const pool = data.filter(
+  let pool = data.filter(
     (q) => q.question && q.question.length >= 18 && q.question.length <= 80 &&
       !/[図表]/.test(q.question) && !/アローダイアグラム|グラフ|次のプログラム|流れ図/.test(q.question)
   );
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]]; }
-  const picked = pool.slice(0, count);
+
+  // 過去に送った問題を除外（social_posts に記録。service_role時のみ有効）
+  let sent = new Set();
+  try {
+    const { data: done } = await supabase.from("social_posts").select("question_id");
+    sent = new Set((done || []).map((r) => r.question_id));
+  } catch { /* anon等で読めない場合は除外なし */ }
+  let avail = pool.filter((q) => !sent.has(q.id));
+  if (avail.length < count) {
+    console.log(`[info] 未送信が${avail.length}本のみ→一巡したため全問から再選出します`);
+    avail = pool;
+  }
+  for (let i = avail.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[avail[i], avail[j]] = [avail[j], avail[i]]; }
+  const picked = avail.slice(0, count);
 
   const blocks = picked.map((q, i) => {
     const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
@@ -104,6 +117,14 @@ async function main() {
   });
   if (!res.ok) throw new Error(`メール送信失敗: ${res.status} ${await res.text()}`);
   console.log(`メール送信しました → ${to}（${picked.length}本）`);
+
+  // 送信した問題を記録（次回から除外）。service_role でなければスキップ。
+  try {
+    const rows = picked.map((q) => ({ question_id: q.id, slot: "email" }));
+    const { error: insErr } = await supabase.from("social_posts").insert(rows);
+    if (insErr) console.log(`[info] 送信済み記録はスキップ（${insErr.message}）`);
+    else console.log(`[info] ${rows.length}問を送信済みに記録しました`);
+  } catch (e) { console.log(`[info] 送信済み記録はスキップ（${e.message}）`); }
 }
 
 main().catch((e) => { console.error("ERROR:", e.message); process.exit(1); });

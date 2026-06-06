@@ -1,0 +1,30 @@
+name: weekly-email
+
+# 毎週月曜 朝7:00(JST)に、1週間分(21本)のX投稿ネタをメールで送る。
+#   月曜07:00 JST = 日曜22:00 UTC
+on:
+  schedule:
+    - cron: "0 22 * * 0"
+  workflow_dispatch: {} # 手動実行（テスト用）
+
+concurrency:
+  group: weekly-email
+  cancel-in-progress: false
+
+jobs:
+  email:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Send weekly batch by email
+        run: node scripts/send-email.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
