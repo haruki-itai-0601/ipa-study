@@ -162,48 +162,6 @@ export default function Home() {
             <span className="text-sm text-gray-400">全試験の合計</span>
           </div>
           <TodayStats />
-          <Link href="/analysis" className="block mt-3">
-            <Card className="border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="bg-indigo-600 rounded-xl p-2.5 flex-shrink-0">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-gray-900">学習分析・弱点ダッシュボード</div>
-                  <div className="text-sm text-gray-500">区分横断で進捗と苦手分野をチェック</div>
-                </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/challenge" className="block mt-3">
-            <Card className="border-2 border-amber-200 bg-amber-50 hover:border-amber-400 hover:shadow-md transition-all duration-200 cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="bg-amber-500 rounded-xl p-2.5 flex-shrink-0">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-gray-900">5問チャレンジ</div>
-                  <div className="text-sm text-gray-500">区分を選んで腕試し・結果をシェアしよう</div>
-                </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/account" className="block mt-3">
-            <Card className="border-2 border-emerald-200 bg-emerald-50 hover:border-emerald-400 hover:shadow-md transition-all duration-200 cursor-pointer">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="bg-emerald-500 rounded-xl p-2.5 flex-shrink-0">
-                  <UserPlus className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-bold text-gray-900">メールで会員登録（無料）</div>
-                  <div className="text-sm text-gray-500">機種変更・別端末でも学習進捗を引き継げます</div>
-                </div>
-                <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-              </CardContent>
-            </Card>
-          </Link>
         </section>
 
         {/* 午前Ⅰ（全区分共通） */}
@@ -299,6 +257,57 @@ export default function Home() {
                 </Card>
               </Link>
             ))}
+          </div>
+        </section>
+
+        {/* その他のメニュー */}
+        <section className="border-t border-gray-200 pt-6">
+          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            分析・チャレンジ・会員登録
+          </h2>
+          <div className="space-y-3">
+            <Link href="/analysis" className="block">
+              <Card className="border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="bg-indigo-600 rounded-xl p-2.5 flex-shrink-0">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-900">学習分析・弱点ダッシュボード</div>
+                    <div className="text-sm text-gray-500">区分横断で進捗と苦手分野をチェック</div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/challenge" className="block">
+              <Card className="border-2 border-amber-200 bg-amber-50 hover:border-amber-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="bg-amber-500 rounded-xl p-2.5 flex-shrink-0">
+                    <Trophy className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-900">5問チャレンジ</div>
+                    <div className="text-sm text-gray-500">区分を選んで腕試し・結果をシェアしよう</div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/account" className="block">
+              <Card className="border-2 border-emerald-200 bg-emerald-50 hover:border-emerald-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="bg-emerald-500 rounded-xl p-2.5 flex-shrink-0">
+                    <UserPlus className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-900">メールで会員登録（無料）</div>
+                    <div className="text-sm text-gray-500">機種変更・別端末でも学習進捗を引き継げます</div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </section>
 
