@@ -22,7 +22,8 @@ function wrap(ctx, text, maxW) {
   return lines;
 }
 
-export function renderCard(q, em) {
+export function renderCard(q, em, opts = {}) {
+  const title = opts.title || "今日の1問";
   const c = createCanvas(W, H);
   const x = c.getContext("2d");
 
@@ -36,7 +37,7 @@ export function renderCard(q, em) {
   // ヘッダー
   x.fillStyle = "rgba(255,255,255,0.95)";
   x.font = "bold 36px NotoJP";
-  x.fillText("今日の1問", 56, 74);
+  x.fillText(title, 56, 74);
   x.font = "26px NotoJP";
   x.fillStyle = "rgba(255,255,255,0.85)";
   x.fillText(`${em.name}／${q.year}`, 56, 112);
@@ -68,24 +69,22 @@ export function renderCard(q, em) {
   for (const ln of qLines) { x.fillText(ln, px + 40, cy + qSize); cy += qSize + 12; }
   cy += 14;
 
-  // 選択肢
-  const oSize = 27;
-  x.font = `${oSize}px NotoJP`;
+  // 選択肢（読みやすさ優先：濃い色＋やや大きめ＋行間広め）
+  const oSize = 29;
+  x.font = `bold ${oSize}px NotoJP`;
   for (const k of ["a", "b", "c", "d"]) {
     const label = KANA[k];
     const lines = wrap(x, q[`option_${k}`], innerW - 56);
-    x.fillStyle = "#4f46e5";
+    x.fillStyle = "#4338ca";
     x.font = `bold ${oSize}px NotoJP`;
     x.fillText(label, px + 40, cy + oSize);
-    x.fillStyle = "#1f2937";
-    x.font = `${oSize}px NotoJP`;
-    let first = true;
+    x.fillStyle = "#0f172a";
+    x.font = `bold ${oSize}px NotoJP`;
     for (const ln of lines) {
-      x.fillText(ln, px + 40 + 48, cy + oSize);
-      cy += oSize + 8;
-      first = false;
+      x.fillText(ln, px + 40 + 50, cy + oSize);
+      cy += oSize + 11;
     }
-    cy += 6;
+    cy += 8;
   }
 
   // フッター

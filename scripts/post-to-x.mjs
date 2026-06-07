@@ -99,7 +99,10 @@ async function main() {
   const q = await pick(supabase);
   const em = EXAM[q.exam_id] || { name: q.exam_id, tags: [] };
   const text = tweetText(q, em);
-  const img = renderCard(q, em); // 問題カード画像（滞在時間UP・リンク投稿の弱さを補う）
+  // 1日2本（朝7:30 / 夕19:00 JST）なので、JST時刻で「今日の問題（1/2 or 2/2）」を出し分ける
+  const jstHour = (new Date().getUTCHours() + 9) % 24;
+  const cardTitle = jstHour < 14 ? "今日の問題（1/2）" : "今日の問題（2/2）";
+  const img = renderCard(q, em, { title: cardTitle }); // 問題カード画像（滞在時間UP・リンク投稿の弱さを補う）
   console.log(`question ${q.id} (${q.exam_id}/${q.year}) / ${xlen(text)}字\n--- TWEET ---\n${text}`);
 
   if (dry) {
