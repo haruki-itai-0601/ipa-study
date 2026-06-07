@@ -9,14 +9,19 @@ GlobalFonts.registerFromPath(join(__dirname, "..", "assets", "NotoSansJP.ttf"), 
 const W = 1200, H = 675;
 const KANA = { a: "ア", b: "イ", c: "ウ", d: "エ" };
 
+// 行頭に置きたくない文字（禁則）。これらは前の行末にぶら下げる
+const NO_LINE_START = "。、，．）」』】〕｝、。";
 function wrap(ctx, text, maxW) {
   const lines = [];
   let line = "";
   for (const ch of text) {
     if (ch === "\n") { lines.push(line); line = ""; continue; }
     const t = line + ch;
-    if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = ch; }
-    else line = t;
+    if (ctx.measureText(t).width > maxW && line) {
+      // 禁則文字なら改行せず行末にぶら下げる
+      if (NO_LINE_START.includes(ch)) { line = t; }
+      else { lines.push(line); line = ch; }
+    } else line = t;
   }
   if (line) lines.push(line);
   return lines;
@@ -54,15 +59,15 @@ export function renderCard(q, em, opts = {}) {
   x.fill();
 
   const innerW = pw - 80;
-  let cy = py + 56;
+  let cy = py + 38; // 白パネル上部の余白を詰める
 
-  // 問題文（長さに応じてフォント自動調整）
-  let qSize = 38;
+  // 問題文（長さに応じてフォント自動調整。短い問題は大きく見せる）
+  let qSize = 44;
   let qLines;
-  for (; qSize >= 26; qSize -= 2) {
+  for (; qSize >= 30; qSize -= 2) {
     x.font = `bold ${qSize}px NotoJP`;
     qLines = wrap(x, q.question, innerW);
-    if (qLines.length * (qSize + 12) <= ph * 0.42) break;
+    if (qLines.length * (qSize + 12) <= ph * 0.46) break;
   }
   x.fillStyle = "#0f172a";
   x.font = `bold ${qSize}px NotoJP`;
@@ -71,7 +76,8 @@ export function renderCard(q, em, opts = {}) {
 
   // 選択肢（読みやすさ優先：濃い色＋太字）。残りの高さに収まるようサイズを自動調整してはみ出し防止
   const bottom = py + ph - 24; // 白パネル下端の手前まで
-  let oSize = 29;
+  const optGap = 20; // 選択肢ごとの間隔（少し広め）
+  let oSize = 40;
   let oLines; // [{label, lines}]
   for (; oSize >= 20; oSize -= 1) {
     x.font = `bold ${oSize}px NotoJP`;
@@ -79,8 +85,8 @@ export function renderCard(q, em, opts = {}) {
       label: KANA[k],
       lines: wrap(x, q[`option_${k}`], innerW - 56),
     }));
-    const lineH = oSize + 11, gap = 8;
-    const total = oLines.reduce((s, o) => s + o.lines.length * lineH + gap, 0);
+    const lineH = oSize + 11;
+    const total = oLines.reduce((s, o) => s + o.lines.length * lineH + optGap, 0);
     if (cy + total <= bottom) break;
   }
   const lineH = oSize + 11;
@@ -94,7 +100,7 @@ export function renderCard(q, em, opts = {}) {
       x.fillText(ln, px + 40 + 50, cy + oSize);
       cy += lineH;
     }
-    cy += 8;
+    cy += optGap;
   }
 
   // フッター
