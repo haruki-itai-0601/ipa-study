@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Target, TrendingUp } from "lucide-react";
+import { BookOpen, Target, TrendingUp, BarChart3, ChevronRight } from "lucide-react";
 
 type Stats = {
   todayAnswered: number;
@@ -135,26 +136,44 @@ export function TodayStats() {
         </Card>
       </div>
 
-      {/* 今日の目標進捗バー */}
-      <Card className="border-0 shadow-sm mt-3">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-base font-medium text-gray-700">今日の目標</span>
-            <span className="text-base text-gray-500">
-              {loading ? "-" : stats.todayAnswered} / 10問
-            </span>
-          </div>
-          <Progress
-            value={loading ? 0 : (stats.todayAnswered / 10) * 100}
-            className="h-2.5"
-          />
-          {!loading && stats.todayAnswered === 0 && (
-            <p className="text-sm text-gray-400 mt-2">
-              今日はまだ解いていません。1問から始めましょう！
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid gap-3 md:grid-cols-2 mt-3 items-stretch">
+        {/* 今日の目標進捗バー */}
+        <Card className="border-0 shadow-sm h-full">
+          <CardContent className="p-4 flex flex-col justify-center h-full">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-base font-medium text-gray-700">今日の目標</span>
+              <span className="text-base text-gray-500">
+                {loading ? "-" : stats.todayAnswered} / 10問
+              </span>
+            </div>
+            <Progress
+              value={loading ? 0 : (stats.todayAnswered / 10) * 100}
+              className="h-2.5"
+            />
+            {!loading && stats.todayAnswered === 0 && (
+              <p className="text-sm text-gray-400 mt-2">
+                今日はまだ解いていません。1問から始めましょう！
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 学習分析・弱点ダッシュボード */}
+        <Link href="/analysis" className="block h-full">
+          <Card className="h-full border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <CardContent className="p-4 flex items-center gap-3 h-full">
+              <div className="bg-indigo-600 rounded-xl p-2.5 flex-shrink-0">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="font-bold text-gray-900">学習分析・弱点ダッシュボード</div>
+                <div className="text-sm text-gray-500">区分横断で進捗と苦手分野をチェック</div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
     </>
   );
 }

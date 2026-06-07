@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TodayStats } from "@/components/today-stats";
-import { Brain, ChevronRight, Zap, BarChart3, BookMarked, Trophy, UserPlus } from "lucide-react";
+import { Brain, ChevronRight, Zap, BookMarked, Trophy, UserPlus } from "lucide-react";
 import Link from "next/link";
 
 // 午前Ⅰは全高度区分で共通なので、試験区分一覧とは分けて別枠で表示する
@@ -263,23 +263,9 @@ export default function Home() {
         {/* その他のメニュー */}
         <section className="border-t border-gray-200 pt-6">
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            分析・チャレンジ・会員登録
+            チャレンジ・会員登録
           </h2>
           <div className="space-y-3">
-            <Link href="/analysis" className="block">
-              <Card className="border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="bg-indigo-600 rounded-xl p-2.5 flex-shrink-0">
-                    <BarChart3 className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-gray-900">学習分析・弱点ダッシュボード</div>
-                    <div className="text-sm text-gray-500">区分横断で進捗と苦手分野をチェック</div>
-                  </div>
-                  <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
-                </CardContent>
-              </Card>
-            </Link>
             <Link href="/challenge" className="block">
               <Card className="border-2 border-amber-200 bg-amber-50 hover:border-amber-400 hover:shadow-md transition-all duration-200 cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-3">
