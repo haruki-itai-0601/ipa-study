@@ -69,20 +69,30 @@ export function renderCard(q, em, opts = {}) {
   for (const ln of qLines) { x.fillText(ln, px + 40, cy + qSize); cy += qSize + 12; }
   cy += 14;
 
-  // 選択肢（読みやすさ優先：濃い色＋やや大きめ＋行間広め）
-  const oSize = 29;
-  x.font = `bold ${oSize}px NotoJP`;
-  for (const k of ["a", "b", "c", "d"]) {
-    const label = KANA[k];
-    const lines = wrap(x, q[`option_${k}`], innerW - 56);
+  // 選択肢（読みやすさ優先：濃い色＋太字）。残りの高さに収まるようサイズを自動調整してはみ出し防止
+  const bottom = py + ph - 24; // 白パネル下端の手前まで
+  let oSize = 29;
+  let oLines; // [{label, lines}]
+  for (; oSize >= 20; oSize -= 1) {
+    x.font = `bold ${oSize}px NotoJP`;
+    oLines = ["a", "b", "c", "d"].map((k) => ({
+      label: KANA[k],
+      lines: wrap(x, q[`option_${k}`], innerW - 56),
+    }));
+    const lineH = oSize + 11, gap = 8;
+    const total = oLines.reduce((s, o) => s + o.lines.length * lineH + gap, 0);
+    if (cy + total <= bottom) break;
+  }
+  const lineH = oSize + 11;
+  for (const o of oLines) {
     x.fillStyle = "#4338ca";
     x.font = `bold ${oSize}px NotoJP`;
-    x.fillText(label, px + 40, cy + oSize);
+    x.fillText(o.label, px + 40, cy + oSize);
     x.fillStyle = "#0f172a";
     x.font = `bold ${oSize}px NotoJP`;
-    for (const ln of lines) {
+    for (const ln of o.lines) {
       x.fillText(ln, px + 40 + 50, cy + oSize);
-      cy += oSize + 11;
+      cy += lineH;
     }
     cy += 8;
   }
