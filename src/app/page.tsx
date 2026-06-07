@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TodayStats } from "@/components/today-stats";
-import { Brain, ChevronRight, Zap, BarChart3, BookMarked, Trophy } from "lucide-react";
+import { Brain, ChevronRight, Zap, BarChart3, BookMarked, Trophy, UserPlus } from "lucide-react";
 import Link from "next/link";
 
 // 午前Ⅰは全高度区分で共通なので、試験区分一覧とは分けて別枠で表示する
@@ -124,6 +124,13 @@ export default function Home() {
             </div>
           </div>
           <div className="flex flex-row flex-wrap items-center gap-2 md:flex-col md:items-end md:gap-1">
+            <Link
+              href="/account"
+              className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs md:text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              会員登録 / ログイン
+            </Link>
             <Badge variant="secondary" className="text-xs md:text-sm">
               📚 過去問演習（平成25〜令和7年度）
             </Badge>
@@ -178,6 +185,20 @@ export default function Home() {
                 <div className="flex-1">
                   <div className="font-bold text-gray-900">5問チャレンジ</div>
                   <div className="text-sm text-gray-500">区分を選んで腕試し・結果をシェアしよう</div>
+                </div>
+                <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/account" className="block mt-3">
+            <Card className="border-2 border-emerald-200 bg-emerald-50 hover:border-emerald-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="bg-emerald-500 rounded-xl p-2.5 flex-shrink-0">
+                  <UserPlus className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-gray-900">メールで会員登録（無料）</div>
+                  <div className="text-sm text-gray-500">機種変更・別端末でも学習進捗を引き継げます</div>
                 </div>
                 <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0" />
               </CardContent>

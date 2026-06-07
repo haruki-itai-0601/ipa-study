@@ -1,4 +1,5 @@
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 export function SiteFooter() {
   return (
@@ -7,19 +8,27 @@ export function SiteFooter() {
         <p className="text-xs text-gray-500 leading-relaxed">
           出典：IPA（独立行政法人情報処理推進機構）情報処理技術者試験・情報処理安全確保支援士試験
         </p>
-        <a
-          href="https://www.ipa.go.jp/shiken/mondai-kaiotu/index.html"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-        >
-          IPA公式サイト（過去問題）
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        <div className="flex items-center justify-center gap-4">
+          <a
+            href="https://www.ipa.go.jp/shiken/mondai-kaiotu/index.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+          >
+            IPA公式サイト（過去問題）
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <Link
+            href="/account"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+          >
+            会員登録 / ログイン
+          </Link>
+        </div>
         <p className="text-xs text-gray-400 leading-relaxed">
           過去問題は出典を明記のうえ使用しています。各問題の解説は本サービスが独自に作成したものです。
           <br />
-          🔒 メールアドレス・氏名などの個人情報は取得していません。
+          🔒 会員登録時のメールアドレスは、学習進捗の保存とログインにのみ使用します。
         </p>
       </div>
     </footer>
