@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { TodayStats } from "@/components/today-stats";
 import { Brain, ChevronRight, Zap, BookMarked, Trophy, UserPlus } from "lucide-react";
+import { AccountLink } from "@/components/account-link";
 import Link from "next/link";
 
 // 午前Ⅰは全高度区分で共通なので、試験区分一覧とは分けて別枠で表示する
@@ -124,13 +125,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex flex-row flex-wrap items-center gap-2 md:flex-col md:items-end md:gap-1">
-            <Link
-              href="/account"
-              className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs md:text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              会員登録 / ログイン
-            </Link>
+            <AccountLink />
             <Badge variant="secondary" className="text-xs md:text-sm">
               📚 過去問演習（平成25〜令和7年度）
             </Badge>

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { User, EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, CheckCircle2, LogOut, ShieldCheck, KeyRound } from "lucide-react";
+import { Mail, CheckCircle2, LogOut, ShieldCheck, KeyRound, Home } from "lucide-react";
 
 type Phase = "email" | "code";
 
@@ -141,13 +142,22 @@ export function AccountClient() {
           <p className="text-xs text-gray-500 leading-relaxed">
             学習進捗はこのアカウントに保存されています。別の端末でも同じメールアドレスでログインすると、進捗を引き継げます。
           </p>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-1.5 bg-white"
-          >
-            <LogOut className="w-4 h-4" />
-            ログアウト
-          </button>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-4 py-2"
+            >
+              <Home className="w-4 h-4" />
+              問題に戻る
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 bg-white"
+            >
+              <LogOut className="w-4 h-4" />
+              ログアウト
+            </button>
+          </div>
         </CardContent>
       </Card>
     );
