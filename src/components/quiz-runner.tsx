@@ -19,6 +19,7 @@ export type Question = {
   correct_answer: "a" | "b" | "c" | "d";
   explanation: string;
   q_number?: number | null;
+  image_url?: string | null;
 };
 
 const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
@@ -251,10 +252,18 @@ export default function QuizRunner({
           <span className="text-sm text-gray-400">{question.year}</span>
         </div>
 
-        {/* 問題文 */}
+        {/* 問題文（図問題は画像で表示。画像内に問題文・図・選択肢が含まれる） */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-5">
-            <p className="text-base leading-relaxed text-gray-900">{question.question}</p>
+            {question.image_url ? (
+              <img
+                src={question.image_url}
+                alt={`問題 ${question.q_number ?? ""}`}
+                className="w-full h-auto rounded-md border border-gray-100"
+              />
+            ) : (
+              <p className="text-base leading-relaxed text-gray-900">{question.question}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -282,7 +291,9 @@ export default function QuizRunner({
                 >
                   {optionLabels[key]}
                 </span>
-                <span className="text-base text-gray-800 leading-relaxed">{value}</span>
+                {!question.image_url && (
+                  <span className="text-base text-gray-800 leading-relaxed">{value}</span>
+                )}
                 {isAnswered && key === question.correct_answer && (
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 ml-auto" />
                 )}
