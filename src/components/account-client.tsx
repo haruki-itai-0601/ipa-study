@@ -75,7 +75,7 @@ export function AccountClient() {
     try {
       await sendCode(email);
       setPhase("code");
-      setInfo(`${email} 宛に6桁の確認コードを送りました。`);
+      setInfo(`${email} 宛に確認コードを送りました。`);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "送信に失敗しました。時間をおいて再度お試しください。");
     } finally {
@@ -164,7 +164,7 @@ export function AccountClient() {
           </div>
           {info && <p className="text-sm text-gray-600">{info}</p>}
           <p className="text-xs text-gray-500 leading-relaxed">
-            <span className="font-semibold">{email}</span> に届いた6桁の数字を入力してください。
+            <span className="font-semibold">{email}</span> に届いた確認コード（数字）を入力してください。
             （メールが見当たらない場合は迷惑メールフォルダもご確認ください）
           </p>
           <form onSubmit={handleVerify} className="space-y-3">
@@ -172,12 +172,12 @@ export function AccountClient() {
               inputMode="numeric"
               autoComplete="one-time-code"
               pattern="[0-9]*"
-              maxLength={6}
+              maxLength={8}
               required
               value={code}
               onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="123456"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-center text-2xl tracking-[0.4em] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              placeholder="------"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-center text-2xl tracking-[0.25em] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-400"
             />
             {err && <p className="text-sm text-red-600">{err}</p>}
             <button
@@ -216,7 +216,7 @@ export function AccountClient() {
         <div>
           <h2 className="font-bold text-gray-900">メールアドレスで会員登録 / ログイン</h2>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            メールアドレスを入力すると6桁の確認コードが届きます。コードを入力するだけで登録完了です（パスワード不要）。
+            メールアドレスを入力すると確認コードが届きます。コードを入力するだけで登録完了です（パスワード不要）。
             今の学習進捗はそのまま引き継がれます。
           </p>
         </div>
