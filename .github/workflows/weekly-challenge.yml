@@ -3,8 +3,10 @@ name: weekly-challenge
 # 毎週 日曜 朝10:00(JST) に「5問チャレンジ」を告知投稿。区分は毎週ローテーション。
 #   日10:00 JST = 日01:00 UTC
 on:
-  schedule:
-    - cron: "0 1 * * 0"
+  # ⏸ 自動配信は一時停止中（サイト完成後に内容を切り替えて再開予定）。
+  #   再開するには下の schedule のコメントを外す。手動実行は workflow_dispatch で可能。
+  # schedule:
+  #   - cron: "0 1 * * 0"
   workflow_dispatch: {}
 
 concurrency:

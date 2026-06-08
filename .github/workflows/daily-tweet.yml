@@ -5,9 +5,11 @@ name: daily-tweet
 # ※GitHub Actionsのスケジュールは数分〜十数分ずれることがあります（仕様）。
 # ※X APIは投稿1回ごとに課金（URL付き$0.20≒約30円）。2本/日で月約$12≒1,800円。残高が必要。
 on:
-  schedule:
-    - cron: "30 22 * * *"
-    - cron: "0 10 * * *"
+  # ⏸ 自動配信は一時停止中（サイト完成後に内容を切り替えて再開予定）。
+  #   再開するには下の schedule のコメントを外す。手動実行は workflow_dispatch で可能。
+  # schedule:
+  #   - cron: "30 22 * * *"
+  #   - cron: "0 10 * * *"
   workflow_dispatch: {}
 
 concurrency:
