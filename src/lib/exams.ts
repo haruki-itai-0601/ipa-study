@@ -1,5 +1,73 @@
 export const exams = [
   {
+    id: "ap",
+    name: "応用情報技術者試験",
+    shortName: "AP",
+    description: "ITエンジニアの登竜門。技術からマネジメント・戦略まで幅広く問う（午前）",
+    categories: [
+      "基礎理論・アルゴリズム",
+      "コンピュータ構成要素",
+      "システム構成・性能",
+      "データベース",
+      "ネットワーク",
+      "セキュリティ",
+      "システム開発技術",
+      "プロジェクトマネジメント",
+      "サービスマネジメント",
+      "システム戦略・経営戦略",
+      "企業活動・法務",
+    ],
+    color: "from-sky-500 to-sky-600",
+    bgColor: "bg-sky-50",
+    borderColor: "border-sky-200",
+    textColor: "text-sky-600",
+    badgeBg: "bg-sky-100",
+  },
+  {
+    id: "fe",
+    name: "基本情報技術者試験",
+    shortName: "FE",
+    description: "ITの基礎を証明する人気の国家試験。IT業界への第一歩（科目A）",
+    categories: [
+      "基礎理論",
+      "アルゴリズムとプログラミング",
+      "コンピュータ構成・ハードウェア",
+      "ソフトウェア・OS",
+      "データベース",
+      "ネットワーク",
+      "セキュリティ",
+      "システム開発",
+      "マネジメント",
+      "ストラテジ・経営",
+    ],
+    color: "from-violet-500 to-violet-600",
+    bgColor: "bg-violet-50",
+    borderColor: "border-violet-200",
+    textColor: "text-violet-600",
+    badgeBg: "bg-violet-100",
+  },
+  {
+    id: "ip",
+    name: "ITパスポート試験",
+    shortName: "IP",
+    description: "社会人の必須教養。IT・経営・マネジメントの基礎を幅広く問う入門資格",
+    categories: [
+      "ストラテジ系（経営全般）",
+      "マネジメント系（IT管理）",
+      "テクノロジ系（IT技術）",
+      "セキュリティ",
+      "ネットワーク",
+      "データベース",
+      "経営戦略・法務",
+      "プロジェクトマネジメント",
+    ],
+    color: "from-pink-500 to-pink-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    textColor: "text-pink-600",
+    badgeBg: "bg-pink-100",
+  },
+  {
     id: "am1",
     name: "午前Ⅰ（高度共通）",
     shortName: "午前Ⅰ",
@@ -194,6 +262,14 @@ export const exams = [
   },
 ];
 
+// 試験のグルーピング（トップ＝初級、別ページ＝高度）
+export const BASIC_EXAM_IDS = ["ap", "fe", "ip"] as const; // メイン（人気3区分）
+export const ADVANCED_EXAM_IDS = ["pm", "sc", "nw", "db", "sa", "st", "sm", "au"] as const; // 高度8区分
+
+export const basicExams = BASIC_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
+export const advancedExams = ADVANCED_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
+export const am1Exam = exams.find((e) => e.id === "am1")!;
+
 export function getExam(id: string) {
   return exams.find((e) => e.id === id);
 }
@@ -201,11 +277,23 @@ export function getExam(id: string) {
 // 問題ごとの正式な出典表記を生成する。
 // 例(午前Ⅱ): 出典：IPA プロジェクトマネージャ試験 令和6年度 秋期 午前Ⅱ 問1
 // 例(午前Ⅰ): 出典：IPA 高度情報処理技術者試験 午前Ⅰ（全区分共通） 令和6年度 春期 問1
+// 試験区分ごとの「セクション表記」（出典に使う）。未指定は午前Ⅱ（高度）。
+const SECTION_LABEL: Record<string, string> = {
+  am1: "午前Ⅰ（全区分共通）",
+  ap: "午前",
+  fe: "科目A",
+  ip: "", // ITパスポートは午前/午後の区別なし
+};
+
 export function questionSource(examId: string, year: string, qNumber?: number | null) {
   const q = qNumber ? ` 問${qNumber}` : "";
   if (examId === "am1") {
     return `出典：IPA 高度情報処理技術者試験 午前Ⅰ（全区分共通） ${year}${q}`;
   }
   const e = getExam(examId);
+  if (examId in SECTION_LABEL) {
+    const sec = SECTION_LABEL[examId];
+    return `出典：IPA ${e?.name ?? ""} ${year}${sec ? ` ${sec}` : ""}${q}`;
+  }
   return `出典：IPA ${e?.name ?? ""} ${year} 午前Ⅱ${q}`;
 }
