@@ -173,19 +173,19 @@ export function HomeDashboard() {
                   : "border-transparent bg-white/60 backdrop-blur-sm shadow-rich hover:bg-white/90"
               }`}
             >
-              <div className="flex flex-col items-center text-center gap-1.5 md:flex-row md:text-left md:gap-2.5">
+              <div className="flex flex-col items-center text-center gap-1.5 md:flex-row md:text-left md:gap-3">
                 <div
-                  className={`bg-gradient-to-br ${e.color} rounded-xl w-9 h-9 md:w-11 md:h-11 flex items-center justify-center flex-shrink-0 shadow-md shadow-black/10 transition-transform ${
+                  className={`bg-gradient-to-br ${e.color} rounded-xl w-10 h-10 md:w-12 md:h-12 flex items-center justify-center flex-shrink-0 shadow-md shadow-black/10 transition-transform ${
                     isActive ? "scale-105" : "group-hover:scale-105"
                   }`}
                 >
                   <span className="text-white font-bold text-xs md:text-sm leading-none">{e.shortName}</span>
                 </div>
                 <div className="min-w-0 w-full">
-                  <div className="font-bold text-gray-900 text-xs md:text-sm leading-tight truncate">
+                  <div className="font-bold text-gray-900 text-xs md:text-xl leading-tight truncate">
                     {e.name.replace("技術者試験", "").replace("試験", "")}
                   </div>
-                  <div className="text-[10px] md:text-xs text-gray-400 leading-tight">
+                  <div className="text-[11px] md:text-sm text-gray-400 leading-tight">
                     {loading ? "…" : st.answered > 0 ? `正答率 ${st.acc}%` : "未着手"}
                   </div>
                 </div>
@@ -204,9 +204,9 @@ export function HomeDashboard() {
       <div className="grid gap-4 md:grid-cols-3 items-start">
         {/* 左：今日の進捗 */}
         <div className="space-y-3 md:col-span-1">
-          <div className="flex items-baseline gap-2 px-0.5">
-            <h3 className="text-sm font-bold text-gray-700">今日の進捗</h3>
-            <span className="text-xs text-gray-400">全区分合計</span>
+          <div className="flex items-baseline gap-2 px-0.5 h-9">
+            <h3 className="text-lg md:text-xl font-bold text-gray-700 leading-tight">今日の進捗</h3>
+            <span className="text-sm text-gray-400">全区分合計</span>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {statItems.map((s) => (
@@ -240,30 +240,28 @@ export function HomeDashboard() {
         </div>
 
         {/* 右：選択中区分の学習分析 */}
-        <div className="md:col-span-2">
+        <div className="md:col-span-2 space-y-3">
+          {/* 見出し（「今日の進捗」と同じデザイン・同じ高さ） */}
+          <div className="flex items-center gap-2.5 px-0.5 h-9">
+            <h3 className="text-lg md:text-xl font-bold text-gray-700 leading-tight truncate">
+              {active.exam.name} の弱点分析
+            </h3>
+            <span className="hidden lg:inline text-sm text-gray-400 flex-shrink-0">AIが弱点を可視化</span>
+            {!loading && active.answered > 0 && (
+              <span className={`ml-auto text-xl font-bold ${accuracyColor(active.acc).text} flex-shrink-0`}>
+                {active.acc}%
+              </span>
+            )}
+          </div>
+
           <Card className="border border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich overflow-hidden">
             <CardContent className="p-4 md:p-5">
-              {/* 見出し（区分名＋累計） */}
-              <div className="flex items-center gap-3 mb-4">
-                <div
-                  className={`bg-gradient-to-br ${active.exam.color} rounded-xl w-11 h-11 flex items-center justify-center flex-shrink-0 shadow-md shadow-black/10`}
-                >
-                  <span className="text-white font-bold text-sm leading-none">{active.exam.shortName}</span>
+              {/* 累計サマリ（解答済みのときのみ） */}
+              {!loading && active.answered > 0 && (
+                <div className="text-sm text-gray-500 mb-3">
+                  累計 {active.answered}問・正答率 {active.acc}%
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-gray-900 leading-tight">{active.exam.name} の弱点分析</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
-                    {loading
-                      ? "読み込み中…"
-                      : active.answered > 0
-                        ? `累計 ${active.answered}問・正答率 ${active.acc}%`
-                        : "AIがあなたの弱点を可視化します"}
-                  </div>
-                </div>
-                {!loading && active.answered > 0 && (
-                  <div className={`text-2xl font-bold ${accuracyColor(active.acc).text}`}>{active.acc}%</div>
-                )}
-              </div>
+              )}
 
               {/* 分析本体 */}
               {loading ? (
