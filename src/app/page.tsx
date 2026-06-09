@@ -56,7 +56,7 @@ export default function Home() {
               {["IPA公式の本物の過去問", "図つき・独自AI解説", "弱点ダッシュボード"].map((t) => (
                 <span
                   key={t}
-                  className="inline-flex items-center rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-sm"
+                  className="inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 text-sm md:text-base font-semibold text-white backdrop-blur-sm"
                 >
                   {t}
                 </span>
