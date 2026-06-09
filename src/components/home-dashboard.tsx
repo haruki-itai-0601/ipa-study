@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Sparkles,
   ArrowRight,
+  Zap,
 } from "lucide-react";
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
@@ -324,10 +325,11 @@ export function HomeDashboard() {
                 </div>
               )}
 
-              {/* ③ さっそく解く（クイックスタート） */}
+              {/* ③ さっそく解く（クイックスタート：過去問 ＋ AI予想問題） */}
               <div className="mt-5 pt-4 border-t border-gray-100">
                 <div className="text-xs font-semibold text-gray-400 mb-2">さっそく解く</div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* 左：弱点があれば弱点優先、なければ過去問（メインCTA） */}
                   {active.weakest && active.weakest.answered >= MIN_FOR_WEAK ? (
                     <Link
                       href={studyHref(active.exam.id, active.weakest.category)}
@@ -345,14 +347,22 @@ export function HomeDashboard() {
                       過去問を解く
                     </Link>
                   )}
+                  {/* 右：AI予想問題で対策 */}
                   <Link
-                    href={`/exam/${active.exam.id}`}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-rich hover:border-indigo-300 hover:text-indigo-600 transition-all"
+                    href={`/exam/${active.exam.id}/ai`}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 shadow-rich hover:bg-amber-100 hover:-translate-y-0.5 transition-all"
                   >
-                    {active.exam.name.replace("技術者試験", "").replace("試験", "")}のメニュー
-                    <ArrowRight className="w-4 h-4" />
+                    <Zap className="w-4 h-4" />
+                    AI予想問題で対策
                   </Link>
                 </div>
+                <Link
+                  href={`/exam/${active.exam.id}`}
+                  className="mt-2 flex items-center justify-center gap-1 text-xs font-semibold text-gray-400 hover:text-indigo-600 transition-colors"
+                >
+                  すべての演習メニュー（年度別・出題範囲など）
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </CardContent>
           </Card>

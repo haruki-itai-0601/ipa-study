@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* ヘッダー */}
-      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
+      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70">
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-2 shadow-md shadow-indigo-500/30">
@@ -49,8 +49,9 @@ export default function Home() {
               合格は近づきません。
             </h1>
             <p className="mt-3 text-sm md:text-base leading-relaxed text-indigo-100">
-              AIがあなたの解答を分野ごとに分析し、<span className="font-semibold text-white">弱点を可視化</span>。
-              次に解くべき問題を示して、<span className="font-semibold text-white">最短ルートで合格</span>へ導きます。
+              合格ラインは<span className="font-semibold text-white">6割</span>。でも過去問そのままの再出題は<span className="font-semibold text-white">全体の半分ほど</span>で、残りは初見問題です。だから過去問をただ解くだけでは届きません。
+              <br className="hidden sm:block" />
+              AIがあなたの解答を分野ごとに分析して<span className="font-semibold text-white">弱点を可視化</span>し、次に解くべき問題まで示します。
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {["IPA公式の本物の過去問", "図つき・独自AI解説", "弱点ダッシュボード"].map((t) => (
