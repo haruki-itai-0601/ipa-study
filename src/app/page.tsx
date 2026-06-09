@@ -36,7 +36,7 @@ export default function Home() {
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
 
         {/* ヒーロー：このサービスの価値（AI弱点分析で合格を目指す） */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-7 md:px-9 md:py-9 shadow-rich-lg">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-5 md:px-9 md:py-6 shadow-rich-lg">
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
@@ -52,7 +52,7 @@ export default function Home() {
               AIがあなたの解答を分野ごとに分析し、<span className="font-semibold text-white">弱点を可視化</span>。
               次に解くべき問題を示して、<span className="font-semibold text-white">最短ルートで合格</span>へ導きます。
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {["IPA公式の本物の過去問", "図つき・独自AI解説", "弱点ダッシュボード"].map((t) => (
                 <span
                   key={t}
