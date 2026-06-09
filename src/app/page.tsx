@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { HomeDashboard } from "@/components/home-dashboard";
+import { HeaderToday } from "@/components/header-today";
 import { AccountLink } from "@/components/account-link";
 import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap } from "lucide-react";
 import Link from "next/link";
@@ -19,7 +20,8 @@ export default function Home() {
               <div className="font-bold text-gray-900 text-xl leading-tight whitespace-nowrap">過去問演習道場</div>
             </div>
           </div>
-          <div className="flex items-center">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <HeaderToday />
             <AccountLink />
           </div>
         </div>
@@ -37,9 +39,9 @@ export default function Home() {
               合格は近づきません。
             </h1>
             <p className="mt-3 text-sm md:text-base leading-relaxed text-indigo-100">
-              合格ラインは<span className="font-semibold text-white">6割</span>。午前は過去問が約半分再出題されますが、多くは<span className="font-semibold text-white">数字や選択肢を変えた“類似問題”</span>。<span className="font-semibold text-white">直近2回ぶんは出題されず</span>、丸暗記では取りこぼします。
+              午前は過去問が約半分再出題されます。でも<span className="font-semibold text-white">過去問は膨大な数</span>。闇雲に解くだけでは、限られた時間で<span className="font-semibold text-white">効果的な対策はできません</span>。
               <br className="hidden sm:block" />
-              <span className="font-bold text-white">AIがあなたの解答を分野ごとに分析して弱点を可視化し、次に解くべき問題まで示します。</span>
+              <span className="font-bold text-white">そこでAIが、あなたの弱点となる分野を分析し、次に解くべき問題まで示します。</span>
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {["IPA公式の本物の過去問", "図つき・独自AI解説", "AI弱点分析・ダッシュボード"].map((t) => (
