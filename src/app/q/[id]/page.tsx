@@ -26,9 +26,9 @@ async function getQuestion(id: string): Promise<Question | null> {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const q = await getQuestion(id);
-  if (!q) return { title: "問題が見つかりません｜高度情報処理 過去問道場" };
+  if (!q) return { title: "問題が見つかりません｜過去問道場" };
   const exam = getExam(q.exam_id);
-  const title = `【今日の1問】${exam?.name ?? ""} ${q.year}｜高度情報処理 過去問道場`;
+  const title = `【今日の1問】${exam?.name ?? ""} ${q.year}｜過去問道場`;
   const description = q.question.slice(0, 110);
   return {
     title,
@@ -45,8 +45,8 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
   const exam = getExam(q.exam_id);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen">
+      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <Link href="/" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft className="w-6 h-6" />

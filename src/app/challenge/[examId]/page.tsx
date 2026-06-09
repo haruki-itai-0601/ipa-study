@@ -17,7 +17,7 @@ function sb() {
 export async function generateMetadata({ params }: { params: Promise<{ examId: string }> }): Promise<Metadata> {
   const { examId } = await params;
   const exam = getExam(examId);
-  const title = `${exam?.name ?? ""}の5問チャレンジ｜高度情報処理 過去問道場`;
+  const title = `${exam?.name ?? ""}の5問チャレンジ｜過去問道場`;
   const description = `${exam?.name ?? ""}の過去問から5問。あなたは何問解ける？1分で腕試し！`;
   return { title, description, openGraph: { title, description }, twitter: { card: "summary", title, description } };
 }
@@ -43,8 +43,8 @@ export default async function ChallengePage({ params }: { params: Promise<{ exam
   if (questions.length < 5) notFound();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen">
+      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <Link href="/challenge" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft className="w-6 h-6" />

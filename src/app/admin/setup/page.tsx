@@ -34,7 +34,7 @@ export default function AdminSetupPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl border border-gray-200 p-8 max-w-sm w-full text-center">
           <p className="text-gray-700 font-semibold mb-2">設定済みです</p>
           <p className="text-sm text-gray-500">{error}</p>
@@ -48,14 +48,14 @@ export default function AdminSetupPage() {
 
   if (!qrCode) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm w-full max-w-md p-8 space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mx-auto mb-4">

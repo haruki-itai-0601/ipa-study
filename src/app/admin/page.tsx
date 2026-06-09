@@ -103,7 +103,7 @@ export default function AdminPage() {
   const overallRate = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">管理画面 — 問題ブラウザ</h1>
 

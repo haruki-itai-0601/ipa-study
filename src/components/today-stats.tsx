@@ -110,7 +110,7 @@ export function TodayStats() {
       <div className="md:col-span-2 space-y-3">
         <div className="grid grid-cols-3 gap-3">
           {statItems.map((s) => (
-            <Card key={s.label} className="border-0 shadow-sm">
+            <Card key={s.label} className="border border-white/60 bg-white/80 backdrop-blur-sm rounded-2xl shadow-rich">
               <CardContent className="p-3 text-center">
                 <div className="flex items-center justify-center mb-0.5">
                   <s.icon className={`w-4 h-4 ${s.color}`} />
@@ -123,7 +123,7 @@ export function TodayStats() {
         </div>
 
         {/* 今日の目標進捗バー */}
-        <Card className="border-0 shadow-sm">
+        <Card className="border border-white/60 bg-white/80 backdrop-blur-sm rounded-2xl shadow-rich">
           <CardContent className="p-3">
             <div className="flex justify-between items-center mb-1.5">
               <span className="text-sm font-medium text-gray-700">今日の目標</span>
@@ -141,9 +141,9 @@ export function TodayStats() {
 
       {/* 右：学習分析・弱点ダッシュボード（縦長） */}
       <Link href="/analysis" className="block md:col-span-1">
-        <Card className="h-full border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer">
+        <Card className="h-full border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer">
           <CardContent className="p-4 flex md:flex-col items-center md:text-center gap-3 h-full md:justify-center">
-            <div className="bg-indigo-600 rounded-xl p-2.5 flex-shrink-0">
+            <div className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-2.5 flex-shrink-0 shadow-md shadow-indigo-500/30">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 md:flex-none">

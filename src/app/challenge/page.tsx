@@ -4,20 +4,20 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "5問チャレンジ｜高度情報処理 過去問道場",
+  title: "5問チャレンジ｜過去問道場",
   description: "区分を選んで、過去問から5問。あなたは何問解ける？1分で腕試し！",
 };
 
 export default function ChallengeIndex() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen">
+      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <Link href="/" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
-            <div className="text-sm text-gray-500">高度情報処理 過去問道場</div>
+            <div className="text-sm text-gray-500">過去問道場</div>
             <div className="font-bold text-gray-900">5問チャレンジ</div>
           </div>
         </div>

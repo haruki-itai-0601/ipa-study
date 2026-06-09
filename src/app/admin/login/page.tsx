@@ -39,7 +39,7 @@ function AdminLoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-sm p-8">
         <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-xl mx-auto mb-6">
           <Lock className="w-6 h-6 text-indigo-600" />
@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
         </div>
       }

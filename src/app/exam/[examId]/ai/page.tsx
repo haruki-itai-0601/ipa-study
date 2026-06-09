@@ -67,7 +67,7 @@ export default function AIExamPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
         <p className="text-base font-semibold text-gray-600">問題を生成中...</p>
         <p className="text-sm text-gray-400">AIがあなたのための問題を作成しています</p>
@@ -77,7 +77,7 @@ export default function AIExamPage() {
 
   if (loadError) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
         <XCircle className="w-10 h-10 text-red-500" />
         <p className="text-base font-semibold text-gray-700">エラーが発生しました</p>
         <p className="text-sm text-gray-500">{loadError}</p>
@@ -93,7 +93,7 @@ export default function AIExamPage() {
 
   if (!isLoading && !loadError && questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4 px-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
         <Loader2 className="w-10 h-10 text-gray-300" />
         <p className="text-base font-semibold text-gray-700">問題を準備中です。しばらくお待ちください。</p>
         <Link
@@ -166,9 +166,9 @@ export default function AIExamPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* ヘッダー */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href={`/exam/${examId}`} className="text-gray-400 hover:text-gray-600">

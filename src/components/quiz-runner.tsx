@@ -80,8 +80,8 @@ export default function QuizRunner({
   // 出題できる問題が無い
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="min-h-screen">
+        <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
           <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
             <button onClick={onBack} className="text-gray-400 hover:text-gray-600">
               <ArrowLeft className="w-6 h-6" />
@@ -108,8 +108,8 @@ export default function QuizRunner({
     const answered = results.length;
     const accuracy = answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="min-h-screen">
+        <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
           <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
             <button onClick={onBack} className="text-gray-400 hover:text-gray-600">
               <ArrowLeft className="w-6 h-6" />
@@ -203,9 +203,9 @@ export default function QuizRunner({
   const lowTime = remaining != null && remaining <= 60;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* ヘッダー */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className="text-gray-400 hover:text-gray-600">
