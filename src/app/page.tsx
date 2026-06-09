@@ -1,9 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { TodayStats } from "@/components/today-stats";
+import { HomeDashboard } from "@/components/home-dashboard";
 import { AccountLink } from "@/components/account-link";
-import { basicExams } from "@/lib/exams";
-import { Brain, ChevronRight, Zap, BookMarked, Trophy, UserPlus, GraduationCap } from "lucide-react";
+import { Brain, ChevronRight, Zap, Trophy, UserPlus, GraduationCap, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -36,75 +35,38 @@ export default function Home() {
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
 
-        {/* 出典の明記（IPA公式過去問） */}
-        <div className="flex items-start gap-3 rounded-2xl border border-indigo-100 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-rich">
-          <BookMarked className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-gray-600 leading-relaxed">
-            本サービスの過去問は、<span className="font-semibold text-gray-800">IPA（独立行政法人情報処理推進機構）</span>が公開している情報処理技術者試験・情報処理安全確保支援士試験の過去問題を、出典を明記のうえ使用しています。
-            <span className="text-gray-500">（各問題の解説は本サービスが独自に作成したものです）</span>
-          </p>
-        </div>
-
-        {/* 今日の進捗 */}
-        <section>
-          <div className="flex items-baseline gap-2 mb-3">
-            <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide">
-              今日の進捗
-            </h2>
-            <span className="text-sm text-gray-400">全試験の合計</span>
-          </div>
-          <TodayStats />
-        </section>
-
-        {/* メインの試験区分（IP・基本情報・応用情報） */}
-        <section className="border-t border-gray-200 pt-6">
-          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            試験区分を選んで演習する
-          </h2>
-          <div className="grid grid-cols-1 gap-3">
-            {basicExams.map((exam) => (
-              <Link key={exam.id} href={`/exam/${exam.id}`} className="block">
-                <Card
-                  className={`group border ${exam.borderColor} bg-white/80 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer`}
+        {/* ヒーロー：このサービスの価値（AI弱点分析で合格を目指す） */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-7 md:px-9 md:py-9 shadow-rich-lg">
+          <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
+          <div className="relative">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm">
+              <Sparkles className="w-3.5 h-3.5" />
+              AI弱点分析つき 過去問道場
+            </div>
+            <h1 className="mt-3 text-2xl md:text-3xl font-bold leading-snug text-white">
+              過去問を“ただ解く”だけでは、<br className="hidden sm:block" />
+              合格は近づきません。
+            </h1>
+            <p className="mt-3 text-sm md:text-base leading-relaxed text-indigo-100">
+              AIがあなたの解答を分野ごとに分析し、<span className="font-semibold text-white">弱点を可視化</span>。
+              次に解くべき問題を示して、<span className="font-semibold text-white">最短ルートで合格</span>へ導きます。
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {["IPA公式の本物の過去問", "図つき・独自AI解説", "弱点ダッシュボード"].map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center rounded-full bg-white/12 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-sm"
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`bg-gradient-to-br ${exam.color} rounded-2xl w-14 h-14 flex items-center justify-center flex-shrink-0 shadow-md shadow-black/10 group-hover:scale-105 transition-transform`}
-                        >
-                          <span className="text-white font-bold text-base leading-none whitespace-nowrap">
-                            {exam.shortName}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900 text-base leading-tight">
-                            {exam.name}
-                          </h3>
-                          <p className="text-sm text-gray-500 mt-1 leading-snug">
-                            {exam.description}
-                          </p>
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {exam.categories.slice(0, 3).map((cat) => (
-                              <Badge
-                                key={cat}
-                                variant="secondary"
-                                className={`text-sm px-2 py-0 ${exam.textColor} bg-white/70`}
-                              >
-                                {cat}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-6 h-6 text-gray-400 flex-shrink-0 ml-2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                  {t}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
+
+        {/* 区分セレクタ＋弱点分析＋クイックスタート（ホームの主役） */}
+        <HomeDashboard />
 
         {/* 高度試験への導線（別ページ） */}
         <section>
