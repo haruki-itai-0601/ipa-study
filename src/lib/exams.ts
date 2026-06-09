@@ -276,7 +276,7 @@ export const exams = [
 ];
 
 // 試験のグルーピング（トップ＝初級、別ページ＝高度）
-export const BASIC_EXAM_IDS = ["ap", "fe", "ip"] as const; // メイン（人気3区分）
+export const BASIC_EXAM_IDS = ["ip", "fe", "ap"] as const; // メイン（やさしい順：IP→FE→AP）
 export const ADVANCED_EXAM_IDS = ["pm", "sc", "nw", "db", "sa", "st", "sm", "au"] as const; // 高度8区分
 
 export const basicExams = BASIC_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
