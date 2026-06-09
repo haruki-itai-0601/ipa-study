@@ -144,7 +144,7 @@ export default function SingleQuestion({ q }: { q: SingleQ }) {
 
       <div className="text-center pt-2">
         <Link href="/" className="text-sm text-indigo-600 hover:text-indigo-700 font-semibold">
-          過去問道場トップへ →
+          過去問演習道場トップへ →
         </Link>
       </div>
     </main>

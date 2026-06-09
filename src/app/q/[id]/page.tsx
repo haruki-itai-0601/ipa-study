@@ -26,9 +26,9 @@ async function getQuestion(id: string): Promise<Question | null> {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const q = await getQuestion(id);
-  if (!q) return { title: "問題が見つかりません｜過去問道場" };
+  if (!q) return { title: "問題が見つかりません｜過去問演習道場" };
   const exam = getExam(q.exam_id);
-  const title = `【今日の1問】${exam?.name ?? ""} ${q.year}｜過去問道場`;
+  const title = `【今日の1問】${exam?.name ?? ""} ${q.year}｜過去問演習道場`;
   const description = q.question.slice(0, 110);
   return {
     title,

@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "5問チャレンジ｜過去問道場",
+  title: "5問チャレンジ｜過去問演習道場",
   description: "区分を選んで、過去問から5問。あなたは何問解ける？1分で腕試し！",
 };
 
@@ -17,7 +17,7 @@ export default function ChallengeIndex() {
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
-            <div className="text-sm text-gray-500">過去問道場</div>
+            <div className="text-sm text-gray-500">過去問演習道場</div>
             <div className="font-bold text-gray-900">5問チャレンジ</div>
           </div>
         </div>

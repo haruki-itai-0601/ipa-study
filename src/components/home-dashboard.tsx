@@ -183,7 +183,7 @@ export function HomeDashboard() {
                   <span className="text-white font-bold text-xs md:text-sm leading-none">{e.shortName}</span>
                 </div>
                 <div className="min-w-0 w-full">
-                  <div className="font-bold text-gray-900 text-xs md:text-xl leading-tight truncate">
+                  <div className="font-bold text-gray-900 text-xs md:text-lg leading-tight truncate">
                     {e.name.replace("技術者試験", "").replace("試験", "")}
                   </div>
                   <div className="text-[11px] md:text-sm text-gray-400 leading-tight">
@@ -212,31 +212,31 @@ export function HomeDashboard() {
           <div className="grid grid-cols-3 gap-2">
             {statItems.map((s) => (
               <Card key={s.label} className="border border-white/60 bg-white/80 backdrop-blur-sm rounded-xl shadow-rich">
-                <CardContent className="p-2.5 text-center">
-                  <div className="flex items-center justify-center mb-0.5">
-                    <s.icon className={`w-3.5 h-3.5 ${s.color}`} />
+                <CardContent className="p-3 text-center">
+                  <div className="flex items-center justify-center mb-1">
+                    <s.icon className={`w-5 h-5 ${s.color}`} />
                   </div>
-                  <div className="text-lg font-bold text-gray-900 leading-tight">{s.value}</div>
-                  <div className="text-[10px] text-gray-500 mt-0.5">{s.label}</div>
+                  <div className="text-2xl font-bold text-gray-900 leading-tight">{s.value}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
                 </CardContent>
               </Card>
             ))}
           </div>
           <Card className="border border-white/60 bg-white/80 backdrop-blur-sm rounded-xl shadow-rich">
-            <CardContent className="p-3">
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs font-medium text-gray-700">今日の目標</span>
-                <span className="text-xs text-gray-500">{loading ? "-" : todayAnswered} / 10問</span>
+            <CardContent className="p-3.5">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-base font-medium text-gray-700">今日の目標</span>
+                <span className="text-base text-gray-500">{loading ? "-" : todayAnswered} / 10問</span>
               </div>
-              <Progress value={loading ? 0 : (todayAnswered / 10) * 100} className="h-2" />
+              <Progress value={loading ? 0 : (todayAnswered / 10) * 100} className="h-2.5" />
             </CardContent>
           </Card>
           <Link
             href="/analysis"
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 px-3 py-2.5 text-sm font-semibold text-indigo-700 shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 px-3 py-3 text-base font-semibold text-indigo-700 shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all"
           >
             全区分まとめて分析
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-5 h-5" />
           </Link>
         </div>
 
@@ -259,19 +259,19 @@ export function HomeDashboard() {
             <CardContent className="p-4 md:p-5">
               {/* 累計サマリ（解答済みのときのみ） */}
               {!loading && active.answered > 0 && (
-                <div className="text-sm text-gray-500 mb-3">
+                <div className="text-base text-gray-500 mb-3">
                   累計 {active.answered}問・正答率 {active.acc}%
                 </div>
               )}
 
               {/* 分析本体 */}
               {loading ? (
-                <div className="py-10 text-center text-sm text-gray-400">読み込み中…</div>
+                <div className="py-10 text-center text-base text-gray-400">読み込み中…</div>
               ) : active.answered === 0 ? (
-                <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-6 text-center">
-                  <Sparkles className="w-7 h-7 text-indigo-400 mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-gray-700">まだ解答記録がありません</p>
-                  <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-8 text-center">
+                  <Sparkles className="w-9 h-9 text-indigo-400 mx-auto mb-2.5" />
+                  <p className="text-lg font-semibold text-gray-700">まだ解答記録がありません</p>
+                  <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
                     数問解くだけで、分野ごとの正答率グラフと
                     <br className="hidden md:block" />
                     「重点的に対策すべき分野」が表示されます。
@@ -283,14 +283,14 @@ export function HomeDashboard() {
                   {active.weakest && active.weakest.answered >= MIN_FOR_WEAK && (
                     <Link
                       href={studyHref(active.exam.id, active.weakest.category)}
-                      className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50/70 px-3 py-2.5 hover:bg-red-50 transition-colors"
+                      className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50/70 px-3.5 py-3 hover:bg-red-50 transition-colors"
                     >
-                      <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-                      <span className="text-xs text-gray-500">重点対策</span>
-                      <span className="font-semibold text-gray-900 text-sm truncate">{active.weakest.category}</span>
-                      <span className="ml-auto flex items-center gap-1 text-sm font-bold text-red-600 flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-500">重点対策</span>
+                      <span className="font-semibold text-gray-900 text-base truncate">{active.weakest.category}</span>
+                      <span className="ml-auto flex items-center gap-1 text-base font-bold text-red-600 flex-shrink-0">
                         {active.weakest.acc}%
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-5 h-5" />
                       </span>
                     </Link>
                   )}
@@ -306,16 +306,16 @@ export function HomeDashboard() {
                           className="block rounded-lg p-1 -m-1 hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-sm text-gray-700 leading-snug truncate">{cat.category}</span>
+                            <span className="text-base text-gray-700 leading-snug truncate">{cat.category}</span>
                             <span className="flex items-center gap-1.5 flex-shrink-0">
-                              <span className={`text-sm font-semibold ${cc.text}`}>{cat.acc}%</span>
-                              <span className="text-xs text-gray-400">
+                              <span className={`text-base font-semibold ${cc.text}`}>{cat.acc}%</span>
+                              <span className="text-sm text-gray-400">
                                 {cat.correct}/{cat.answered}
                               </span>
-                              <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                              <ChevronRight className="w-4 h-4 text-gray-300" />
                             </span>
                           </div>
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
                             <div className={`h-full ${cc.bar}`} style={{ width: `${cat.acc}%` }} />
                           </div>
                         </Link>
@@ -327,41 +327,41 @@ export function HomeDashboard() {
 
               {/* ③ さっそく解く（クイックスタート：過去問 ＋ AI予想問題） */}
               <div className="mt-5 pt-4 border-t border-gray-100">
-                <div className="text-xs font-semibold text-gray-400 mb-2">さっそく解く</div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="text-sm font-semibold text-gray-400 mb-2.5">さっそく解く</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {/* 左：弱点があれば弱点優先、なければ過去問（メインCTA） */}
                   {active.weakest && active.weakest.answered >= MIN_FOR_WEAK ? (
                     <Link
                       href={studyHref(active.exam.id, active.weakest.category)}
-                      className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                      className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                     >
-                      <Target className="w-4 h-4" />
+                      <Target className="w-5 h-5" />
                       弱点分野から解く
                     </Link>
                   ) : (
                     <Link
                       href={`/exam/${active.exam.id}/past`}
-                      className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                      className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                     >
-                      <BookOpen className="w-4 h-4" />
-                      過去問を解く
+                      <BookOpen className="w-5 h-5" />
+                      IPA公式の過去問を解く
                     </Link>
                   )}
-                  {/* 右：AI予想問題で対策 */}
+                  {/* 右：AIが作る予想問題 */}
                   <Link
                     href={`/exam/${active.exam.id}/ai`}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 shadow-rich hover:bg-amber-100 hover:-translate-y-0.5 transition-all"
+                    className="flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3.5 text-base font-bold text-amber-700 shadow-rich hover:bg-amber-100 hover:-translate-y-0.5 transition-all"
                   >
-                    <Zap className="w-4 h-4" />
-                    AI予想問題で対策
+                    <Zap className="w-5 h-5" />
+                    AIが作る予想問題を解く
                   </Link>
                 </div>
                 <Link
                   href={`/exam/${active.exam.id}`}
-                  className="mt-2 flex items-center justify-center gap-1 text-xs font-semibold text-gray-400 hover:text-indigo-600 transition-colors"
+                  className="mt-2.5 flex items-center justify-center gap-1 text-sm font-semibold text-gray-400 hover:text-indigo-600 transition-colors"
                 >
                   すべての演習メニュー（年度別・出題範囲など）
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </CardContent>
