@@ -106,7 +106,7 @@ export function renderCard(q, em, opts = {}) {
   // フッター
   x.fillStyle = "rgba(255,255,255,0.9)";
   x.font = "24px NotoJP";
-  x.fillText("20260524ipa-study.vercel.app", 56, H - 30);
+  x.fillText("kakomon-dojo.com", 56, H - 30);
   x.textAlign = "right";
   x.fillStyle = "rgba(255,255,255,0.75)";
   x.font = "20px NotoJP";

@@ -13,7 +13,7 @@ import { renderChallengeCard } from "./question-card.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const LINK = "https://20260524ipa-study.vercel.app";
+const LINK = "https://kakomon-dojo.com";
 
 (function loadEnvLocal() {
   const p = join(ROOT, ".env.local");

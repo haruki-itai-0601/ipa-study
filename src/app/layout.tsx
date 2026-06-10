@@ -19,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://kakomon-dojo.com"),
   title: "ITパスポート・基本情報・応用情報 過去問演習道場",
   description: "ITパスポート・基本情報技術者・応用情報技術者試験の過去問を、図つき・独自解説つきで演習。スキマ時間に効率よく対策できる無料の過去問演習道場。",
 };
