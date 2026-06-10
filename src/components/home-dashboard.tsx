@@ -213,6 +213,69 @@ function Radar({
   );
 }
 
+// 系統別の到達度を示すリングゲージ（60%＝合格ラインの目盛りつき）
+function DonutGauge({
+  label,
+  acc,
+  answered,
+  correct,
+}: {
+  label: string;
+  acc: number;
+  answered: number;
+  correct: number;
+}) {
+  const R = 40;
+  const C = 2 * Math.PI * R;
+  const has = answered > 0;
+  const frac = has ? Math.max(0.01, acc / 100) : 0;
+  const color = has ? accHex(acc) : "#e5e7eb";
+  // 合格ライン(60%)の目盛り：上から時計回りに216°
+  const tickRad = ((-90 + 0.6 * 360) * Math.PI) / 180;
+  const tcos = Math.cos(tickRad);
+  const tsin = Math.sin(tickRad);
+  return (
+    <div className="flex flex-col items-center rounded-xl border border-gray-100 bg-gray-50/60 px-2 py-3">
+      <svg viewBox="0 0 100 100" className="w-24 h-24 md:w-28 md:h-28">
+        <circle cx={50} cy={50} r={R} fill="none" stroke="#eceef3" strokeWidth={9} />
+        {has && (
+          <circle
+            cx={50}
+            cy={50}
+            r={R}
+            fill="none"
+            stroke={color}
+            strokeWidth={9}
+            strokeLinecap="round"
+            strokeDasharray={`${frac * C} ${C}`}
+            transform="rotate(-90 50 50)"
+          />
+        )}
+        <line
+          x1={50 + (R - 7) * tcos}
+          y1={50 + (R - 7) * tsin}
+          x2={50 + (R + 7) * tcos}
+          y2={50 + (R + 7) * tsin}
+          stroke="#9ca3af"
+          strokeWidth={2.5}
+        />
+        <text
+          x={50}
+          y={57}
+          textAnchor="middle"
+          fontSize={21}
+          fontWeight={800}
+          fill={has ? accHex(acc) : "#9ca3af"}
+        >
+          {has ? `${acc}%` : "—"}
+        </text>
+      </svg>
+      <div className="mt-1 text-sm md:text-base font-bold text-gray-800 leading-tight">{label}</div>
+      <div className="text-xs md:text-sm text-gray-400 mt-0.5">{has ? `${correct}/${answered}問 正解` : "未演習"}</div>
+    </div>
+  );
+}
+
 export function HomeDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [progress, setProgress] = useState<Progress[]>([]);
@@ -326,14 +389,14 @@ export function HomeDashboard() {
       .filter((s) => s.answered > 0)
       .sort((a, b) => a.acc - b.acc);
 
-    // メインレーダー：上=マネジメント / 右下=ストラテジ / 左下=テクノロジ
+    // 系統サマリ（リングゲージ用）：ストラテジ→マネジメント→テクノロジ
     const t = bySeries("technology");
     const m = bySeries("management");
     const st = bySeries("strategy");
-    const radar: RadarItem[] = [
-      { label: "マネジメント", acc: m.acc, answered: m.answered },
-      { label: "ストラテジ", acc: st.acc, answered: st.answered },
-      { label: "テクノロジ", acc: t.acc, answered: t.answered },
+    const gauges = [
+      { key: "strategy", label: "ストラテジ系", acc: st.acc, answered: st.answered, correct: st.correct },
+      { key: "management", label: "マネジメント系", acc: m.acc, answered: m.answered, correct: m.correct },
+      { key: "technology", label: "テクノロジ系", acc: t.acc, answered: t.answered, correct: t.correct },
     ];
 
     // 系ごとの内訳レーダー（その系の全中分類を固定軸に。未回答は0/—）
@@ -371,7 +434,7 @@ export function HomeDashboard() {
       acc,
       cats,
       series,
-      radar,
+      gauges,
       seriesRadars,
       top3,
       solved,
@@ -522,28 +585,30 @@ export function HomeDashboard() {
                 <Sparkles className="w-9 h-9 text-indigo-400 mx-auto mb-2.5" />
                 <p className="text-lg font-semibold text-gray-700">まだ解答記録がありません</p>
                 <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
-                  数問解くだけで、3系（ストラテジ／マネジメント／テクノロジ）のレーダーと、
+                  数問解くだけで、系統別（ストラテジ／マネジメント／テクノロジ）の到達度と、
                   <br className="hidden md:block" />
                   「対策すべき弱点TOP3」が表示されます。
                 </p>
               </div>
             ) : (
               <>
-                {/* ② 3系レーダー（扁平・横長） */}
+                {/* ② 系統別の到達度（リングゲージ・合格ライン6割の目盛りつき） */}
                 <div>
-                  <div className="text-sm font-semibold text-gray-400 mb-1">系統別の到達度</div>
-                  <Radar
-                    items={active.radar}
-                    w={460}
-                    h={172}
-                    cx={230}
-                    cy={84}
-                    rx={152}
-                    ry={56}
-                    maxW={520}
-                    labelFont={15}
-                    valueFont={16}
-                  />
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-2 mb-2">
+                    <div className="text-sm font-semibold text-gray-400">系統別の到達度</div>
+                    <div className="text-xs text-gray-400">リングの目盛り＝合格ライン（6割）</div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-2xl mx-auto">
+                    {active.gauges.map((g) => (
+                      <DonutGauge
+                        key={g.key}
+                        label={g.label}
+                        acc={g.acc}
+                        answered={g.answered}
+                        correct={g.correct}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 {/* ②-2 系ごとの内訳レーダー（中分類を固定軸に・未回答は「—」） */}
