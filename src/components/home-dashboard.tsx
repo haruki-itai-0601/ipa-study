@@ -85,28 +85,96 @@ function seriesKeyOf(category: string): SeriesKey {
 
 type RadarItem = { label: string; acc: number; answered: number };
 
-// 3系レーダーチャート（軽量SVG・チャートライブラリ不要）
-function SeriesRadar({ items }: { items: RadarItem[] }) {
-  const size = 300;
-  const cx = size / 2;
-  const cy = 96;
-  const R = 64;
+// 各系に属する中分類（全23分類・固定軸。未回答は「—」で表示する）
+const SERIES_CATEGORIES: Record<SeriesKey, string[]> = {
+  technology: [
+    "基礎理論",
+    "アルゴリズムとプログラミング",
+    "コンピュータ構成要素",
+    "システム構成要素",
+    "ソフトウェア",
+    "ハードウェア",
+    "ユーザーインタフェース",
+    "情報メディア",
+    "データベース",
+    "ネットワーク",
+    "セキュリティ",
+    "システム開発技術",
+    "ソフトウェア開発管理技術",
+  ],
+  management: ["プロジェクトマネジメント", "サービスマネジメント", "システム監査"],
+  strategy: [
+    "システム戦略",
+    "システム企画",
+    "経営戦略マネジメント",
+    "技術戦略マネジメント",
+    "ビジネスインダストリ",
+    "企業活動",
+    "法務",
+  ],
+  other: [],
+};
+
+// レーダーの軸ラベルは長いと潰れるので短縮名を使う
+const SHORT_LABEL: Record<string, string> = {
+  アルゴリズムとプログラミング: "アルゴリズム",
+  コンピュータ構成要素: "コンピュータ",
+  システム構成要素: "システム構成",
+  ユーザーインタフェース: "UI",
+  ソフトウェア開発管理技術: "SW開発管理",
+  システム開発技術: "開発技術",
+  経営戦略マネジメント: "経営戦略",
+  技術戦略マネジメント: "技術戦略",
+  ビジネスインダストリ: "ビジネス",
+  プロジェクトマネジメント: "PM",
+  サービスマネジメント: "サービス",
+  システム監査: "監査",
+  情報メディア: "メディア",
+};
+function shortLabel(s: string) {
+  return SHORT_LABEL[s] ?? s;
+}
+
+// 汎用レーダー（N軸・扁平対応 rx≠ry・未回答は「—」）
+function Radar({
+  items,
+  w,
+  h,
+  cx,
+  cy,
+  rx,
+  ry,
+  maxW,
+  labelFont = 12,
+  valueFont = 13,
+}: {
+  items: RadarItem[];
+  w: number;
+  h: number;
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  maxW: number;
+  labelFont?: number;
+  valueFont?: number;
+}) {
+  const n = items.length;
   const axes = items.map((v, i) => {
-    const rad = ((-90 + i * 120) * Math.PI) / 180;
+    const rad = ((-90 + (i * 360) / n) * Math.PI) / 180;
     return { ...v, cos: Math.cos(rad), sin: Math.sin(rad) };
   });
   const pt = (cos: number, sin: number, frac: number): [number, number] => [
-    cx + R * frac * cos,
-    cy + R * frac * sin,
+    cx + rx * frac * cos,
+    cy + ry * frac * sin,
   ];
-  const ring = (frac: number) =>
-    axes.map((a) => pt(a.cos, a.sin, frac).join(",")).join(" ");
+  const ring = (frac: number) => axes.map((a) => pt(a.cos, a.sin, frac).join(",")).join(" ");
   const dataPoly = axes
     .map((a) => pt(a.cos, a.sin, Math.max(0.02, a.acc / 100)).join(","))
     .join(" ");
 
   return (
-    <svg viewBox={`0 0 ${size} 200`} className="w-full max-w-[360px] mx-auto">
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full mx-auto" style={{ maxWidth: maxW, overflow: "visible" }}>
       {[0.25, 0.5, 0.75, 1].map((f) => (
         <polygon key={f} points={ring(f)} fill="none" stroke="#e5e7eb" strokeWidth={1} />
       ))}
@@ -121,76 +189,22 @@ function SeriesRadar({ items }: { items: RadarItem[] }) {
       })}
       {axes.map((a, i) => {
         const [lx, ly] = pt(a.cos, a.sin, 1.16);
-        const anchor = Math.abs(a.cos) < 0.3 ? "middle" : a.cos > 0 ? "start" : "end";
-        const dy = a.sin < -0.3 ? -4 : a.sin > 0.3 ? 14 : 4;
+        const anchor = Math.abs(a.cos) < 0.25 ? "middle" : a.cos > 0 ? "start" : "end";
+        const dy = a.sin < -0.3 ? -3 : a.sin > 0.3 ? labelFont + 1 : 4;
         return (
           <g key={i}>
-            <text x={lx} y={ly + dy} textAnchor={anchor} fontSize="13" fontWeight="700" fill="#374151">
-              {a.label}
+            <text x={lx} y={ly + dy} textAnchor={anchor} fontSize={labelFont} fontWeight="700" fill="#374151">
+              {shortLabel(a.label)}
             </text>
             <text
               x={lx}
-              y={ly + dy + 16}
+              y={ly + dy + valueFont + 3}
               textAnchor={anchor}
-              fontSize="14"
+              fontSize={valueFont}
               fontWeight="700"
               fill={a.answered > 0 ? accHex(a.acc) : "#9ca3af"}
             >
               {a.answered > 0 ? `${a.acc}%` : "—"}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-// N軸対応の小さめレーダー（系の中で中分類ごとの到達度を表示）
-function MiniRadar({ items }: { items: RadarItem[] }) {
-  const n = items.length;
-  const size = 220;
-  const cx = size / 2;
-  const cy = size / 2;
-  const R = 56;
-  const axes = items.map((v, i) => {
-    const rad = ((-90 + (i * 360) / n) * Math.PI) / 180;
-    return { ...v, cos: Math.cos(rad), sin: Math.sin(rad) };
-  });
-  const pt = (cos: number, sin: number, frac: number): [number, number] => [
-    cx + R * frac * cos,
-    cy + R * frac * sin,
-  ];
-  const ring = (frac: number) => axes.map((a) => pt(a.cos, a.sin, frac).join(",")).join(" ");
-  const dataPoly = axes
-    .map((a) => pt(a.cos, a.sin, Math.max(0.02, a.acc / 100)).join(","))
-    .join(" ");
-  const short = (s: string) => (s.length > 6 ? s.slice(0, 6) + "…" : s);
-
-  return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[230px] mx-auto" style={{ overflow: "visible" }}>
-      {[0.25, 0.5, 0.75, 1].map((f) => (
-        <polygon key={f} points={ring(f)} fill="none" stroke="#e5e7eb" strokeWidth={1} />
-      ))}
-      {axes.map((a, i) => {
-        const [x, y] = pt(a.cos, a.sin, 1);
-        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#e5e7eb" strokeWidth={1} />;
-      })}
-      <polygon points={dataPoly} fill="rgba(99,102,241,0.22)" stroke="#6366f1" strokeWidth={2} />
-      {axes.map((a, i) => {
-        const [x, y] = pt(a.cos, a.sin, Math.max(0.02, a.acc / 100));
-        return <circle key={i} cx={x} cy={y} r={3} fill="#6366f1" />;
-      })}
-      {axes.map((a, i) => {
-        const [lx, ly] = pt(a.cos, a.sin, 1.2);
-        const anchor = Math.abs(a.cos) < 0.3 ? "middle" : a.cos > 0 ? "start" : "end";
-        const dy = a.sin < -0.3 ? -2 : a.sin > 0.3 ? 11 : 3;
-        return (
-          <g key={i}>
-            <text x={lx} y={ly + dy} textAnchor={anchor} fontSize="10" fontWeight="600" fill="#4b5563">
-              {short(a.label)}
-            </text>
-            <text x={lx} y={ly + dy + 12} textAnchor={anchor} fontSize="11" fontWeight="700" fill={accHex(a.acc)}>
-              {a.acc}%
             </text>
           </g>
         );
@@ -312,26 +326,34 @@ export function HomeDashboard() {
       .filter((s) => s.answered > 0)
       .sort((a, b) => a.acc - b.acc);
 
-    // レーダー（テクノロジ / マネジメント / ストラテジ）
+    // メインレーダー：上=マネジメント / 右下=ストラテジ / 左下=テクノロジ
     const t = bySeries("technology");
     const m = bySeries("management");
     const st = bySeries("strategy");
     const radar: RadarItem[] = [
-      { label: "テクノロジ", acc: t.acc, answered: t.answered },
       { label: "マネジメント", acc: m.acc, answered: m.answered },
       { label: "ストラテジ", acc: st.acc, answered: st.answered },
+      { label: "テクノロジ", acc: t.acc, answered: t.answered },
     ];
 
-    // 系ごとの内訳レーダー（その系の中分類を軸にする）
+    // 系ごとの内訳レーダー（その系の全中分類を固定軸に。未回答は0/—）
+    const catByName = new Map(cats.map((c) => [c.category, c]));
     const seriesRadars = (
       [
         { key: "technology" as SeriesKey, label: "テクノロジ系", d: t },
         { key: "management" as SeriesKey, label: "マネジメント系", d: m },
         { key: "strategy" as SeriesKey, label: "ストラテジ系", d: st },
       ]
-    )
-      .filter((s) => s.d.answered > 0)
-      .map((s) => ({ key: s.key, label: s.label, acc: s.d.acc, cats: s.d.cats }));
+    ).map((s) => ({
+      key: s.key,
+      label: s.label,
+      acc: s.d.acc,
+      answered: s.d.answered,
+      items: SERIES_CATEGORIES[s.key].map((cat) => {
+        const c = catByName.get(cat);
+        return { label: cat, acc: c?.acc ?? 0, answered: c?.answered ?? 0 } as RadarItem;
+      }),
+    }));
 
     // 弱点TOP3（最低解答数を満たすもののうち低正答率順）
     const top3 = cats.filter((c) => c.answered >= MIN_FOR_WEAK).slice(0, 3);
@@ -507,57 +529,54 @@ export function HomeDashboard() {
               </div>
             ) : (
               <>
-                {/* ② 3系レーダー */}
+                {/* ② 3系レーダー（扁平・横長） */}
                 <div>
                   <div className="text-sm font-semibold text-gray-400 mb-1">系統別の到達度</div>
-                  <SeriesRadar items={active.radar} />
+                  <Radar
+                    items={active.radar}
+                    w={460}
+                    h={172}
+                    cx={230}
+                    cy={84}
+                    rx={152}
+                    ry={56}
+                    maxW={520}
+                    labelFont={15}
+                    valueFont={16}
+                  />
                 </div>
 
-                {/* ②-2 系ごとの内訳レーダー（中分類を軸に） */}
-                {active.seriesRadars.length > 0 && (
-                  <div>
-                    <div className="text-sm font-semibold text-gray-400 mb-2">系統ごとの内訳（分野別）</div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {active.seriesRadars.map((s) => {
-                        const sc = accuracyColor(s.acc);
-                        return (
-                          <div key={s.key} className="rounded-xl border border-gray-200 bg-white p-3">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-bold text-gray-800">{s.label}</span>
-                              <span className={`text-sm font-bold ${sc.text}`}>{s.acc}%</span>
-                            </div>
-                            {s.cats.length >= 3 ? (
-                              <MiniRadar
-                                items={s.cats.map((c) => ({
-                                  label: c.category,
-                                  acc: c.acc,
-                                  answered: c.answered,
-                                }))}
-                              />
-                            ) : (
-                              <div className="space-y-2 py-2">
-                                {s.cats.map((c) => {
-                                  const cc = accuracyColor(c.acc);
-                                  return (
-                                    <div key={c.category}>
-                                      <div className="flex items-center justify-between gap-2 mb-0.5">
-                                        <span className="text-xs text-gray-600 truncate">{c.category}</span>
-                                        <span className={`text-xs font-semibold ${cc.text}`}>{c.acc}%</span>
-                                      </div>
-                                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                        <div className={`h-full ${cc.bar}`} style={{ width: `${c.acc}%` }} />
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
+                {/* ②-2 系ごとの内訳レーダー（中分類を固定軸に・未回答は「—」） */}
+                <div>
+                  <div className="text-sm font-semibold text-gray-400 mb-2">系統ごとの内訳（分野別）</div>
+                  <div className="grid grid-cols-1 gap-3">
+                    {active.seriesRadars.map((s) => {
+                      const sc = accuracyColor(s.acc);
+                      return (
+                        <div key={s.key} className="rounded-xl border border-gray-200 bg-white p-3 md:p-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-base font-bold text-gray-800">{s.label}</span>
+                            <span className={`text-base font-bold ${s.answered > 0 ? sc.text : "text-gray-400"}`}>
+                              {s.answered > 0 ? `${s.acc}%` : "—"}
+                            </span>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <Radar
+                            items={s.items}
+                            w={420}
+                            h={380}
+                            cx={210}
+                            cy={190}
+                            rx={132}
+                            ry={132}
+                            maxW={460}
+                            labelFont={13}
+                            valueFont={13}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
 
                 {/* ③ 対策すべき弱点 TOP3 */}
                 {active.top3.length > 0 && (
