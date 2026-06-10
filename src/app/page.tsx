@@ -39,7 +39,7 @@ export default function Home() {
               合格は近づきません。
             </h1>
             <p className="mt-3 text-sm md:text-base leading-relaxed text-indigo-100">
-              午前は過去問が約半分再出題されます。でも<span className="font-semibold text-white">過去問は膨大な数</span>。闇雲に解くだけでは、限られた時間で<span className="font-semibold text-white">効果的な対策はできません</span>。
+              過去問は約半分が再出題されますが、<span className="font-semibold text-white">その数は膨大</span>。闇雲に解くだけでは<span className="font-semibold text-white">効果的に対策できません</span>。
               <br className="hidden sm:block" />
               <span className="font-bold text-white">そこでAIが、あなたの弱点となる分野を分析し、次に解くべき問題まで示します。</span>
             </p>
