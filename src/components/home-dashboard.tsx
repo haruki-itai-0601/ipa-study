@@ -151,6 +151,30 @@ export function HomeDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<string>(basicExams[0].id);
   const [showDetail, setShowDetail] = useState(false);
+  const [goal, setGoal] = useState(10); // 今日の目標問題数（編集可・localStorage保存）
+
+  // 保存済みの今日の目標を復元
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("dailyGoal");
+      if (saved) {
+        const n = parseInt(saved, 10);
+        if (n >= 1) setGoal(n);
+      }
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  function updateGoal(v: string) {
+    const n = Math.max(1, Math.min(500, parseInt(v || "0", 10) || 1));
+    setGoal(n);
+    try {
+      window.localStorage.setItem("dailyGoal", String(n));
+    } catch {
+      /* noop */
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -269,6 +293,9 @@ export function HomeDashboard() {
     };
   }, [rows, progress, activeExam]);
 
+  const goalPct = Math.min(100, goal > 0 ? (today.answered / goal) * 100 : 0);
+  const goalReached = today.answered >= goal;
+
   const hasData = !loading && active.answered > 0;
   const denom = Math.max(active.target, active.solved, 1);
   const pastPct = (active.pastSolved / denom) * 100;
@@ -277,10 +304,11 @@ export function HomeDashboard() {
 
   return (
     <div className="space-y-4">
-      {/* 今日の進捗（解答数・正解率のみ・スリム表示。連続日数/目標はヘッダー） */}
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-rich">
-        <div className="flex items-center gap-5 md:gap-7">
-          <span className="text-sm font-bold text-gray-500">
+      {/* 今日の進捗（解答数・正解率＋編集できる今日の目標バー。連続日数はヘッダー） */}
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2.5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-rich">
+        {/* 左：解答数・正解率 */}
+        <div className="flex items-center gap-5">
+          <span className="text-sm font-bold text-gray-500 whitespace-nowrap">
             今日の進捗 <span className="font-normal text-gray-400">全区分</span>
           </span>
           <span className="flex items-center gap-1.5">
@@ -294,13 +322,42 @@ export function HomeDashboard() {
             <span className="text-xs text-gray-500">正解率</span>
           </span>
         </div>
-        <Link
-          href="/analysis"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
-        >
-          全区分まとめて分析
-          <ChevronRight className="w-4 h-4" />
-        </Link>
+
+        {/* 右：今日の目標（問題数を編集可・解いた数でバーが進む）＋全区分分析 */}
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-2.5">
+            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">今日の目標</span>
+            <span className="flex items-baseline gap-1 whitespace-nowrap">
+              <span className={`text-lg font-bold leading-none ${goalReached ? "text-green-600" : "text-gray-900"}`}>
+                {loading ? "-" : today.answered}
+              </span>
+              <span className="text-gray-300">/</span>
+              <input
+                type="number"
+                min={1}
+                max={500}
+                value={goal}
+                onChange={(e) => updateGoal(e.target.value)}
+                aria-label="今日の目標問題数"
+                className="w-12 rounded-md border border-gray-200 bg-white px-1 py-0.5 text-center text-base font-bold text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <span className="text-xs text-gray-500">問</span>
+            </span>
+            <div className="w-20 md:w-28 h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-300 ${goalReached ? "bg-green-500" : "bg-indigo-500"}`}
+                style={{ width: `${goalPct}%` }}
+              />
+            </div>
+          </div>
+          <Link
+            href="/analysis"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
+          >
+            全区分分析
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
 
       {/* 試験区分セレクタ（ガイド＋横並びタブ） */}
