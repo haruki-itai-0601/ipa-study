@@ -304,60 +304,40 @@ export function HomeDashboard() {
 
   return (
     <div className="space-y-4">
-      {/* 今日の進捗（解答数・正解率＋編集できる今日の目標バー。連続日数はヘッダー） */}
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2.5 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-rich">
-        {/* 左：解答数・正解率 */}
-        <div className="flex items-center gap-5">
-          <span className="text-sm font-bold text-gray-500 whitespace-nowrap">
-            今日の進捗 <span className="font-normal text-gray-400">全区分</span>
+      {/* 今日の目標（全区分・編集可・解いた数でバーが左いっぱいまで進む） */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-rich">
+        <span className="text-sm font-bold text-gray-500 whitespace-nowrap">
+          今日の目標 <span className="font-normal text-gray-400">全区分</span>
+        </span>
+        <span className="flex items-baseline gap-1 whitespace-nowrap">
+          <span className={`text-xl font-bold leading-none ${goalReached ? "text-green-600" : "text-gray-900"}`}>
+            {loading ? "-" : today.answered}
           </span>
-          <span className="flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-indigo-500" />
-            <span className="text-xl font-bold text-gray-900 leading-none">{loading ? "-" : today.answered}</span>
-            <span className="text-xs text-gray-500">解答</span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-green-500" />
-            <span className="text-xl font-bold text-gray-900 leading-none">{loading ? "-" : `${today.accuracy}%`}</span>
-            <span className="text-xs text-gray-500">正解率</span>
-          </span>
+          <span className="text-gray-300">/</span>
+          <input
+            type="number"
+            min={1}
+            max={500}
+            value={goal}
+            onChange={(e) => updateGoal(e.target.value)}
+            aria-label="今日の目標問題数"
+            className="w-12 rounded-md border border-gray-200 bg-white px-1 py-0.5 text-center text-base font-bold text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <span className="text-xs text-gray-500">問</span>
+        </span>
+        <div className="order-last w-full md:order-none md:w-auto md:flex-1 min-w-[80px] h-3 rounded-full bg-gray-100 overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 ${goalReached ? "bg-green-500" : "bg-indigo-500"}`}
+            style={{ width: `${goalPct}%` }}
+          />
         </div>
-
-        {/* 右：今日の目標（問題数を編集可・解いた数でバーが進む）＋全区分分析 */}
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="flex items-center gap-2.5">
-            <span className="text-sm font-medium text-gray-600 whitespace-nowrap">今日の目標</span>
-            <span className="flex items-baseline gap-1 whitespace-nowrap">
-              <span className={`text-lg font-bold leading-none ${goalReached ? "text-green-600" : "text-gray-900"}`}>
-                {loading ? "-" : today.answered}
-              </span>
-              <span className="text-gray-300">/</span>
-              <input
-                type="number"
-                min={1}
-                max={500}
-                value={goal}
-                onChange={(e) => updateGoal(e.target.value)}
-                aria-label="今日の目標問題数"
-                className="w-12 rounded-md border border-gray-200 bg-white px-1 py-0.5 text-center text-base font-bold text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-xs text-gray-500">問</span>
-            </span>
-            <div className="w-20 md:w-28 h-2.5 rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className={`h-full transition-all duration-300 ${goalReached ? "bg-green-500" : "bg-indigo-500"}`}
-                style={{ width: `${goalPct}%` }}
-              />
-            </div>
-          </div>
-          <Link
-            href="/analysis"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap"
-          >
-            全区分分析
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
+        <Link
+          href="/analysis"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap ml-auto md:ml-0"
+        >
+          全区分分析
+          <ChevronRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* 試験区分セレクタ（ガイド＋横並びタブ） */}
