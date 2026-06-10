@@ -781,10 +781,10 @@ export function HomeDashboard() {
               </div>
               <Link
                 href={`/exam/${active.exam.id}`}
-                className="mt-2.5 flex items-center justify-center gap-1 text-sm font-semibold text-gray-400 hover:text-indigo-600 transition-colors"
+                className="mt-2.5 flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-base font-bold text-gray-700 shadow-rich hover:border-indigo-300 hover:text-indigo-700 hover:-translate-y-0.5 transition-all"
               >
                 すべての演習メニュー（年度別・出題範囲など）
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
           </CardContent>
