@@ -42,13 +42,13 @@ export default function AdvancedPage() {
           </h2>
           <Link href={`/exam/${am1Exam.id}`} className="block">
             <Card
-              className={`border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${am1Exam.bgColor} ${am1Exam.borderColor}`}
+              className={`group border bg-white/80 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer ${am1Exam.borderColor}`}
             >
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div
-                      className={`bg-gradient-to-br ${am1Exam.color} rounded-xl w-14 h-14 flex items-center justify-center flex-shrink-0`}
+                      className={`bg-gradient-to-br ${am1Exam.color} rounded-2xl w-14 h-14 flex items-center justify-center flex-shrink-0 shadow-md shadow-black/10 group-hover:scale-105 transition-transform`}
                     >
                       <span className="text-white font-bold text-sm leading-none whitespace-nowrap">
                         {am1Exam.shortName}
@@ -79,13 +79,13 @@ export default function AdvancedPage() {
             {advancedExams.map((exam) => (
               <Link key={exam.id} href={`/exam/${exam.id}`} className="h-full">
                 <Card
-                  className={`h-full border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${exam.bgColor} ${exam.borderColor}`}
+                  className={`group h-full border bg-white/80 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer ${exam.borderColor}`}
                 >
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div
-                          className={`bg-gradient-to-br ${exam.color} rounded-xl w-14 h-14 flex items-center justify-center flex-shrink-0`}
+                          className={`bg-gradient-to-br ${exam.color} rounded-2xl w-14 h-14 flex items-center justify-center flex-shrink-0 shadow-md shadow-black/10 group-hover:scale-105 transition-transform`}
                         >
                           <span className={`text-white font-bold leading-none whitespace-nowrap ${exam.shortName.length > 2 ? "text-sm" : "text-base"}`}>
                             {exam.shortName}
@@ -103,7 +103,7 @@ export default function AdvancedPage() {
                               <Badge
                                 key={cat}
                                 variant="secondary"
-                                className={`text-sm px-2 py-0 ${exam.textColor} bg-white/70`}
+                                className={`text-sm px-2 py-0 ${exam.textColor} ${exam.badgeBg}`}
                               >
                                 {cat}
                               </Badge>

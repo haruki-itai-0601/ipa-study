@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getExam } from "@/lib/exams";
+import { getExam, sectionLabel } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -51,11 +51,11 @@ const MODES: {
   color: string;
   iconBg: string;
 }[] = [
-  { key: "year", title: "年度別（問1順）", desc: "年度を選んで問1から順に解く", icon: BookOpen, color: "border-indigo-200 bg-indigo-50 hover:border-indigo-400", iconBg: "bg-indigo-600" },
-  { key: "random", title: "ランダム", desc: `全年度から${RANDOM_COUNT}問をシャッフル出題`, icon: Shuffle, color: "border-sky-200 bg-sky-50 hover:border-sky-400", iconBg: "bg-sky-600" },
-  { key: "category", title: "分野別", desc: "苦手な分野をまとめて演習", icon: Layers, color: "border-violet-200 bg-violet-50 hover:border-violet-400", iconBg: "bg-violet-600" },
-  { key: "wrong", title: "誤答復習", desc: "過去に間違えた問題だけ再挑戦", icon: RotateCcw, color: "border-rose-200 bg-rose-50 hover:border-rose-400", iconBg: "bg-rose-600" },
-  { key: "exam", title: "模試（タイマー）", desc: "年度を選んで本番形式・制限時間で挑戦", icon: Timer, color: "border-amber-200 bg-amber-50 hover:border-amber-400", iconBg: "bg-amber-600" },
+  { key: "year", title: "年度別（問1順）", desc: "年度を選んで問1から順に解く", icon: BookOpen, color: "border-indigo-200", iconBg: "bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/30" },
+  { key: "random", title: "ランダム", desc: `全年度から${RANDOM_COUNT}問をシャッフル出題`, icon: Shuffle, color: "border-sky-200", iconBg: "bg-gradient-to-br from-sky-500 to-sky-600 shadow-md shadow-sky-500/30" },
+  { key: "category", title: "分野別", desc: "苦手な分野をまとめて演習", icon: Layers, color: "border-violet-200", iconBg: "bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/30" },
+  { key: "wrong", title: "誤答復習", desc: "過去に間違えた問題だけ再挑戦", icon: RotateCcw, color: "border-rose-200", iconBg: "bg-gradient-to-br from-rose-500 to-rose-600 shadow-md shadow-rose-500/30" },
+  { key: "exam", title: "模試（タイマー）", desc: "年度を選んで本番形式・制限時間で挑戦", icon: Timer, color: "border-amber-200", iconBg: "bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-amber-500/30" },
 ];
 
 export default function PastExamPage() {
@@ -337,7 +337,7 @@ export default function PastExamPage() {
           <>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">出題モードを選んでください</h2>
-              <p className="text-sm text-gray-500">本物のIPA過去問（午前{examId === "am1" ? "Ⅰ" : "Ⅱ"}）から出題されます</p>
+              <p className="text-sm text-gray-500">本物のIPA過去問{sectionLabel(examId) ? `（${sectionLabel(examId)}）` : ""}から出題されます</p>
             </div>
             <div className="space-y-3">
               {MODES.map((m) => {
@@ -347,10 +347,10 @@ export default function PastExamPage() {
                     key={m.key}
                     onClick={() => onSelectMode(m.key)}
                     disabled={loading}
-                    className={`w-full text-left border-2 rounded-xl p-5 transition-all duration-200 ${m.color} disabled:opacity-50`}
+                    className={`group w-full text-left border rounded-2xl p-5 bg-white/85 backdrop-blur-sm shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 ${m.color} disabled:opacity-50`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`${m.iconBg} rounded-xl p-2.5 flex-shrink-0`}>
+                      <div className={`${m.iconBg} rounded-xl p-2.5 flex-shrink-0 group-hover:scale-105 transition-transform`}>
                         <Icon className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex-1">

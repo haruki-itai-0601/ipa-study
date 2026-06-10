@@ -52,7 +52,8 @@ export function HeaderToday() {
     load();
   }, []);
 
-  if (!ready) return null;
+  // 連続0日の表示はモチベーションを下げるだけなので、1日以上のときだけ出す
+  if (!ready || streak === 0) return null;
 
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs md:text-sm font-bold text-orange-600">

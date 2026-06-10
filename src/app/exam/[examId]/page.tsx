@@ -1,4 +1,4 @@
-import { getExam } from "@/lib/exams";
+import { getExam, examGroupLabel, sectionLabel } from "@/lib/exams";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp } from "lucide-react";
@@ -19,6 +19,7 @@ export default async function ExamPage({
   const { examId } = await params;
   const exam = getExam(examId);
   if (!exam) notFound();
+  const sec = sectionLabel(examId);
 
   const pastAccuracy =
     mockStats.past.answered > 0
@@ -42,7 +43,7 @@ export default async function ExamPage({
               <span className={`text-white font-bold leading-none whitespace-nowrap ${exam.shortName.length > 2 ? "text-[10px]" : "text-sm"}`}>{exam.shortName}</span>
             </div>
             <div>
-              <div className="text-sm text-gray-500">高度情報処理技術者試験</div>
+              <div className="text-sm text-gray-500">{examGroupLabel(examId)}</div>
               <div className="font-bold text-gray-900 text-lg">{exam.name}</div>
             </div>
           </div>
@@ -58,7 +59,7 @@ export default async function ExamPage({
           </h2>
           <div className={`grid gap-4 ${examId === "am1" ? "grid-cols-1" : "grid-cols-2"}`}>
             {/* 過去問 */}
-            <Card className="border-0 shadow-sm">
+            <Card className="border border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <BookOpen className="w-5 h-5 text-indigo-500" />
@@ -78,7 +79,7 @@ export default async function ExamPage({
             </Card>
             {/* AI予想問題（午前Ⅰは対象外） */}
             {examId !== "am1" && (
-              <Card className="border-0 shadow-sm">
+              <Card className="border border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Zap className="w-5 h-5 text-yellow-500" />
@@ -127,15 +128,15 @@ export default async function ExamPage({
 
             {/* 過去問演習 */}
             <Link href={`/exam/${examId}/past`}>
-              <Card className="border-2 border-indigo-200 bg-indigo-50 hover:shadow-lg hover:border-indigo-400 transition-all duration-200 cursor-pointer h-full">
+              <Card className="group border border-indigo-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="bg-indigo-600 rounded-xl p-2.5">
+                    <div className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl p-2.5 shadow-md shadow-indigo-500/30 group-hover:scale-105 transition-transform">
                       <BookOpen className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <div className="font-bold text-gray-900 text-lg">過去問演習</div>
-                      <div className="text-sm text-gray-500">IPA公式の本物の過去問（午前{examId === "am1" ? "Ⅰ" : "Ⅱ"}）を解く</div>
+                      <div className="text-sm text-gray-500">IPA公式の本物の過去問{sec ? `（${sec}）` : ""}を解く</div>
                     </div>
                   </div>
                   <ul className="space-y-1.5 text-sm text-gray-600">
@@ -156,10 +157,10 @@ export default async function ExamPage({
             {/* AI予想問題演習（午前Ⅰは対象外） */}
             {examId !== "am1" && (
             <Link href={`/exam/${examId}/ai`}>
-              <Card className="border-2 border-yellow-200 bg-yellow-50 hover:shadow-lg hover:border-yellow-400 transition-all duration-200 cursor-pointer h-full">
+              <Card className="group border border-amber-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="bg-yellow-500 rounded-xl p-2.5">
+                    <div className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2.5 shadow-md shadow-amber-500/30 group-hover:scale-105 transition-transform">
                       <Brain className="w-6 h-6 text-white" />
                     </div>
                     <div>

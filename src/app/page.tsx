@@ -35,8 +35,9 @@ export default function Home() {
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
             <h1 className="text-2xl md:text-3xl font-bold leading-snug text-white">
-              過去問を“ただ解く”だけでは、<br className="hidden sm:block" />
-              合格は近づきません。
+              <span className="inline-block">過去問を“ただ解く”だけでは、</span>
+              <br className="hidden sm:block" />
+              <span className="inline-block">合格は近づきません。</span>
             </h1>
             <p className="mt-3 text-sm md:text-base leading-relaxed text-indigo-100">
               過去問は約半分が再出題されますが、<span className="font-semibold text-white">その数は膨大</span>。闇雲に解くだけでは<span className="font-semibold text-white">効果的に対策できません</span>。
@@ -53,15 +54,25 @@ export default function Home() {
                 </span>
               ))}
             </div>
+            <a
+              href="#dashboard"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-5 py-2.5 text-sm md:text-base font-bold text-indigo-700 shadow-md shadow-indigo-900/25 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+            >
+              いますぐ演習を始める
+              <ChevronRight className="w-5 h-5" />
+            </a>
           </div>
         </section>
 
         {/* 区分セレクタ＋弱点分析＋クイックスタート（ホームの主役） */}
-        <HomeDashboard />
+        <section id="dashboard" className="scroll-mt-6">
+          <HomeDashboard />
+        </section>
 
         {/* その他のメニュー */}
         <section className="border-t border-gray-200 pt-6">
-          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <h2 className="flex items-center gap-2 text-base font-bold text-gray-700 mb-3">
+            <span className="inline-block w-1 h-4 rounded-full bg-gradient-to-b from-indigo-500 to-violet-600" />
             チャレンジ・会員登録
           </h2>
           <div className="space-y-3">
@@ -98,7 +109,8 @@ export default function Home() {
 
         {/* 高度試験への導線（別ページ・区分カードと同じデザイン） */}
         <section className="border-t border-gray-200 pt-6">
-          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          <h2 className="flex items-center gap-2 text-base font-bold text-gray-700 mb-3">
+            <span className="inline-block w-1 h-4 rounded-full bg-gradient-to-b from-slate-500 to-slate-700" />
             高度区分（PM・セキスペ・ネスペほか）
           </h2>
           <Link href="/advanced" className="block">

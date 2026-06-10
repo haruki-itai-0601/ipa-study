@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { basicExams } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -193,6 +193,7 @@ function Radar({
         const dy = a.sin < -0.3 ? -3 : a.sin > 0.3 ? labelFont + 1 : 4;
         return (
           <g key={i}>
+            <title>{`${a.label}：${a.answered > 0 ? `${a.acc}%` : "未演習"}`}</title>
             <text x={lx} y={ly + dy} textAnchor={anchor} fontSize={labelFont} fontWeight="700" fill="#374151">
               {shortLabel(a.label)}
             </text>
@@ -210,6 +211,16 @@ function Radar({
         );
       })}
     </svg>
+  );
+}
+
+// 分析カード内のセクション見出し（インディゴのアクセントバーつき）
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-1.5 text-sm md:text-base font-bold text-gray-600">
+      <span className="inline-block w-1 h-3.5 rounded-full bg-gradient-to-b from-indigo-500 to-violet-600" />
+      {children}
+    </div>
   );
 }
 
@@ -595,7 +606,7 @@ export function HomeDashboard() {
                 {/* ② 系統別の到達度（リングゲージ・合格ライン6割の目盛りつき） */}
                 <div>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-2 mb-2">
-                    <div className="text-sm font-semibold text-gray-400">系統別の到達度</div>
+                    <SectionLabel>系統別の到達度</SectionLabel>
                     <div className="text-xs text-gray-400">リングの目盛り＝合格ライン（6割）</div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-2xl mx-auto">
@@ -613,7 +624,7 @@ export function HomeDashboard() {
 
                 {/* ②-2 系ごとの内訳レーダー（中分類を固定軸に・未回答は「—」） */}
                 <div>
-                  <div className="text-sm font-semibold text-gray-400 mb-2">系統ごとの内訳（分野別）</div>
+                  <div className="mb-2"><SectionLabel>系統ごとの内訳（分野別）</SectionLabel></div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {active.seriesRadars.map((s) => {
                       const sc = accuracyColor(s.acc);
@@ -646,7 +657,7 @@ export function HomeDashboard() {
                 {/* ③ 対策すべき弱点 TOP3 */}
                 {active.top3.length > 0 && (
                   <div>
-                    <div className="text-sm font-semibold text-gray-400 mb-2">対策すべき弱点 TOP3</div>
+                    <div className="mb-2"><SectionLabel>対策すべき弱点 TOP3</SectionLabel></div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                       {active.top3.map((cat, i) => {
                         const cc = accuracyColor(cat.acc);
@@ -685,7 +696,7 @@ export function HomeDashboard() {
                 <div>
                   <button
                     onClick={() => setShowDetail((v) => !v)}
-                    className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                    className="flex w-full items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50/50 px-4 py-3 text-sm md:text-base font-semibold text-indigo-700 shadow-rich hover:bg-indigo-50 hover:-translate-y-0.5 transition-all"
                   >
                     <span>分野別の詳細（正答率）を{showDetail ? "閉じる" : "見る"}</span>
                     <ChevronDown className={`w-5 h-5 transition-transform ${showDetail ? "rotate-180" : ""}`} />
@@ -741,7 +752,7 @@ export function HomeDashboard() {
 
             {/* さっそく解く（過去問 ＋ AI予想問題） */}
             <div className="pt-4 border-t border-gray-100">
-              <div className="text-sm font-semibold text-gray-400 mb-2.5">さっそく解く</div>
+              <div className="mb-2.5"><SectionLabel>さっそく解く</SectionLabel></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {active.top3.length > 0 ? (
                   <Link

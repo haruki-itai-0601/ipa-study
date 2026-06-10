@@ -333,12 +333,12 @@ export default function QuizRunner({
           </Card>
         )}
 
-        {/* 次へボタン */}
+        {/* 次へボタン（解説直下・中央寄せで視線移動を短く） */}
         {isAnswered && (
-          <div className="flex justify-end">
+          <div className="flex justify-center">
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold text-base hover:bg-indigo-700 transition-colors"
+              className="flex items-center gap-2 bg-indigo-600 text-white px-10 py-3 rounded-xl font-semibold text-base shadow-md shadow-indigo-500/30 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all"
             >
               {isLastQuestion ? "結果を見る" : "次の問題へ"}
               <ChevronRight className="w-5 h-5" />

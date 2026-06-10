@@ -298,6 +298,25 @@ const SECTION_LABEL: Record<string, string> = {
   ip: "", // ITパスポートは午前/午後の区別なし
 };
 
+// 高度系（午前Ⅰ・午前Ⅱ）かどうか
+export function isAdvancedExam(examId: string): boolean {
+  return examId === "am1" || (ADVANCED_EXAM_IDS as readonly string[]).includes(examId);
+}
+
+// ページ見出しの肩書（IP/FE/APは「情報処理技術者試験」、高度系は「高度情報処理技術者試験」）
+export function examGroupLabel(examId: string): string {
+  return isAdvancedExam(examId) ? "高度情報処理技術者試験" : "情報処理技術者試験";
+}
+
+// 区分ごとのセクション名（UI表示用）。IPは午前/午後の区別なし→空文字。
+export function sectionLabel(examId: string): string {
+  if (examId === "am1") return "午前Ⅰ";
+  if (examId === "ap") return "午前";
+  if (examId === "fe") return "科目A";
+  if (examId === "ip") return "";
+  return "午前Ⅱ";
+}
+
 export function questionSource(examId: string, year: string, qNumber?: number | null) {
   const q = qNumber ? ` 問${qNumber}` : "";
   if (examId === "am1") {
