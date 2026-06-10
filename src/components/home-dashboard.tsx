@@ -340,9 +340,9 @@ export function HomeDashboard() {
     const catByName = new Map(cats.map((c) => [c.category, c]));
     const seriesRadars = (
       [
-        { key: "technology" as SeriesKey, label: "テクノロジ系", d: t },
-        { key: "management" as SeriesKey, label: "マネジメント系", d: m },
         { key: "strategy" as SeriesKey, label: "ストラテジ系", d: st },
+        { key: "management" as SeriesKey, label: "マネジメント系", d: m },
+        { key: "technology" as SeriesKey, label: "テクノロジ系", d: t },
       ]
     ).map((s) => ({
       key: s.key,
@@ -549,7 +549,7 @@ export function HomeDashboard() {
                 {/* ②-2 系ごとの内訳レーダー（中分類を固定軸に・未回答は「—」） */}
                 <div>
                   <div className="text-sm font-semibold text-gray-400 mb-2">系統ごとの内訳（分野別）</div>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {active.seriesRadars.map((s) => {
                       const sc = accuracyColor(s.acc);
                       return (
@@ -566,11 +566,11 @@ export function HomeDashboard() {
                             h={380}
                             cx={210}
                             cy={190}
-                            rx={132}
-                            ry={132}
+                            rx={122}
+                            ry={122}
                             maxW={460}
-                            labelFont={13}
-                            valueFont={13}
+                            labelFont={14}
+                            valueFont={14}
                           />
                         </div>
                       );
