@@ -145,6 +145,60 @@ function SeriesRadar({ items }: { items: RadarItem[] }) {
   );
 }
 
+// N軸対応の小さめレーダー（系の中で中分類ごとの到達度を表示）
+function MiniRadar({ items }: { items: RadarItem[] }) {
+  const n = items.length;
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const R = 56;
+  const axes = items.map((v, i) => {
+    const rad = ((-90 + (i * 360) / n) * Math.PI) / 180;
+    return { ...v, cos: Math.cos(rad), sin: Math.sin(rad) };
+  });
+  const pt = (cos: number, sin: number, frac: number): [number, number] => [
+    cx + R * frac * cos,
+    cy + R * frac * sin,
+  ];
+  const ring = (frac: number) => axes.map((a) => pt(a.cos, a.sin, frac).join(",")).join(" ");
+  const dataPoly = axes
+    .map((a) => pt(a.cos, a.sin, Math.max(0.02, a.acc / 100)).join(","))
+    .join(" ");
+  const short = (s: string) => (s.length > 6 ? s.slice(0, 6) + "…" : s);
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[230px] mx-auto" style={{ overflow: "visible" }}>
+      {[0.25, 0.5, 0.75, 1].map((f) => (
+        <polygon key={f} points={ring(f)} fill="none" stroke="#e5e7eb" strokeWidth={1} />
+      ))}
+      {axes.map((a, i) => {
+        const [x, y] = pt(a.cos, a.sin, 1);
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="#e5e7eb" strokeWidth={1} />;
+      })}
+      <polygon points={dataPoly} fill="rgba(99,102,241,0.22)" stroke="#6366f1" strokeWidth={2} />
+      {axes.map((a, i) => {
+        const [x, y] = pt(a.cos, a.sin, Math.max(0.02, a.acc / 100));
+        return <circle key={i} cx={x} cy={y} r={3} fill="#6366f1" />;
+      })}
+      {axes.map((a, i) => {
+        const [lx, ly] = pt(a.cos, a.sin, 1.2);
+        const anchor = Math.abs(a.cos) < 0.3 ? "middle" : a.cos > 0 ? "start" : "end";
+        const dy = a.sin < -0.3 ? -2 : a.sin > 0.3 ? 11 : 3;
+        return (
+          <g key={i}>
+            <text x={lx} y={ly + dy} textAnchor={anchor} fontSize="10" fontWeight="600" fill="#4b5563">
+              {short(a.label)}
+            </text>
+            <text x={lx} y={ly + dy + 12} textAnchor={anchor} fontSize="11" fontWeight="700" fill={accHex(a.acc)}>
+              {a.acc}%
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 export function HomeDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [progress, setProgress] = useState<Progress[]>([]);
@@ -268,6 +322,17 @@ export function HomeDashboard() {
       { label: "ストラテジ", acc: st.acc, answered: st.answered },
     ];
 
+    // 系ごとの内訳レーダー（その系の中分類を軸にする）
+    const seriesRadars = (
+      [
+        { key: "technology" as SeriesKey, label: "テクノロジ系", d: t },
+        { key: "management" as SeriesKey, label: "マネジメント系", d: m },
+        { key: "strategy" as SeriesKey, label: "ストラテジ系", d: st },
+      ]
+    )
+      .filter((s) => s.d.answered > 0)
+      .map((s) => ({ key: s.key, label: s.label, acc: s.d.acc, cats: s.d.cats }));
+
     // 弱点TOP3（最低解答数を満たすもののうち低正答率順）
     const top3 = cats.filter((c) => c.answered >= MIN_FOR_WEAK).slice(0, 3);
 
@@ -285,6 +350,7 @@ export function HomeDashboard() {
       cats,
       series,
       radar,
+      seriesRadars,
       top3,
       solved,
       aiSolved,
@@ -446,6 +512,52 @@ export function HomeDashboard() {
                   <div className="text-sm font-semibold text-gray-400 mb-1">系統別の到達度</div>
                   <SeriesRadar items={active.radar} />
                 </div>
+
+                {/* ②-2 系ごとの内訳レーダー（中分類を軸に） */}
+                {active.seriesRadars.length > 0 && (
+                  <div>
+                    <div className="text-sm font-semibold text-gray-400 mb-2">系統ごとの内訳（分野別）</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {active.seriesRadars.map((s) => {
+                        const sc = accuracyColor(s.acc);
+                        return (
+                          <div key={s.key} className="rounded-xl border border-gray-200 bg-white p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-bold text-gray-800">{s.label}</span>
+                              <span className={`text-sm font-bold ${sc.text}`}>{s.acc}%</span>
+                            </div>
+                            {s.cats.length >= 3 ? (
+                              <MiniRadar
+                                items={s.cats.map((c) => ({
+                                  label: c.category,
+                                  acc: c.acc,
+                                  answered: c.answered,
+                                }))}
+                              />
+                            ) : (
+                              <div className="space-y-2 py-2">
+                                {s.cats.map((c) => {
+                                  const cc = accuracyColor(c.acc);
+                                  return (
+                                    <div key={c.category}>
+                                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                                        <span className="text-xs text-gray-600 truncate">{c.category}</span>
+                                        <span className={`text-xs font-semibold ${cc.text}`}>{c.acc}%</span>
+                                      </div>
+                                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div className={`h-full ${cc.bar}`} style={{ width: `${c.acc}%` }} />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* ③ 対策すべき弱点 TOP3 */}
                 {active.top3.length > 0 && (
