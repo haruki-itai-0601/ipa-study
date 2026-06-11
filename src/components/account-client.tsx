@@ -9,6 +9,30 @@ import { Mail, CheckCircle2, LogOut, ShieldCheck, KeyRound, Home } from "lucide-
 
 type Phase = "email" | "code";
 
+// Google公式カラーの「G」ロゴ
+function GoogleG() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
+    </svg>
+  );
+}
+
 export function AccountClient() {
   const supabase = createSupabaseBrowserClient();
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +46,25 @@ export function AccountClient() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [info, setInfo] = useState("");
+  // Google連携が「既に別アカウントで使用中」だった場合、次回クリックは通常ログインに切替
+  const [googleAsSignIn, setGoogleAsSignIn] = useState(false);
+
+  // OAuthコールバックからエラーで戻ってきた場合の表示
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthErr = params.get("oauth_error");
+    if (!oauthErr) return;
+    if (/already|exist|linked/i.test(oauthErr)) {
+      setErr(
+        "このGoogleアカウントは既に登録済みです。もう一度「Googleでログイン」を押すと、そのアカウントでログインし直します。"
+      );
+      setGoogleAsSignIn(true);
+    } else {
+      setErr(`Googleログインでエラーが発生しました：${oauthErr}`);
+    }
+    // URLからエラーパラメータを消しておく
+    window.history.replaceState(null, "", "/account");
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -113,6 +156,42 @@ export function AccountClient() {
     } catch (e) {
       setErr(e instanceof Error ? e.message : "再送に失敗しました。");
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setErr("");
+    setInfo("");
+    setBusy(true);
+    try {
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      const { data } = await supabase.auth.getUser();
+      const cur = data.user;
+      if (cur?.is_anonymous && !googleAsSignIn) {
+        // 匿名ユーザーにGoogleを紐付けて会員に昇格（学習進捗はそのまま引き継ぎ）
+        const { error } = await supabase.auth.linkIdentity({
+          provider: "google",
+          options: { redirectTo },
+        });
+        if (error) {
+          // 連携を開始できない場合は通常ログインに切替
+          const { error: e2 } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo },
+          });
+          if (e2) throw e2;
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo },
+        });
+        if (error) throw error;
+      }
+      // 成功するとGoogleへリダイレクトされるため、ここには戻らない
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Googleログインを開始できませんでした。");
       setBusy(false);
     }
   }
@@ -219,17 +298,37 @@ export function AccountClient() {
     );
   }
 
-  // メール入力（初期）
+  // 方法選択（初期）：Google または メール
   return (
     <Card className="border-2 border-indigo-200">
       <CardContent className="p-5 space-y-4">
         <div>
-          <h2 className="font-bold text-gray-900">メールアドレスで会員登録 / ログイン</h2>
+          <h2 className="font-bold text-gray-900">会員登録 / ログイン（無料）</h2>
           <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-            メールアドレスを入力すると確認コードが届きます。コードを入力するだけで登録完了です（パスワード不要）。
-            今の学習進捗はそのまま引き継がれます。
+            登録すると学習進捗が保存され、機種変更・別端末でも引き継げます。
+            いままで解いた進捗もそのまま引き継がれます（パスワード不要）。
           </p>
         </div>
+
+        {err && <p className="text-sm text-red-600">{err}</p>}
+
+        {/* Googleでログイン */}
+        <button
+          type="button"
+          onClick={handleGoogle}
+          disabled={busy}
+          className="w-full inline-flex items-center justify-center gap-2.5 rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-semibold text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-60"
+        >
+          <GoogleG />
+          {busy ? "リダイレクト中…" : "Googleでログイン / 登録"}
+        </button>
+
+        <div className="flex items-center gap-3 text-xs text-gray-400">
+          <span className="h-px flex-1 bg-gray-200" />
+          またはメールで
+          <span className="h-px flex-1 bg-gray-200" />
+        </div>
+
         <form onSubmit={handleSendEmail} className="space-y-3">
           <input
             type="email"
@@ -239,7 +338,6 @@ export function AccountClient() {
             placeholder="you@example.com"
             className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
-          {err && <p className="text-sm text-red-600">{err}</p>}
           <button
             type="submit"
             disabled={busy}
