@@ -6,16 +6,14 @@ export const metadata = {
 };
 
 // 特定商取引法に基づく表記
-// 【公開前に実名へ置換】販売事業者名・運営責任者の「【運営者氏名】」を実名に、
-// 「【連絡先メールアドレス】」を実際の連絡先メールアドレスに置き換えてから公開してください。
 const items: { label: string; value: React.ReactNode }[] = [
   {
     label: "販売事業者名",
-    value: "【運営者氏名】", // 公開前に実名へ置換
+    value: "板井 悠生",
   },
   {
     label: "運営責任者",
-    value: "【運営者氏名】", // 公開前に実名へ置換
+    value: "板井 悠生",
   },
   {
     label: "所在地",
@@ -27,7 +25,7 @@ const items: { label: string; value: React.ReactNode }[] = [
   },
   {
     label: "メールアドレス",
-    value: "【連絡先メールアドレス】", // 公開前に実際のメールアドレスへ置換
+    value: "haruki.itai.200601@gmail.com",
   },
   {
     label: "販売価格",
