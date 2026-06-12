@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getExam } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import PmGrader from "@/components/pm-grader";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
@@ -303,6 +304,9 @@ export default function PmExamPage() {
             <p className="text-xs text-gray-400">
               出典：IPA 応用情報技術者試験 {year} 午後 問{current.q_number}
             </p>
+
+            {/* 設問の入力＋自動採点（設問データがある回＝令和7秋のみ表示） */}
+            <PmGrader pmQuestionId={current.id} />
 
             {/* 解答例の開閉 */}
             {!showAnswer ? (
