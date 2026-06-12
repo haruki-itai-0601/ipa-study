@@ -17,8 +17,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "解答が空です" }, { status: 400 });
     }
 
-    // 設問の模範解答をサーバー側で取得（pm_sub_answers は select 全員可）
     const supabase = await createSupabaseServerClient();
+
+    // 会員チェック：AI採点は有料会員限定。非会員にはAIを呼ばない＝課金が発生しない。
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "ログインが必要です", code: "auth_required" }, { status: 401 });
+    }
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const isActiveMember =
+      subscription?.status === "active" &&
+      (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date());
+    if (!isActiveMember) {
+      return NextResponse.json(
+        { error: "AI採点は有料会員限定です", code: "not_member" },
+        { status: 403 }
+      );
+    }
+
+    // 設問の模範解答をサーバー側で取得（pm_sub_answers は select 全員可）
     const { data: sub, error } = await supabase
       .from("pm_sub_answers")
       .select("label, answer_type, correct")

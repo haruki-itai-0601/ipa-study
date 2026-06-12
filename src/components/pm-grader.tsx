@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { CheckCircle2, XCircle, CircleDot, ClipboardCheck, Sparkles, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, CircleDot, ClipboardCheck, Sparkles, Loader2, Lock } from "lucide-react";
 
 type AnswerType = "symbol" | "number" | "short" | "text";
 
@@ -16,7 +16,7 @@ type SubAnswer = {
 };
 
 // 採点結果。status は両系統で共通、comment は記述のAI講評／エラーメッセージ
-type GradeStatus = "correct" | "partial" | "wrong" | "unanswered" | "pending" | "error";
+type GradeStatus = "correct" | "partial" | "wrong" | "unanswered" | "pending" | "error" | "member_only";
 type Grade = { status: GradeStatus; comment?: string };
 
 // 採点用の正規化：全角英数→半角、各種空白・記号ゆれを吸収して比較する
@@ -44,6 +44,7 @@ const TYPE_BADGE: Record<AnswerType, { label: string; cls: string }> = {
 export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
   const [subs, setSubs] = useState<SubAnswer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMember, setIsMember] = useState<boolean | null>(null); // 有料会員か（記述AI採点の可否）
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [graded, setGraded] = useState<Record<string, Grade>>({});
   const [showResult, setShowResult] = useState(false);
@@ -58,13 +59,30 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
       setShowResult(false);
       setGrading(false);
       const supabase = createSupabaseBrowserClient();
+      // 設問データ
       const { data } = await supabase
         .from("pm_sub_answers")
         .select("*")
         .eq("pm_question_id", pmQuestionId)
         .order("sub_order");
+      // 会員状態（自分の subscriptions を読む。RLSで本人のみ）
+      let member = false;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("status, current_period_end")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        member =
+          sub?.status === "active" &&
+          (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
+      }
       if (active) {
         setSubs((data as SubAnswer[]) ?? []);
+        setIsMember(member);
         setLoading(false);
       }
     })();
@@ -81,13 +99,14 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
 
   const runGrade = async () => {
     setShowResult(true);
-    // 記号・数値・短答は即時判定、記述は pending にしてAI採点へ
+    // 記号・数値・短答は即時判定、記述は会員ならAI採点・非会員は member_only
     const initial: Record<string, Grade> = {};
     const aiTargets: SubAnswer[] = [];
     for (const s of subs) {
       const inp = (inputs[s.id] ?? "").trim();
       if (s.answer_type === "text") {
         if (!inp) initial[s.id] = { status: "unanswered" };
+        else if (!isMember) initial[s.id] = { status: "member_only" };
         else {
           initial[s.id] = { status: "pending" };
           aiTargets.push(s);
@@ -110,7 +129,9 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
             body: JSON.stringify({ subId: s.id, userAnswer: inputs[s.id] }),
           });
           const data = await res.json();
-          if (!res.ok) {
+          if (res.status === 403 && data?.code === "not_member") {
+            setGraded((g) => ({ ...g, [s.id]: { status: "member_only" } }));
+          } else if (!res.ok) {
             setGraded((g) => ({ ...g, [s.id]: { status: "error", comment: data?.error ?? "採点に失敗しました" } }));
           } else {
             setGraded((g) => ({ ...g, [s.id]: { status: data.result, comment: data.comment } }));
@@ -129,6 +150,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
     partial: textSubs.filter((s) => graded[s.id]?.status === "partial").length,
     wrong: textSubs.filter((s) => graded[s.id]?.status === "wrong").length,
   };
+  const hasTextAnswered = textSubs.some((s) => graded[s.id]?.status === "member_only");
 
   return (
     <div className="rounded-2xl border border-violet-200 bg-violet-50/40 shadow-rich p-5 space-y-4">
@@ -139,7 +161,14 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
         <div>
           <h3 className="text-base font-bold text-gray-800">設問に解答して採点</h3>
           <p className="text-xs text-gray-500 mt-0.5 leading-snug">
-            記号・数値・短答は自動で○×、<span className="font-semibold text-violet-700">記述はAIが○△×＋講評で採点</span>します。
+            記号・数値・短答は自動で○×。
+            {isMember ? (
+              <span className="font-semibold text-violet-700">記述はAIが○△×＋講評で採点します。</span>
+            ) : (
+              <span>
+                記述の<span className="font-semibold text-violet-700">AI採点は有料会員限定</span>です。
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -153,6 +182,9 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="text-sm font-bold text-gray-700">{s.label}</span>
                 <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 ${badge.cls}`}>{badge.label}</span>
+                {s.answer_type === "text" && isMember === false && (
+                  <Lock className="w-3.5 h-3.5 text-violet-400" />
+                )}
                 {showResult && g?.status === "correct" && <CheckCircle2 className="w-5 h-5 text-green-600 ml-auto" />}
                 {showResult && g?.status === "partial" && <CircleDot className="w-5 h-5 text-yellow-500 ml-auto" />}
                 {showResult && g?.status === "wrong" && <XCircle className="w-5 h-5 text-red-600 ml-auto" />}
@@ -189,13 +221,18 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                     </p>
                   )}
                   {g.status === "pending" && <p className="text-violet-500">AIが採点中…</p>}
+                  {g.status === "member_only" && (
+                    <p className="flex items-center gap-1 font-semibold text-violet-700">
+                      <Lock className="w-4 h-4" /> AI採点は有料会員限定です
+                    </p>
+                  )}
                   {g.status === "unanswered" && (
                     <p className="text-gray-400">
                       未回答{s.answer_type !== "text" && <> — 正解：{s.correct}</>}
                     </p>
                   )}
                   {g.status === "error" && <p className="text-red-500">採点エラー：{g.comment}</p>}
-                  {/* 記述のAI講評・模範解答 */}
+                  {/* 記述のAI講評・模範解答（採点された会員のみ） */}
                   {s.answer_type === "text" && (g.status === "correct" || g.status === "partial" || g.status === "wrong") && (
                     <>
                       {g.comment && <p className="text-gray-600">{g.comment}</p>}
@@ -203,11 +240,6 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                         模範解答：<span className="font-semibold">{s.correct}</span>
                       </p>
                     </>
-                  )}
-                  {s.answer_type === "text" && g.status === "unanswered" && (
-                    <p className="text-violet-700 text-xs">
-                      模範解答：<span className="font-semibold">{s.correct}</span>
-                    </p>
                   )}
                 </div>
               )}
@@ -232,13 +264,18 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
               自動採点：{autoSubs.length}問中 <span className="text-violet-700">{autoCorrect}</span>問 正解
             </p>
           )}
-          {textSubs.length > 0 && (
+          {textSubs.length > 0 && isMember && (
             <p className="flex items-center justify-center gap-1.5 text-sm text-gray-600">
               <Sparkles className="w-3.5 h-3.5 text-violet-400" />
               AI採点（記述{textSubs.length}問）：
               <span className="font-bold text-green-700">○{textCounts.correct}</span>
               <span className="font-bold text-yellow-600">△{textCounts.partial}</span>
               <span className="font-bold text-red-600">×{textCounts.wrong}</span>
+            </p>
+          )}
+          {hasTextAnswered && !isMember && (
+            <p className="flex items-center justify-center gap-1.5 text-sm text-violet-700 font-semibold">
+              <Lock className="w-4 h-4" /> 記述のAI採点は有料会員限定です
             </p>
           )}
         </div>
