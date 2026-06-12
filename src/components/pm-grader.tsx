@@ -239,6 +239,9 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                       <p className="text-violet-700 text-xs">
                         模範解答：<span className="font-semibold">{s.correct}</span>
                       </p>
+                      <p className="text-[10px] text-gray-400">
+                        ※AIによる自動採点のため、判定・講評は絶対的な正解ではありません。あくまで参考としてご利用ください。
+                      </p>
                     </>
                   )}
                 </div>
@@ -265,13 +268,18 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
             </p>
           )}
           {textSubs.length > 0 && isMember && (
-            <p className="flex items-center justify-center gap-1.5 text-sm text-gray-600">
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-              AI採点（記述{textSubs.length}問）：
-              <span className="font-bold text-green-700">○{textCounts.correct}</span>
-              <span className="font-bold text-yellow-600">△{textCounts.partial}</span>
-              <span className="font-bold text-red-600">×{textCounts.wrong}</span>
-            </p>
+            <>
+              <p className="flex items-center justify-center gap-1.5 text-sm text-gray-600">
+                <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                AI採点（記述{textSubs.length}問）：
+                <span className="font-bold text-green-700">○{textCounts.correct}</span>
+                <span className="font-bold text-yellow-600">△{textCounts.partial}</span>
+                <span className="font-bold text-red-600">×{textCounts.wrong}</span>
+              </p>
+              <p className="text-[11px] text-gray-400">
+                ※記述のAI採点は参考情報です。実際の試験の採点基準とは異なる場合があります。
+              </p>
+            </>
           )}
           {hasTextAnswered && !isMember && (
             <p className="flex items-center justify-center gap-1.5 text-sm text-violet-700 font-semibold">
