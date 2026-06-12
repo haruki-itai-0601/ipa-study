@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
-type Progress = { exam_id: string; year: string; is_correct: boolean; answered_at: string };
+// 区分別の解答サマリ（DB側集計。total=全解答、ai=AI予想問題の解答数）
+type Overview = { exam_id: string; total: number; ai: number };
 
 const MIN_FOR_WEAK = 3; // 弱点TOP判定に必要な最低解答数
 
@@ -289,7 +290,8 @@ function DonutGauge({
 
 export function HomeDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [progress, setProgress] = useState<Progress[]>([]);
+  const [overview, setOverview] = useState<Overview[]>([]);
+  const [todayStats, setTodayStats] = useState({ answered: 0, correct: 0 });
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<string>(basicExams[0].id);
   const [showDetail, setShowDetail] = useState(false);
@@ -340,18 +342,20 @@ export function HomeDashboard() {
         : [];
       setRows(r);
 
-      // 解答ログ（過去問/AIの判別・解答数・今日の進捗に使用）
-      const { data: progData } = await supabase
-        .from("user_progress")
-        .select("exam_id, year, is_correct, answered_at")
-        .eq("user_id", user.id);
-      const p = (progData as Progress[] | null) ?? [];
-      setProgress(p);
+      // 解答サマリ（区分別合計/AI内訳）と今日の進捗をDB側で集計（1000行上限の影響を受けない）
+      const [ovRes, todayRes] = await Promise.all([
+        supabase.rpc("get_progress_overview"),
+        supabase.rpc("get_today_stats_jst"),
+      ]);
+      const ov = (ovRes.data as Overview[] | null) ?? [];
+      setOverview(ov);
+      const t = (todayRes.data as { answered: number; correct: number }[] | null)?.[0];
+      if (t) setTodayStats({ answered: t.answered, correct: t.correct });
 
       // 解答数が最も多いメイン区分を初期選択に
       const basicIds = basicExams.map((e) => e.id);
       const byExam = basicIds
-        .map((id) => ({ id, n: p.filter((x) => x.exam_id === id).length }))
+        .map((id) => ({ id, n: ov.find((o) => o.exam_id === id)?.total ?? 0 }))
         .sort((a, b) => b.n - a.n);
       if (byExam[0] && byExam[0].n > 0) setActiveExam(byExam[0].id);
 
@@ -361,16 +365,14 @@ export function HomeDashboard() {
   }, []);
 
   // 今日（JST）の進捗（全区分合計）
-  const today = useMemo(() => {
-    const now = new Date();
-    const jstOffset = 9 * 60 * 60 * 1000;
-    const dayMs = 24 * 60 * 60 * 1000;
-    const startMs = Math.floor((now.getTime() + jstOffset) / dayMs) * dayMs - jstOffset;
-    const todays = progress.filter((p) => new Date(p.answered_at).getTime() >= startMs);
-    const answered = todays.length;
-    const correct = todays.filter((p) => p.is_correct).length;
-    return { answered, accuracy: answered > 0 ? Math.round((correct / answered) * 100) : 0 };
-  }, [progress]);
+  const today = useMemo(
+    () => ({
+      answered: todayStats.answered,
+      accuracy:
+        todayStats.answered > 0 ? Math.round((todayStats.correct / todayStats.answered) * 100) : 0,
+    }),
+    [todayStats]
+  );
 
   // 選択中区分の集計（系→中分類の階層 / レーダー / 弱点TOP3 / 過去問・AI比率）
   const active = useMemo(() => {
@@ -432,10 +434,10 @@ export function HomeDashboard() {
     // 弱点TOP3（最低解答数を満たすもののうち低正答率順）
     const top3 = cats.filter((c) => c.answered >= MIN_FOR_WEAK).slice(0, 3);
 
-    // 過去問 / AI の内訳 と 目標
-    const exProg = progress.filter((p) => p.exam_id === activeExam);
-    const solved = exProg.length;
-    const aiSolved = exProg.filter((p) => p.year === "AI生成").length;
+    // 過去問 / AI の内訳 と 目標（DB側集計のサマリから）
+    const ov = overview.find((o) => o.exam_id === activeExam);
+    const solved = ov?.total ?? 0;
+    const aiSolved = ov?.ai ?? 0;
     const pastSolved = solved - aiSolved;
     const target = EXAM_TARGET[activeExam] ?? 600;
 
@@ -453,7 +455,7 @@ export function HomeDashboard() {
       pastSolved,
       target,
     };
-  }, [rows, progress, activeExam]);
+  }, [rows, overview, activeExam]);
 
   const goalPct = Math.min(100, goal > 0 ? (today.answered / goal) * 100 : 0);
   const goalReached = today.answered >= goal;

@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Flame } from "lucide-react";
 
+// "YYYY-MM-DD" の前日を返す
+function prevDate(d: string): string {
+  const t = new Date(`${d}T00:00:00Z`);
+  t.setUTCDate(t.getUTCDate() - 1);
+  return t.toISOString().slice(0, 10);
+}
+
 // ヘッダーに表示する「連続日数」。
 export function HeaderToday() {
   const [streak, setStreak] = useState(0);
@@ -20,30 +27,22 @@ export function HeaderToday() {
         return;
       }
 
-      const now = new Date();
-      const jstOffset = 9 * 60 * 60 * 1000;
-      const { data: allData } = await supabase
-        .from("user_progress")
-        .select("answered_at")
-        .eq("user_id", user.id)
-        .order("answered_at", { ascending: false });
+      // 解答した日（JST・重複なし・新しい順）をDB側で集計（1000行上限の影響なし）
+      const { data } = await supabase.rpc("get_answered_days_jst");
+      const days = ((data as { day: string }[] | null) ?? []).map((r) => r.day);
+
       let s = 0;
-      if (allData && allData.length > 0) {
-        const days = new Set(
-          allData.map((x) => {
-            const d = new Date(new Date(x.answered_at).getTime() + jstOffset);
-            return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
-          })
-        );
-        const checkDate = new Date(now.getTime() + jstOffset);
-        const todayKey = `${checkDate.getUTCFullYear()}-${checkDate.getUTCMonth()}-${checkDate.getUTCDate()}`;
-        if (!days.has(todayKey)) checkDate.setUTCDate(checkDate.getUTCDate() - 1);
-        while (true) {
-          const key = `${checkDate.getUTCFullYear()}-${checkDate.getUTCMonth()}-${checkDate.getUTCDate()}`;
-          if (days.has(key)) {
+      if (days.length > 0) {
+        const todayJst = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        // 今日解いていなければ昨日起点で連続を数える
+        let expect = days[0] === todayJst ? todayJst : prevDate(todayJst);
+        for (const d of days) {
+          if (d === expect) {
             s++;
-            checkDate.setUTCDate(checkDate.getUTCDate() - 1);
-          } else break;
+            expect = prevDate(expect);
+          } else {
+            break;
+          }
         }
       }
       setStreak(s);

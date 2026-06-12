@@ -23,15 +23,19 @@ export async function generateMetadata({ params }: { params: Promise<{ examId: s
 }
 
 async function pickFive(examId: string): Promise<ChQ[]> {
-  const { data } = await sb()
-    .from("questions")
-    .select("id,exam_id,category,year,question,option_a,option_b,option_c,option_d,correct_answer,explanation")
-    .eq("type", "past")
-    .eq("exam_id", examId);
-  const pool = (data as ChQ[] | null)?.filter(
-    (q) => q.question && !/[図表]/.test(q.question) && !/アローダイアグラム|グラフ|次のプログラム|流れ図/.test(q.question)
-  ) ?? [];
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[pool[i], pool[j]] = [pool[j], pool[i]]; }
+  // DB側で全年度から抽選（1000行上限の影響なし）。図問題を除外するため多めに取ってから絞る
+  const { data } = await sb().rpc("get_random_past_questions", {
+    p_exam_id: examId,
+    p_count: 60,
+  });
+  type RandQ = ChQ & { image_url?: string | null };
+  const pool = ((data as RandQ[] | null) ?? []).filter(
+    (q) =>
+      q.question &&
+      !q.image_url &&
+      !/[図表]/.test(q.question) &&
+      !/アローダイアグラム|グラフ|次のプログラム|流れ図/.test(q.question)
+  );
   return pool.slice(0, 5);
 }
 

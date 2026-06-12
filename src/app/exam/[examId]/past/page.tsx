@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getExam, sectionLabel } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { fetchAllRows, fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
@@ -22,15 +23,23 @@ type Mode = "year" | "random" | "category" | "wrong" | "exam";
 const RANDOM_COUNT = 20;
 const CATEGORY_COUNT = 20;
 
-// 年度ラベルを新しい順に並べるためのソートキー（令和元年度や春期/秋期を正しく扱う）
+// 年度ラベルを新しい順に並べるためのソートキー。
+// 「令和8年度」（期なし・ITパスポートのCBT）、「平成23年度 特別」（震災特別試験）にも対応。
 function yearSortKey(y: string): number {
-  const m = y.match(/(令和|平成)(元|\d+)年度\s*(春期|秋期)/);
+  const m = y.match(/(令和|平成)(元|\d+)年度(?:\s*(春期|秋期|特別))?/);
   if (!m) return 0;
   const n = m[2] === "元" ? 1 : parseInt(m[2], 10);
   // 絶対年に変換（令和元=2019, 平成30=2018, 平成31=2019）して時系列で比較できるようにする
   const absYear = m[1] === "令和" ? 2018 + n : 1988 + n;
-  const season = m[3] === "秋期" ? 2 : 1; // 同一年度では秋期を新しい扱い
+  // 同一年度内の時系列: 春期(4月) < 特別(夏) < 秋期(10月) < 期なし(通年＝年度代表として最新扱い)
+  const season = m[3] === "春期" ? 1 : m[3] === "特別" ? 2 : m[3] === "秋期" ? 3 : 4;
   return absYear * 10 + season;
+}
+
+// 模試の制限時間（分）。IP=120分/100問・FE科目A=90分/60問・AP午前=150分/80問・午前Ⅰ=50分/30問・高度午前Ⅱ=40分/25問
+const EXAM_MINUTES: Record<string, number> = { ip: 120, fe: 90, ap: 150, am1: 50 };
+function examMinutes(examId: string): number {
+  return EXAM_MINUTES[examId] ?? 40;
 }
 
 // Fisher-Yates シャッフル
@@ -100,15 +109,12 @@ export default function PastExamPage() {
     setView("year");
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
-    const { data } = await supabase
-      .from("questions")
-      .select("year")
-      .eq("exam_id", examId)
-      .eq("type", "past");
+    // DB側で集計（1000行上限の影響を受けない）
+    const { data } = await supabase.rpc("get_past_year_counts", { p_exam_id: examId });
     if (data) {
       const counts: Record<string, number> = {};
-      data.forEach((q: { year: string }) => {
-        counts[q.year] = (counts[q.year] || 0) + 1;
+      (data as { year: string; n: number }[]).forEach((r) => {
+        counts[r.year] = r.n;
       });
       const years = Object.keys(counts).sort((a, b) => yearSortKey(b) - yearSortKey(a));
       setAvailableYears(years);
@@ -122,18 +128,11 @@ export default function PastExamPage() {
     setView("category");
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
-    const { data } = await supabase
-      .from("questions")
-      .select("category")
-      .eq("exam_id", examId)
-      .eq("type", "past");
+    // DB側で集計（1000行上限の影響を受けない）
+    const { data } = await supabase.rpc("get_past_category_counts", { p_exam_id: examId });
     if (data) {
-      const counts: Record<string, number> = {};
-      data.forEach((q: { category: string }) => {
-        counts[q.category] = (counts[q.category] || 0) + 1;
-      });
-      const list = Object.entries(counts)
-        .map(([name, count]) => ({ name, count }))
+      const list = (data as { category: string; n: number }[])
+        .map((r) => ({ name: r.category, count: r.n }))
         .sort((a, b) => b.count - a.count);
       setCategories(list);
     }
@@ -155,32 +154,50 @@ export default function PastExamPage() {
     startQuiz((data as Question[]) ?? [], "年度別演習", year);
   };
 
-  // ランダム: 全年度からシャッフルしてN問
+  // ランダム: 全年度からDB側で抽選してN問（1000行上限の影響を受けず、全問題が母集団になる）
   const startRandom = async () => {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
-    const { data } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("exam_id", examId)
-      .eq("type", "past");
+    const { data } = await supabase.rpc("get_random_past_questions", {
+      p_exam_id: examId,
+      p_count: RANDOM_COUNT,
+    });
     setLoading(false);
-    const picked = shuffle((data as Question[]) ?? []).slice(0, RANDOM_COUNT);
+    const picked = (data as Question[]) ?? [];
     startQuiz(picked, "ランダム演習", `${exam?.name} ・ ${picked.length}問`);
+  };
+
+  // 自分の誤答問題IDを全件取得（1000行超でもページングで取り切る）
+  const fetchWrongIds = async (supabase: ReturnType<typeof createSupabaseBrowserClient>, userId: string) => {
+    const prog = await fetchAllRows<{ question_id: string }>((from, to) =>
+      supabase
+        .from("user_progress")
+        .select("question_id")
+        .eq("user_id", userId)
+        .eq("exam_id", examId)
+        .eq("is_correct", false)
+        .order("answered_at", { ascending: false })
+        .range(from, to)
+    );
+    return [...new Set(prog.map((p) => p.question_id))];
   };
 
   // 分野別: 選んだカテゴリからシャッフルしてN問
   const startCategory = async (category: string) => {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
-    const { data } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("exam_id", examId)
-      .eq("type", "past")
-      .eq("category", category);
+    const data = await fetchAllRows<Question>((from, to) =>
+      supabase
+        .from("questions")
+        .select("*")
+        .eq("exam_id", examId)
+        .eq("type", "past")
+        .eq("category", category)
+        .order("id")
+        .range(from, to)
+    );
     setLoading(false);
-    const picked = shuffle((data as Question[]) ?? []).slice(0, CATEGORY_COUNT);
+    const picked = shuffle(data).slice(0, CATEGORY_COUNT);
     startQuiz(picked, "分野別演習", category);
   };
 
@@ -193,22 +210,21 @@ export default function PastExamPage() {
     } = await supabase.auth.getUser();
     let wrongIds: string[] = [];
     if (user) {
-      const { data: prog } = await supabase
-        .from("user_progress")
-        .select("question_id")
-        .eq("exam_id", examId)
-        .eq("is_correct", false);
-      wrongIds = [...new Set((prog ?? []).map((p: { question_id: string }) => p.question_id))];
+      wrongIds = await fetchWrongIds(supabase, user.id);
     }
-    const { data } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("exam_id", examId)
-      .eq("type", "past")
-      .eq("category", category);
+    const data = await fetchAllRows<Question>((from, to) =>
+      supabase
+        .from("questions")
+        .select("*")
+        .eq("exam_id", examId)
+        .eq("type", "past")
+        .eq("category", category)
+        .order("id")
+        .range(from, to)
+    );
     setLoading(false);
     const set = new Set(wrongIds);
-    const picked = shuffle(((data as Question[]) ?? []).filter((q) => set.has(q.id)));
+    const picked = shuffle(data.filter((q) => set.has(q.id)));
     startQuiz(picked, "誤答を解き直す", `${category} ・ 間違えた問題`);
   };
 
@@ -224,24 +240,19 @@ export default function PastExamPage() {
       startQuiz([], "誤答復習");
       return;
     }
-    const { data: prog } = await supabase
-      .from("user_progress")
-      .select("question_id")
-      .eq("exam_id", examId)
-      .eq("is_correct", false);
-    const ids = [...new Set((prog ?? []).map((p: { question_id: string }) => p.question_id))];
+    const ids = await fetchWrongIds(supabase, user.id);
     if (ids.length === 0) {
       setLoading(false);
       startQuiz([], "誤答復習");
       return;
     }
-    const { data } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("type", "past")
-      .in("id", ids);
+    // IDが多くてもチャンク分割で取り切る
+    const data = await fetchByIdsChunked<Question>(
+      (chunk) => supabase.from("questions").select("*").eq("type", "past").in("id", chunk),
+      ids
+    );
     setLoading(false);
-    startQuiz(shuffle((data as Question[]) ?? []), "誤答復習", `${exam?.name} ・ 間違えた問題`);
+    startQuiz(shuffle(data), "誤答復習", `${exam?.name} ・ 間違えた問題`);
   };
 
   // 模試: 選んだ年度を問1順・制限時間つき
@@ -256,8 +267,8 @@ export default function PastExamPage() {
       .eq("type", "past")
       .order("q_number");
     setLoading(false);
-    // 午前Ⅰ=50分/30問、午前Ⅱ=40分/25問
-    const timer = examId === "am1" ? 50 * 60 : 40 * 60;
+    // 制限時間は本番準拠（IP=120分/FE科目A=90分/AP午前=150分/午前Ⅰ=50分/高度午前Ⅱ=40分）
+    const timer = examMinutes(examId) * 60;
     startQuiz((data as Question[]) ?? [], "模試", `${year} ・ 制限${timer / 60}分`, timer);
   };
 
@@ -374,7 +385,7 @@ export default function PastExamPage() {
               <h2 className="text-lg font-bold text-gray-900 mb-1">年度を選んでください</h2>
               <p className="text-sm text-gray-500">
                 {yearTarget === "exam"
-                  ? `選んだ年度を本番形式・制限${examId === "am1" ? 50 : 40}分で出題します`
+                  ? `選んだ年度を本番形式・制限${examMinutes(examId)}分で出題します`
                   : "選んだ年度を問1から順に出題します"}
               </p>
             </div>

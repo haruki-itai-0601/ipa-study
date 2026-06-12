@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getExam, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { fetchAllRows } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, BookOpen, RotateCcw, CheckCircle, Lightbulb } from "lucide-react";
@@ -32,13 +33,17 @@ export default function StudyPage() {
       setLoading(true);
       const supabase = createSupabaseBrowserClient();
 
-      // この分野の問題
-      const { data: qs } = await supabase
-        .from("questions")
-        .select("*")
-        .eq("exam_id", examId)
-        .eq("type", "past")
-        .eq("category", cat);
+      // この分野の問題（1000行超でも全件取得）
+      const qs = await fetchAllRows<Question>((from, to) =>
+        supabase
+          .from("questions")
+          .select("*")
+          .eq("exam_id", examId)
+          .eq("type", "past")
+          .eq("category", cat)
+          .order("id")
+          .range(from, to)
+      );
 
       // この区分の解答履歴（正誤）
       const {
@@ -47,21 +52,26 @@ export default function StudyPage() {
       const wrongIds = new Set<string>();
       const attemptedIds = new Set<string>();
       if (user) {
-        const { data: prog } = await supabase
-          .from("user_progress")
-          .select("question_id, is_correct")
-          .eq("exam_id", examId);
-        (prog ?? []).forEach((p: { question_id: string; is_correct: boolean }) => {
+        const prog = await fetchAllRows<{ question_id: string; is_correct: boolean }>((from, to) =>
+          supabase
+            .from("user_progress")
+            .select("question_id, is_correct")
+            .eq("user_id", user.id)
+            .eq("exam_id", examId)
+            .order("answered_at", { ascending: false })
+            .range(from, to)
+        );
+        prog.forEach((p) => {
           attemptedIds.add(p.question_id);
           if (!p.is_correct) wrongIds.add(p.question_id);
         });
         // 後で正解した問題は「間違えた」から除外
-        (prog ?? []).forEach((p: { question_id: string; is_correct: boolean }) => {
+        prog.forEach((p) => {
           if (p.is_correct) wrongIds.delete(p.question_id);
         });
       }
 
-      const list: StudyItem[] = ((qs as Question[]) ?? []).map((q) => ({
+      const list: StudyItem[] = (qs ?? []).map((q) => ({
         ...q,
         wrong: wrongIds.has(q.id),
         attempted: attemptedIds.has(q.id),

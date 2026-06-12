@@ -8,6 +8,13 @@ import SingleQuestion, { type SingleQ } from "@/components/single-question";
 
 type Question = SingleQ;
 
+// 問題内容は静的なので1日キャッシュ（ISR）。表示高速化＆1万ページのクロール効率向上
+// 空配列を返すことで「初回アクセス時に生成→以降キャッシュ」になる（ビルド時は生成しない）
+export const revalidate = 86400;
+export async function generateStaticParams() {
+  return [];
+}
+
 function sb() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

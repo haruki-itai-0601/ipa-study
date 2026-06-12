@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { exams, getExam } from "@/lib/exams";
+import { exams, getExam, BASIC_EXAM_IDS } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, AlertTriangle, ChevronRight } from "lucide-react";
@@ -239,22 +239,41 @@ export default function AnalysisPage() {
                 })}
               </div>
 
-              {/* 未着手の区分 */}
+              {/* 未着手の区分（主要3区分と高度系を分けて表示） */}
               {notStarted.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-xs font-semibold text-gray-400 mb-2">未着手の区分</div>
-                  <div className="flex flex-wrap gap-2">
-                    {notStarted.map(({ exam }) => (
-                      <Link
-                        key={exam.id}
-                        href={`/exam/${exam.id}`}
-                        className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
-                      >
-                        <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${exam.color}`} />
-                        {exam.name}
-                      </Link>
+                <div className="mt-4 space-y-3">
+                  {[
+                    {
+                      label: "未着手の区分",
+                      list: notStarted.filter((p) =>
+                        (BASIC_EXAM_IDS as readonly string[]).includes(p.exam.id)
+                      ),
+                    },
+                    {
+                      label: "未着手の高度区分",
+                      list: notStarted.filter(
+                        (p) => !(BASIC_EXAM_IDS as readonly string[]).includes(p.exam.id)
+                      ),
+                    },
+                  ]
+                    .filter((g) => g.list.length > 0)
+                    .map((g) => (
+                      <div key={g.label}>
+                        <div className="text-xs font-semibold text-gray-400 mb-2">{g.label}</div>
+                        <div className="flex flex-wrap gap-2">
+                          {g.list.map(({ exam }) => (
+                            <Link
+                              key={exam.id}
+                              href={`/exam/${exam.id}`}
+                              className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                            >
+                              <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${exam.color}`} />
+                              {exam.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
                     ))}
-                  </div>
                 </div>
               )}
             </section>

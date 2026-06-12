@@ -19,6 +19,7 @@ export type SingleQ = {
   option_d: string;
   correct_answer: "a" | "b" | "c" | "d";
   explanation: string;
+  image_url?: string | null;
 };
 
 const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
@@ -53,10 +54,18 @@ export default function SingleQuestion({ q }: { q: SingleQ }) {
         <span className="text-sm text-gray-400">{q.year}</span>
       </div>
 
-      {/* 問題 */}
+      {/* 問題（図問題は画像で表示。画像内に問題文・図・選択肢が含まれる） */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-5">
-          <p className="text-base leading-relaxed text-gray-900">{q.question}</p>
+          {q.image_url ? (
+            <img
+              src={q.image_url}
+              alt={`問題 ${q.q_number ?? ""}`}
+              className="w-full h-auto rounded-md border border-gray-100"
+            />
+          ) : (
+            <p className="text-base leading-relaxed text-gray-900">{q.question}</p>
+          )}
         </CardContent>
       </Card>
 
@@ -83,7 +92,9 @@ export default function SingleQuestion({ q }: { q: SingleQ }) {
               >
                 {optionLabels[key]}
               </span>
-              <span className="text-base text-gray-800 leading-relaxed">{value}</span>
+              {!q.image_url && (
+                <span className="text-base text-gray-800 leading-relaxed">{value}</span>
+              )}
               {isAnswered && key === q.correct_answer && (
                 <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 ml-auto" />
               )}
@@ -136,7 +147,7 @@ export default function SingleQuestion({ q }: { q: SingleQ }) {
           <BookOpen className="w-6 h-6 flex-shrink-0" />
           <div className="flex-1">
             <div className="font-bold">{exam?.name ?? ""}の対策をもっと</div>
-            <div className="text-sm text-indigo-100">本物の過去問2,200問超を無料で演習</div>
+            <div className="text-sm text-indigo-100">本物の過去問1万問超を無料で演習</div>
           </div>
           <ChevronRight className="w-6 h-6 flex-shrink-0" />
         </div>
