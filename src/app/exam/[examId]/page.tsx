@@ -1,7 +1,7 @@
 import { getExam, examGroupLabel, sectionLabel } from "@/lib/exams";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp } from "lucide-react";
+import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -124,7 +124,7 @@ export default async function ExamPage({
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
             演習モードを選ぶ
           </h2>
-          <div className={`grid grid-cols-1 gap-4 ${examId === "am1" ? "" : "md:grid-cols-2"}`}>
+          <div className={`grid grid-cols-1 gap-4 ${examId === "am1" ? "" : examId === "ap" ? "md:grid-cols-2 lg:grid-cols-3" : "md:grid-cols-2"}`}>
 
             {/* 過去問演習 */}
             <Link href={`/exam/${examId}/past`}>
@@ -179,6 +179,39 @@ export default async function ExamPage({
                     </li>
                   </ul>
                   <div className="mt-4 text-xs text-gray-400">IPAシラバスより作成したオリジナル予想問題</div>
+                </CardContent>
+              </Card>
+            </Link>
+            )}
+
+            {/* 午後問題（応用情報のみ・記述式） */}
+            {examId === "ap" && (
+            <Link href={`/exam/${examId}/pm`}>
+              <Card className="group border border-violet-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl p-2.5 shadow-md shadow-violet-500/30 group-hover:scale-105 transition-transform">
+                      <FileText className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gray-900 text-lg">午後問題</span>
+                        <span className="text-[10px] font-bold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full px-2 py-0.5">NEW</span>
+                      </div>
+                      <div className="text-sm text-gray-500">本物の午後問題（記述式）に挑戦</div>
+                    </div>
+                  </div>
+                  <ul className="space-y-1.5 text-sm text-gray-600">
+                    <li className="flex items-center gap-2">
+                      <PenLine className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                      問1〜問11を本番の形式そのままで
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                      公式解答例つきで自己採点（○△×）
+                    </li>
+                  </ul>
+                  <div className="mt-4 text-xs text-gray-400">出典：IPA（独立行政法人情報処理推進機構）応用情報技術者試験 午後問題・解答例</div>
                 </CardContent>
               </Card>
             </Link>
