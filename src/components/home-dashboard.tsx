@@ -13,7 +13,6 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
-  FileText,
 } from "lucide-react";
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
@@ -559,6 +558,11 @@ export function HomeDashboard() {
             </span>
           )}
         </div>
+        {active.exam.id === "ap" && (
+          <p className="px-0.5 text-xs text-gray-400 leading-snug">
+            ※ この弱点分析は<b className="font-semibold text-gray-500">午前（多肢選択式）</b>のみが対象です。午後問題は記述式・自己採点のため、集計には含まれません。
+          </p>
+        )}
 
         <Card className="border border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich overflow-hidden">
           <CardContent className="p-4 md:p-5 space-y-5">
@@ -753,11 +757,11 @@ export function HomeDashboard() {
               </>
             )}
 
-            {/* さっそく解く（過去問 ＋ AI予想問題） */}
+            {/* さっそく解く（弱点 or AI予想。過去問・午後・年度別は演習メニューに集約） */}
             <div className="pt-4 border-t border-gray-100">
               <div className="mb-2.5"><SectionLabel>さっそく解く</SectionLabel></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {active.top3.length > 0 ? (
+              {active.top3.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <Link
                     href={studyHref(active.exam.id, active.top3[0].category)}
                     className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
@@ -765,15 +769,15 @@ export function HomeDashboard() {
                     <Target className="w-5 h-5" />
                     弱点分野から解く
                   </Link>
-                ) : (
                   <Link
-                    href={`/exam/${active.exam.id}/past`}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                    href={`/exam/${active.exam.id}/ai`}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3.5 text-base font-bold text-amber-700 shadow-rich hover:bg-amber-100 hover:-translate-y-0.5 transition-all"
                   >
-                    <BookOpen className="w-5 h-5" />
-                    IPA公式の過去問を解く
+                    <Zap className="w-5 h-5" />
+                    AIが作る予想問題を解く
                   </Link>
-                )}
+                </div>
+              ) : (
                 <Link
                   href={`/exam/${active.exam.id}/ai`}
                   className="flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3.5 text-base font-bold text-amber-700 shadow-rich hover:bg-amber-100 hover:-translate-y-0.5 transition-all"
@@ -781,21 +785,15 @@ export function HomeDashboard() {
                   <Zap className="w-5 h-5" />
                   AIが作る予想問題を解く
                 </Link>
-              </div>
-              {active.exam.id === "ap" && (
-                <Link
-                  href="/exam/ap/pm"
-                  className="mt-2.5 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                >
-                  <FileText className="w-5 h-5" />
-                  本物の午後問題（記述式）を解く
-                </Link>
               )}
               <Link
                 href={`/exam/${active.exam.id}`}
-                className="mt-2.5 flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-base font-bold text-gray-700 shadow-rich hover:border-indigo-300 hover:text-indigo-700 hover:-translate-y-0.5 transition-all"
+                className="mt-2.5 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-indigo-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
-                すべての演習メニュー（年度別・出題範囲など）
+                <BookOpen className="w-5 h-5" />
+                {active.exam.id === "ap"
+                  ? "過去問（午前）・午後問題ほか すべての演習メニュー"
+                  : "過去問・年度別ほか すべての演習メニュー"}
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>
