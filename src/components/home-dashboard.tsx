@@ -13,6 +13,7 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
+  FileText,
 } from "lucide-react";
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
@@ -781,6 +782,15 @@ export function HomeDashboard() {
                   AIが作る予想問題を解く
                 </Link>
               </div>
+              {active.exam.id === "ap" && (
+                <Link
+                  href="/exam/ap/pm"
+                  className="mt-2.5 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3.5 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                >
+                  <FileText className="w-5 h-5" />
+                  本物の午後問題（記述式）を解く
+                </Link>
+              )}
               <Link
                 href={`/exam/${active.exam.id}`}
                 className="mt-2.5 flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-base font-bold text-gray-700 shadow-rich hover:border-indigo-300 hover:text-indigo-700 hover:-translate-y-0.5 transition-all"
