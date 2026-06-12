@@ -1,0 +1,229 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
+import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle2, Sparkles, CreditCard, LogIn, Loader2 } from "lucide-react";
+
+type Subscription = {
+  status: string;
+  plan: string | null;
+  current_period_end: string | null;
+  stripe_customer_id: string | null;
+};
+
+const FEATURES = [
+  "午後問題の記述式をAIが○△×＋講評で採点",
+  "記号・数値・短答の自動採点は引き続き無料",
+  "いつでも解約OK（解約後も請求期間末まで利用可）",
+];
+
+export function PremiumClient() {
+  const supabase = createSupabaseBrowserClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
+
+  useEffect(() => {
+    // Checkout からの戻り（?checkout=success / cancel）を表示に反映
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get("checkout");
+    if (checkout === "success" || checkout === "cancel") {
+      setCheckoutResult(checkout);
+      window.history.replaceState(null, "", "/premium");
+    }
+
+    let mounted = true;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!mounted) return;
+      setUser(data.user);
+      if (data.user) {
+        const { data: sub } = await supabase
+          .from("subscriptions")
+          .select("status, plan, current_period_end, stripe_customer_id")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+        if (mounted) setSubscription(sub);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [supabase]);
+
+  const isLoggedIn = !!user && !user.is_anonymous && !!user.email;
+  const isActive =
+    subscription?.status === "active" &&
+    (!subscription.current_period_end ||
+      new Date(subscription.current_period_end) > new Date());
+
+  async function callApi(path: string) {
+    setErr("");
+    setBusy(true);
+    try {
+      const res = await fetch(path, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
+        setErr(data?.error ?? "処理に失敗しました。時間をおいて再度お試しください。");
+        setBusy(false);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setErr("通信エラーが発生しました。");
+      setBusy(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="text-sm text-gray-400 py-8 text-center">読み込み中…</div>;
+  }
+
+  // 決済直後の案内（Webhook反映に数秒かかることがある）
+  if (checkoutResult === "success" && !isActive) {
+    return (
+      <Card className="border-2 border-emerald-200 bg-emerald-50">
+        <CardContent className="p-5 space-y-3">
+          <div className="flex items-center gap-2 text-emerald-700">
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="font-bold">お申し込みありがとうございます！</span>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            決済が完了しました。会員情報の反映には数秒〜1分ほどかかる場合があります。
+            反映されない場合はページを再読み込みしてください。
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg px-4 py-2"
+          >
+            再読み込み
+          </button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 会員（active）
+  if (isActive) {
+    return (
+      <Card className="border-2 border-violet-200 bg-violet-50/60">
+        <CardContent className="p-5 space-y-3">
+          <div className="flex items-center gap-2 text-violet-700">
+            <Sparkles className="w-5 h-5" />
+            <span className="font-bold">プレミアム会員です</span>
+          </div>
+          <p className="text-sm text-gray-700">
+            午後問題の記述式AI採点をご利用いただけます。
+          </p>
+          {subscription?.current_period_end && (
+            <p className="text-xs text-gray-500">
+              次回更新日：
+              {new Date(subscription.current_period_end).toLocaleDateString("ja-JP")}
+            </p>
+          )}
+          {err && <p className="text-sm text-red-600">{err}</p>}
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg px-4 py-2"
+            >
+              問題を解く
+            </Link>
+            {subscription?.stripe_customer_id && (
+              <button
+                onClick={() => callApi("/api/stripe/portal")}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg px-3 py-2 bg-white disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                お支払い管理・解約
+              </button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 未ログイン（または匿名）→ まず会員登録へ
+  if (!isLoggedIn) {
+    return (
+      <Card className="border-2 border-violet-200">
+        <CardContent className="p-5 space-y-4">
+          <PlanSummary />
+          <p className="text-sm text-gray-600 leading-relaxed">
+            プレミアム登録には、先に無料の会員登録（ログイン）が必要です。
+          </p>
+          <Link
+            href="/account"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-white font-semibold hover:bg-indigo-700"
+          >
+            <LogIn className="w-4 h-4" />
+            会員登録 / ログインへ
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ログイン済みの非会員 → Checkout へ
+  return (
+    <Card className="border-2 border-violet-200">
+      <CardContent className="p-5 space-y-4">
+        <PlanSummary />
+        {checkoutResult === "cancel" && (
+          <p className="text-sm text-gray-500">お手続きはキャンセルされました。</p>
+        )}
+        {err && <p className="text-sm text-red-600">{err}</p>}
+        <button
+          onClick={() => callApi("/api/stripe/checkout")}
+          disabled={busy}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:translate-y-0"
+        >
+          {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+          {busy ? "決済ページへ移動中…" : "プレミアムに登録する（月額980円）"}
+        </button>
+        <p className="text-xs text-gray-400 leading-relaxed">
+          クレジットカード決済（Stripe）。いつでも解約できます。解約後も請求期間の末日までご利用いただけます。
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PlanSummary() {
+  return (
+    <div className="space-y-3">
+      <div>
+        <div className="flex items-center gap-2">
+          <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-lg p-1.5">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <h2 className="font-bold text-gray-900">プレミアム会員</h2>
+        </div>
+        <p className="mt-2">
+          <span className="text-3xl font-extrabold text-gray-900">980</span>
+          <span className="text-sm text-gray-500 font-semibold">円/月（税込）</span>
+        </p>
+      </div>
+      <ul className="space-y-1.5">
+        {FEATURES.map((f) => (
+          <li key={f} className="flex items-start gap-1.5 text-sm text-gray-700">
+            <CheckCircle2 className="w-4 h-4 text-violet-500 flex-shrink-0 mt-0.5" />
+            {f}
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs text-gray-400 leading-relaxed">
+        ※AI採点はAIによる自動採点のため、判定・講評は参考情報です。実際の試験の採点基準とは異なる場合があります。
+      </p>
+    </div>
+  );
+}

@@ -25,6 +25,20 @@ export function SiteFooter() {
             会員登録 / ログイン
           </Link>
         </div>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Link
+            href="/legal/terms"
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            利用規約
+          </Link>
+          <Link
+            href="/legal/tokushoho"
+            className="text-xs text-gray-500 hover:text-gray-700"
+          >
+            特定商取引法に基づく表記
+          </Link>
+        </div>
         <p className="text-xs text-gray-400 leading-relaxed">
           過去問題は出典を明記のうえ使用しています。各問題の解説は本サービスが独自に作成したものです。
           <br />

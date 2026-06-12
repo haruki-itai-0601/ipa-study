@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
     ANTHROPIC_API_KEY: envLocal.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY ?? "",
     ADMIN_SECRET: envLocal.ADMIN_SECRET ?? process.env.ADMIN_SECRET ?? "",
     TOTP_SECRET: envLocal.TOTP_SECRET ?? process.env.TOTP_SECRET ?? "",
+    STRIPE_SECRET_KEY: envLocal.STRIPE_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY ?? "",
+    STRIPE_WEBHOOK_SECRET: envLocal.STRIPE_WEBHOOK_SECRET ?? process.env.STRIPE_WEBHOOK_SECRET ?? "",
+    STRIPE_PRICE_ID: envLocal.STRIPE_PRICE_ID ?? process.env.STRIPE_PRICE_ID ?? "",
+    SUPABASE_SERVICE_ROLE_KEY:
+      envLocal.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   },
 };
 
