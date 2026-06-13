@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { PAYMENTS_ENABLED } from "@/lib/flags";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Sparkles, CreditCard, LogIn, Loader2 } from "lucide-react";
+import { CheckCircle2, Sparkles, CreditCard, LogIn, Loader2, Wrench } from "lucide-react";
 
 type Subscription = {
   status: string;
@@ -147,6 +148,28 @@ export function PremiumClient() {
               </button>
             )}
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 決済の一時停止中（本番審査・本番キー差し替えが完了するまで）。会員（active）は上で処理済みなので影響なし。
+  if (!PAYMENTS_ENABLED) {
+    return (
+      <Card className="border-2 border-violet-200">
+        <CardContent className="p-5 space-y-4">
+          <PlanSummary />
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3.5 space-y-1.5">
+            <p className="flex items-center gap-1.5 font-bold text-amber-700">
+              <Wrench className="w-4 h-4" /> ただいま準備中です
+            </p>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              プレミアム会員のお申し込みは現在準備中です。近日中の公開に向けて調整しています。今しばらくお待ちください。
+            </p>
+          </div>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            記号・数値・短答の自動採点、過去問演習は引き続き無料でご利用いただけます。
+          </p>
         </CardContent>
       </Card>
     );

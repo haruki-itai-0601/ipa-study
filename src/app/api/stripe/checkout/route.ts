@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase";
 import { getStripe, PREMIUM_PRICE_JPY, PREMIUM_PRODUCT_NAME } from "@/lib/stripe";
+import { PAYMENTS_ENABLED } from "@/lib/flags";
 
 // プレミアム会員（月額サブスク）の Stripe Checkout セッションを作成する。
 export async function POST(request: NextRequest) {
   try {
+    // 決済の一時停止中はサーバー側でも受け付けない（UIを迂回した直接POST対策）。
+    if (!PAYMENTS_ENABLED) {
+      return NextResponse.json(
+        { error: "プレミアム会員のお申し込みは現在準備中です" },
+        { status: 503 }
+      );
+    }
+
     const stripe = getStripe();
     if (!stripe) {
       return NextResponse.json(
