@@ -65,17 +65,21 @@ export default function PmExamPage() {
   const [saving, setSaving] = useState(false);
   const [zoomSrc, setZoomSrc] = useState<string | null>(null); // 全画面ズーム中の画像
   const [zoomed, setZoomed] = useState(false); // ズーム表示で拡大(2倍)しているか
+  const [yearQids, setYearQids] = useState<Record<string, string[]>>({}); // 年度→大問idリスト（進捗集計用）
 
   // 年度一覧＋自己採点の最新状態
   useEffect(() => {
     async function load() {
       setLoading(true);
       const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("pm_questions").select("year").eq("exam_id", examId);
+      const { data } = await supabase.from("pm_questions").select("id, year").eq("exam_id", examId);
       const counts: Record<string, number> = {};
-      (data ?? []).forEach((r: { year: string }) => {
+      const qids: Record<string, string[]> = {};
+      (data ?? []).forEach((r: { id: string; year: string }) => {
         counts[r.year] = (counts[r.year] || 0) + 1;
+        (qids[r.year] ||= []).push(r.id);
       });
+      setYearQids(qids);
       setYears(
         Object.entries(counts)
           .map(([y, c]) => ({ year: y, count: c }))
@@ -197,24 +201,33 @@ export default function PmExamPage() {
               <div className="text-center text-gray-400 py-12">読み込み中...</div>
             ) : (
               <div className="space-y-3">
-                {years.map((y) => (
-                  <button
-                    key={y.year}
-                    onClick={() => openYear(y.year)}
-                    className="group w-full text-left border border-indigo-200 rounded-2xl p-5 bg-white/85 backdrop-blur-sm shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-indigo-500" />
-                        <span className="font-semibold text-gray-900">{y.year}</span>
+                {years.map((y) => {
+                  const done = (yearQids[y.year] ?? []).filter((id) => results[id]).length;
+                  return (
+                    <button
+                      key={y.year}
+                      onClick={() => openYear(y.year)}
+                      className="group w-full text-left border border-indigo-200 rounded-2xl p-5 bg-white/85 backdrop-blur-sm shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-indigo-500" />
+                          <span className="font-semibold text-gray-900">{y.year}</span>
+                          {done > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                              <CheckCircle2 className="w-3 h-3" />
+                              {done}/{y.count} 採点済み
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-400">{y.count}問</span>
+                          <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-400 transition-colors" />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-400">{y.count}問</span>
-                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-indigo-400 transition-colors" />
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </>
@@ -224,7 +237,18 @@ export default function PmExamPage() {
         {view === "list" && (
           <>
             <div className="mb-2">
-              <h2 className="text-lg font-bold text-gray-900 mb-1">{year} の午後問題</h2>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <h2 className="text-lg font-bold text-gray-900">{year} の午後問題</h2>
+                {questions.length > 0 && (() => {
+                  const done = questions.filter((q) => results[q.id]).length;
+                  return done > 0 ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1 flex-shrink-0">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {done}/{questions.length} 採点済み
+                    </span>
+                  ) : null;
+                })()}
+              </div>
               <p className="text-sm text-gray-500">
                 問1は必須、問2〜問11から4問選択（本番形式）。解きたい問題を選んでください。
               </p>
