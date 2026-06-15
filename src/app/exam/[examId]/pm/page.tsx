@@ -383,6 +383,9 @@ export default function PmExamPage() {
                 問題一覧に戻る
               </button>
             </div>
+
+            {/* 下部固定の「解答・採点」バーに隠れないための余白 */}
+            <div className="h-24" aria-hidden />
           </>
         )}
       </main>

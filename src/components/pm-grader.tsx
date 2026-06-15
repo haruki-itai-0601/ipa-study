@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { CheckCircle2, XCircle, CircleDot, ClipboardCheck, Sparkles, Loader2, Lock } from "lucide-react";
+import { CheckCircle2, XCircle, CircleDot, ClipboardCheck, Sparkles, Loader2, Lock, ChevronUp, X } from "lucide-react";
 
 type AnswerType = "symbol" | "number" | "short" | "text";
 
@@ -92,6 +92,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
   const [graded, setGraded] = useState<Record<string, Grade>>({});
   const [showResult, setShowResult] = useState(false);
   const [grading, setGrading] = useState(false);
+  const [open, setOpen] = useState(false); // 解答パネル（下部から引き出し）の開閉
 
   useEffect(() => {
     let active = true;
@@ -205,30 +206,54 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
   const hasTextAnswered = textSubs.some((s) => graded[s.id]?.status === "member_only");
 
   return (
-    <div className="rounded-2xl border border-violet-200 bg-violet-50/40 shadow-rich p-5 space-y-4">
-      <div className="flex items-start gap-2.5">
-        <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl p-2 shadow-md shadow-violet-500/30 flex-shrink-0">
-          <ClipboardCheck className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h3 className="text-base font-bold text-gray-800">設問に解答して採点</h3>
-          <p className="text-xs text-gray-500 mt-0.5 leading-snug">
-            記号・数値・短答は自動で○×。
-            {isMember ? (
-              <span className="font-semibold text-violet-700">記述はAIが○△×＋講評で採点します。</span>
-            ) : (
-              <span>
-                記述の<span className="font-semibold text-violet-700">AI採点は有料会員限定</span>です。
-                <Link href="/premium" className="underline text-violet-700 hover:text-violet-900">
-                  詳しく見る
-                </Link>
-              </span>
+    <>
+      {/* 閉じている時：画面下に常時固定する「解答・採点」バー */}
+      <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 pointer-events-none">
+        <div className="max-w-3xl mx-auto pointer-events-auto">
+          <button
+            onClick={() => setOpen(true)}
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3.5 text-base font-bold text-white shadow-lg shadow-violet-500/40"
+          >
+            <ClipboardCheck className="w-5 h-5" />
+            設問に解答・採点（{subs.length}問）
+            {showResult && autoSubs.length > 0 && (
+              <span className="text-sm font-semibold opacity-90">｜自動 {autoCorrect}/{autoSubs.length}正解</span>
             )}
-          </p>
+            <ChevronUp className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      {/* 開いている時：オーバーレイ＋下から引き出すパネル */}
+      {open && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} aria-hidden />
+          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto bg-violet-50/95 backdrop-blur rounded-t-2xl shadow-2xl border-t border-violet-200">
+            <div className="max-w-3xl mx-auto">
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-violet-200 bg-violet-50/95 px-4 py-3 backdrop-blur">
+                <h3 className="flex items-center gap-2 text-base font-bold text-gray-800">
+                  <ClipboardCheck className="w-5 h-5 text-violet-600" /> 設問に解答して採点
+                </h3>
+                <button onClick={() => setOpen(false)} className="rounded-full p-1 text-gray-500 hover:bg-violet-100" aria-label="閉じる">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-4 space-y-4">
+                <p className="text-xs text-gray-500 leading-snug">
+                  記号・数値・短答は自動で○×。
+                  {isMember ? (
+                    <span className="font-semibold text-violet-700">記述はAIが○△×＋講評で採点します。</span>
+                  ) : (
+                    <span>
+                      記述の<span className="font-semibold text-violet-700">AI採点は有料会員限定</span>です。
+                      <Link href="/premium" className="underline text-violet-700 hover:text-violet-900">
+                        詳しく見る
+                      </Link>
+                    </span>
+                  )}
+                </p>
+
+                <div className="space-y-2.5">
         {subs.map((s) => {
           const g = graded[s.id];
           const badge = TYPE_BADGE[s.answer_type];
@@ -363,6 +388,11 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
           )}
         </div>
       )}
-    </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
