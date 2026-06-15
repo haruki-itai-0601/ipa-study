@@ -1,0 +1,26 @@
+name: 今日の1問をXに自動投稿
+
+on:
+  schedule:
+    # GitHub Actions は UTC。日本時間(JST=UTC+9)の朝8時・夕19時に投稿
+    - cron: "0 23 * * *" # 08:00 JST
+    - cron: "0 10 * * *" # 19:00 JST
+  workflow_dispatch: {} # Actionsタブから手動実行も可能
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Post tweet
+        env:
+          X_APP_KEY: ${{ secrets.X_APP_KEY }}
+          X_APP_SECRET: ${{ secrets.X_APP_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: node scripts/post-tweet.mjs
