@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { PAYMENTS_ENABLED } from "@/lib/flags";
+import { track } from "@/lib/track";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Sparkles, CreditCard, LogIn, Loader2, Wrench } from "lucide-react";
 
@@ -31,11 +32,13 @@ export function PremiumClient() {
   const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
 
   useEffect(() => {
+    track("premium_view"); // プレミアム案内ページの閲覧
     // Checkout からの戻り（?checkout=success / cancel）を表示に反映
     const params = new URLSearchParams(window.location.search);
     const checkout = params.get("checkout");
     if (checkout === "success" || checkout === "cancel") {
       setCheckoutResult(checkout);
+      if (checkout === "success") track("purchase_return"); // 決済完了で戻ってきた
       window.history.replaceState(null, "", "/premium");
     }
 
@@ -66,6 +69,8 @@ export function PremiumClient() {
       new Date(subscription.current_period_end) > new Date());
 
   async function callApi(path: string) {
+    if (path.includes("checkout")) track("begin_checkout", { value: 980, currency: "JPY" });
+    else if (path.includes("portal")) track("open_billing_portal");
     setErr("");
     setBusy(true);
     try {

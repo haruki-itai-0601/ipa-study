@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { User, EmailOtpType } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { track } from "@/lib/track";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, CheckCircle2, LogOut, ShieldCheck, KeyRound, Home } from "lucide-react";
 
@@ -138,6 +139,8 @@ export function AccountClient() {
         type: otpType,
       });
       if (error) throw error;
+      // 会員登録/ログイン成功（メール認証）。otpType='email_change'は匿名→会員昇格＝新規登録
+      track(otpType === "email_change" ? "sign_up" : "account_login", { method: "email" });
       // 成功すると onAuthStateChange でログイン状態に切り替わる
     } catch {
       setErr("コードが正しくないか、有効期限が切れています。もう一度お試しください。");

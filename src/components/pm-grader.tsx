@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { track } from "@/lib/track";
 import { CheckCircle2, XCircle, CircleDot, ClipboardCheck, Sparkles, Loader2, Lock, ChevronUp, X } from "lucide-react";
 
 type AnswerType = "symbol" | "number" | "short" | "text";
@@ -142,6 +143,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
   const textSubs = subs.filter((s) => s.answer_type === "text");
 
   const runGrade = async () => {
+    track("grade_pm", { member: !!isMember, has_text: textSubs.length > 0 }); // 午後の採点を実行
     setShowResult(true);
     // 記号・数値・短答は即時判定、記述は会員ならAI採点・非会員は member_only
     const initial: Record<string, Grade> = {};
