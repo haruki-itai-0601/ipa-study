@@ -35,6 +35,48 @@ function normalizeAns(s: string): string {
     .trim();
 }
 
+// 括弧（単位など）を除いた正規化：「460（ミリ秒）」と「460」を一致させる
+function stripParens(s: string): string {
+  return normalizeAns(s).replace(/\([^)]*\)/g, "");
+}
+
+// 短答向けのゆるい正規化：中黒・長音・ハイフンを除いて表記ゆれを吸収
+// （例：サーバ／サーバー、フォレンジックス／フォレンジクス）
+function looseKey(s: string): string {
+  return normalizeAns(s).replace(/[・･\-]/g, "");
+}
+
+// カンマ区切りを順不同の集合キーにする（key生成関数で正規化方法を切替）
+function setKey(s: string, keyFn: (x: string) => string): string {
+  return s
+    .split(/[，、,]/)
+    .map((x) => keyFn(x))
+    .filter(Boolean)
+    .sort()
+    .join("|");
+}
+
+// 記号・数値・短答の自動採点。完全一致だけでなく、「又は」複数正解・順不同・
+// 単位括弧・短答の表記ゆれを許容して取りこぼしを減らす。
+function isAutoCorrect(input: string, correct: string, type: AnswerType): boolean {
+  if (!input.trim()) return false;
+  // 「又は」「または」で区切られた、いずれかに一致すれば正解
+  const alts = correct.split(/又は|または/).map((x) => x.trim()).filter(Boolean);
+  for (const alt of alts) {
+    if (normalizeAns(input) === normalizeAns(alt)) return true;
+    if (stripParens(input) === stripParens(alt)) return true;
+    // カンマ区切りは順不同で集合一致を許容
+    const inSet = setKey(input, normalizeAns);
+    if (inSet && inSet === setKey(alt, normalizeAns)) return true;
+    if (type === "short") {
+      if (looseKey(input) === looseKey(alt)) return true;
+      const inLoose = setKey(input, looseKey);
+      if (inLoose && inLoose === setKey(alt, looseKey)) return true;
+    }
+  }
+  return false;
+}
+
 const TYPE_BADGE: Record<AnswerType, { label: string; cls: string }> = {
   symbol: { label: "記号", cls: "bg-indigo-100 text-indigo-700" },
   number: { label: "数値", cls: "bg-emerald-100 text-emerald-700" },
@@ -114,7 +156,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
         }
       } else {
         if (!inp) initial[s.id] = { status: "unanswered" };
-        else initial[s.id] = { status: normalizeAns(inp) === normalizeAns(s.correct) ? "correct" : "wrong" };
+        else initial[s.id] = { status: isAutoCorrect(inp, s.correct, s.answer_type) ? "correct" : "wrong" };
       }
     }
     setGraded(initial);
