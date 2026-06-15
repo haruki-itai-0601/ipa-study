@@ -51,9 +51,12 @@ export async function POST(request: NextRequest) {
     if (error || !sub) {
       return NextResponse.json({ error: "設問が見つかりません" }, { status: 404 });
     }
-    if (sub.answer_type !== "text") {
-      return NextResponse.json({ error: "AI採点は記述式設問のみ対象です" }, { status: 400 });
+    // AI採点の対象は記述（text）と短答（short）。短答は完全一致を通らなかった near-miss を
+    // 表記ゆれ・同義語の観点で救済する用途で呼ばれる。
+    if (sub.answer_type !== "text" && sub.answer_type !== "short") {
+      return NextResponse.json({ error: "AI採点は記述式・短答設問のみ対象です" }, { status: 400 });
     }
+    const isShort = sub.answer_type === "short";
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
@@ -62,10 +65,14 @@ export async function POST(request: NextRequest) {
 
     const client = new Anthropic({ apiKey });
 
-    const system =
-      "あなたはIPA応用情報技術者試験（午後）の採点者です。受験者の記述解答を、公式の模範解答と意味的に照らし合わせて採点してください。" +
-      "表現や言い回しが違っても要点が合っていれば correct（正解）、要点の一部のみ合致していれば partial（部分点）、要点を外していれば wrong（不正解）とします。" +
-      "講評は日本語で簡潔に（80字以内目安）、何が良かったか・何が足りないかを具体的に示してください。";
+    const system = isShort
+      ? "あなたはIPA応用情報技術者試験（午後）の採点者です。これは短答（用語・短い語句）の設問です。" +
+        "受験者の解答が模範解答と同一、または表記ゆれ・送り仮名・漢字かな・略称・同義語の範囲で実質的に同じ正解といえる場合は correct（正解）、" +
+        "別の概念・誤りの場合は wrong（不正解）としてください。短答では partial は使わず correct か wrong で判定します。" +
+        "講評は日本語で簡潔に（40字以内目安）。"
+      : "あなたはIPA応用情報技術者試験（午後）の採点者です。受験者の記述解答を、公式の模範解答と意味的に照らし合わせて採点してください。" +
+        "表現や言い回しが違っても要点が合っていれば correct（正解）、要点の一部のみ合致していれば partial（部分点）、要点を外していれば wrong（不正解）とします。" +
+        "講評は日本語で簡潔に（80字以内目安）、何が良かったか・何が足りないかを具体的に示してください。";
 
     const userPrompt =
       `【設問】${sub.label}\n` +
@@ -103,9 +110,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "採点結果の解析に失敗しました" }, { status: 502 });
     }
 
-    const result = parsed.result === "correct" || parsed.result === "partial" || parsed.result === "wrong"
+    let result = parsed.result === "correct" || parsed.result === "partial" || parsed.result === "wrong"
       ? parsed.result
       : "partial";
+    // 短答は correct / wrong の二択。万一 partial が返ったら正解扱い（救済目的のため）。
+    if (isShort && result === "partial") result = "correct";
 
     return NextResponse.json({
       result, // "correct" | "partial" | "wrong"

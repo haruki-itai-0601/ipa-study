@@ -154,7 +154,16 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
           initial[s.id] = { status: "pending" };
           aiTargets.push(s);
         }
+      } else if (s.answer_type === "short") {
+        // 短答：まず完全一致系で自動判定。外れても会員ならAIで表記ゆれ・同義語を救済する。
+        if (!inp) initial[s.id] = { status: "unanswered" };
+        else if (isAutoCorrect(inp, s.correct, s.answer_type)) initial[s.id] = { status: "correct" };
+        else if (isMember) {
+          initial[s.id] = { status: "pending" };
+          aiTargets.push(s);
+        } else initial[s.id] = { status: "wrong" };
       } else {
+        // 記号・数値は完全一致系のみ（AI救済の対象外）
         if (!inp) initial[s.id] = { status: "unanswered" };
         else initial[s.id] = { status: isAutoCorrect(inp, s.correct, s.answer_type) ? "correct" : "wrong" };
       }
@@ -281,6 +290,20 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                     </p>
                   )}
                   {g.status === "error" && <p className="text-red-500">採点エラー：{g.comment}</p>}
+                  {/* 短答をAIで救済判定した場合の講評（完全一致は comment なし）。correct時は模範解答も表示 */}
+                  {s.answer_type === "short" && g.comment && (g.status === "correct" || g.status === "wrong") && (
+                    <>
+                      <p className="flex items-center gap-1 text-gray-600 text-xs">
+                        <Sparkles className="w-3 h-3 text-violet-400" />
+                        AI判定：{g.comment}
+                      </p>
+                      {g.status === "correct" && (
+                        <p className="text-violet-700 text-xs">
+                          模範解答：<span className="font-semibold">{s.correct}</span>
+                        </p>
+                      )}
+                    </>
+                  )}
                   {/* 記述のAI講評・模範解答（採点された会員のみ） */}
                   {s.answer_type === "text" && (g.status === "correct" || g.status === "partial" || g.status === "wrong") && (
                     <>
