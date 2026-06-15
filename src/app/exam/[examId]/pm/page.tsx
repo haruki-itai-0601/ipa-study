@@ -14,6 +14,8 @@ import {
   XCircle,
   Eye,
   PenLine,
+  X,
+  ZoomIn,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
@@ -61,6 +63,8 @@ export default function PmExamPage() {
   const [results, setResults] = useState<Record<string, Result>>({}); // pm_question_id -> 最新の自己採点
   const [showAnswer, setShowAnswer] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [zoomSrc, setZoomSrc] = useState<string | null>(null); // 全画面ズーム中の画像
+  const [zoomed, setZoomed] = useState(false); // ズーム表示で拡大(2倍)しているか
 
   // 年度一覧＋自己採点の最新状態
   useEffect(() => {
@@ -289,6 +293,9 @@ export default function PmExamPage() {
             </div>
 
             {/* 問題ページ */}
+            <p className="flex items-center gap-1 text-xs text-gray-400">
+              <ZoomIn className="w-3.5 h-3.5" /> 画像をタップで拡大できます
+            </p>
             <div className="space-y-3">
               {current.pages.map((src, i) => (
                 <img
@@ -296,7 +303,8 @@ export default function PmExamPage() {
                   src={src}
                   alt={`問${current.q_number} ${i + 1}ページ目`}
                   loading={i > 1 ? "lazy" : "eager"}
-                  className="w-full h-auto rounded-xl border border-gray-200 bg-white shadow-sm"
+                  onClick={() => { setZoomSrc(src); setZoomed(false); }}
+                  className="w-full h-auto rounded-xl border border-gray-200 bg-white shadow-sm cursor-zoom-in"
                 />
               ))}
             </div>
@@ -332,7 +340,8 @@ export default function PmExamPage() {
                       key={src}
                       src={src}
                       alt={`問${current.q_number} 解答例 ${i + 1}ページ目`}
-                      className="w-full h-auto rounded-xl border border-gray-200 bg-white shadow-sm"
+                      onClick={() => { setZoomSrc(src); setZoomed(false); }}
+                      className="w-full h-auto rounded-xl border border-gray-200 bg-white shadow-sm cursor-zoom-in"
                     />
                   ))}
                   <p className="text-xs text-gray-400">
@@ -389,6 +398,34 @@ export default function PmExamPage() {
           </>
         )}
       </main>
+
+      {/* 画像の全画面ズーム（タップで拡大/縮小・背景タップで閉じる） */}
+      {zoomSrc && (
+        <div
+          className="fixed inset-0 z-[60] overflow-auto bg-black/90"
+          onClick={() => setZoomSrc(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setZoomSrc(null); }}
+            aria-label="閉じる"
+            className="fixed right-3 top-3 z-10 rounded-full bg-white/90 p-2 text-gray-800 shadow-lg"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="flex min-h-full items-start justify-center p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={zoomSrc}
+              alt="拡大表示"
+              onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
+              className={zoomed ? "w-[200%] max-w-none cursor-zoom-out" : "w-full max-w-3xl cursor-zoom-in"}
+            />
+          </div>
+          <p className="pointer-events-none fixed inset-x-0 bottom-3 text-center text-xs text-white/80">
+            タップで拡大／縮小・背景タップで閉じる
+          </p>
+        </div>
+      )}
     </div>
   );
 }
