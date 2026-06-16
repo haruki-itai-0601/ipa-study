@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle, XCircle, ChevronRight, Clock, RotateCcw } from "lucide-react";
+import ZoomableImage from "@/components/zoomable-image";
 
 export type Question = {
   id: string;
@@ -256,7 +257,7 @@ export default function QuizRunner({
         <Card className="border-0 shadow-sm">
           <CardContent className="p-5">
             {question.image_url ? (
-              <img
+              <ZoomableImage
                 src={question.image_url}
                 alt={`問題 ${question.q_number ?? ""}`}
                 className="w-full h-auto rounded-md border border-gray-100"

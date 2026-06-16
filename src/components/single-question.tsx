@@ -5,6 +5,7 @@ import { getExam, questionSource } from "@/lib/exams";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
+import ZoomableImage from "@/components/zoomable-image";
 
 export type SingleQ = {
   id: string;
@@ -58,7 +59,7 @@ export default function SingleQuestion({ q }: { q: SingleQ }) {
       <Card className="border-0 shadow-sm">
         <CardContent className="p-5">
           {q.image_url ? (
-            <img
+            <ZoomableImage
               src={q.image_url}
               alt={`問題 ${q.q_number ?? ""}`}
               className="w-full h-auto rounded-md border border-gray-100"
