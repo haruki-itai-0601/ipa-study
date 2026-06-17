@@ -291,34 +291,9 @@ function DonutGauge({
 export function HomeDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [overview, setOverview] = useState<Overview[]>([]);
-  const [todayStats, setTodayStats] = useState({ answered: 0, correct: 0 });
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<string>(basicExams[0].id);
   const [showDetail, setShowDetail] = useState(false);
-  const [goal, setGoal] = useState(10); // 今日の目標問題数（編集可・localStorage保存）
-
-  // 保存済みの今日の目標を復元
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("dailyGoal");
-      if (saved) {
-        const n = parseInt(saved, 10);
-        if (n >= 1) setGoal(n);
-      }
-    } catch {
-      /* noop */
-    }
-  }, []);
-
-  function updateGoal(v: string) {
-    const n = Math.max(1, Math.min(500, parseInt(v || "0", 10) || 1));
-    setGoal(n);
-    try {
-      window.localStorage.setItem("dailyGoal", String(n));
-    } catch {
-      /* noop */
-    }
-  }
 
   useEffect(() => {
     async function load() {
@@ -342,15 +317,10 @@ export function HomeDashboard() {
         : [];
       setRows(r);
 
-      // 解答サマリ（区分別合計/AI内訳）と今日の進捗をDB側で集計（1000行上限の影響を受けない）
-      const [ovRes, todayRes] = await Promise.all([
-        supabase.rpc("get_progress_overview"),
-        supabase.rpc("get_today_stats_jst"),
-      ]);
+      // 解答サマリ（区分別合計/AI内訳）をDB側で集計（1000行上限の影響を受けない）
+      const ovRes = await supabase.rpc("get_progress_overview");
       const ov = (ovRes.data as Overview[] | null) ?? [];
       setOverview(ov);
-      const t = (todayRes.data as { answered: number; correct: number }[] | null)?.[0];
-      if (t) setTodayStats({ answered: t.answered, correct: t.correct });
 
       // 解答数が最も多いメイン区分を初期選択に
       const basicIds = basicExams.map((e) => e.id);
@@ -363,16 +333,6 @@ export function HomeDashboard() {
     }
     load();
   }, []);
-
-  // 今日（JST）の進捗（全区分合計）
-  const today = useMemo(
-    () => ({
-      answered: todayStats.answered,
-      accuracy:
-        todayStats.answered > 0 ? Math.round((todayStats.correct / todayStats.answered) * 100) : 0,
-    }),
-    [todayStats]
-  );
 
   // 選択中区分の集計（系→中分類の階層 / レーダー / 弱点TOP3 / 過去問・AI比率）
   const active = useMemo(() => {
@@ -457,9 +417,6 @@ export function HomeDashboard() {
     };
   }, [rows, overview, activeExam]);
 
-  const goalPct = Math.min(100, goal > 0 ? (today.answered / goal) * 100 : 0);
-  const goalReached = today.answered >= goal;
-
   const hasData = !loading && active.answered > 0;
   const denom = Math.max(active.target, active.solved, 1);
   const pastPct = (active.pastSolved / denom) * 100;
@@ -468,42 +425,6 @@ export function HomeDashboard() {
 
   return (
     <div className="space-y-4">
-      {/* 今日の目標（全区分・編集可・解いた数でバーが左いっぱいまで進む） */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-rich">
-        <span className="text-sm font-bold text-gray-500 whitespace-nowrap">
-          今日の目標 <span className="font-normal text-gray-400">全区分</span>
-        </span>
-        <span className="flex items-baseline gap-1 whitespace-nowrap">
-          <span className={`text-xl font-bold leading-none ${goalReached ? "text-green-600" : "text-gray-900"}`}>
-            {loading ? "-" : today.answered}
-          </span>
-          <span className="text-gray-300">/</span>
-          <input
-            type="number"
-            min={1}
-            max={500}
-            value={goal}
-            onChange={(e) => updateGoal(e.target.value)}
-            aria-label="今日の目標問題数"
-            className="w-12 rounded-md border border-gray-200 bg-white px-1 py-0.5 text-center text-base font-bold text-gray-900 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-200 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-          />
-          <span className="text-xs text-gray-500">問</span>
-        </span>
-        <div className="order-last w-full md:order-none md:w-auto md:flex-1 min-w-[80px] h-3 rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className={`h-full transition-all duration-300 ${goalReached ? "bg-green-500" : "bg-indigo-500"}`}
-            style={{ width: `${goalPct}%` }}
-          />
-        </div>
-        <Link
-          href="/analysis"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 whitespace-nowrap ml-auto md:ml-0"
-        >
-          全区分分析
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
-
       {/* 試験区分セレクタ（ガイド＋横並びタブ） */}
       <div>
         <p className="px-0.5 mb-2 text-sm font-semibold text-gray-500">

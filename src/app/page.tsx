@@ -30,25 +30,25 @@ export default function Home() {
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
 
         {/* ヒーロー：このサービスの価値（AI弱点分析で合格を目指す） */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-5 md:px-9 md:py-6 shadow-rich-lg">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-4 md:px-9 md:py-6 shadow-rich-lg">
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
-            <h1 className="text-2xl md:text-3xl font-bold leading-snug text-white">
+            <h1 className="text-lg md:text-2xl font-bold leading-snug text-white">
               <span className="inline-block">過去問を“ただ解く”だけでは、</span>
               <br className="hidden sm:block" />
               <span className="inline-block">合格は近づきません。</span>
             </h1>
-            <p className="mt-3 text-sm md:text-base leading-relaxed text-indigo-100">
+            <p className="mt-2 text-sm md:text-base leading-relaxed text-indigo-100">
               過去問は約半分が再出題されますが、<span className="font-semibold text-white">その数は膨大</span>。闇雲に解くだけでは<span className="font-semibold text-white">効果的に対策できません</span>。
               <br className="hidden sm:block" />
               <span className="font-bold text-white">そこでAIが、あなたの弱点となる分野を分析し、次に解くべき問題まで示します。</span>
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
               {["IPA公式の本物の過去問", "図つき・独自AI解説", "AI弱点分析・ダッシュボード"].map((t) => (
                 <span
                   key={t}
-                  className="inline-flex items-center rounded-full bg-white/15 px-3.5 py-1.5 text-sm md:text-base font-semibold text-white backdrop-blur-sm"
+                  className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs md:text-sm font-semibold text-white backdrop-blur-sm"
                 >
                   {t}
                 </span>
@@ -56,7 +56,7 @@ export default function Home() {
             </div>
             <a
               href="#dashboard"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-5 py-2.5 text-sm md:text-base font-bold text-indigo-700 shadow-md shadow-indigo-900/25 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-white px-5 py-2.5 text-sm md:text-base font-bold text-indigo-700 shadow-md shadow-indigo-900/25 hover:shadow-lg hover:-translate-y-0.5 transition-all"
             >
               いますぐ演習を始める
               <ChevronRight className="w-5 h-5" />
