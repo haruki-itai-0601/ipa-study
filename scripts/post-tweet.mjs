@@ -40,59 +40,96 @@ function trimToWeight(str, max) {
   return out;
 }
 
-async function pickQuestion(sb) {
-  const ids = Object.keys(EXAMS);
-  // 試験区分をランダムに選び、図なし・非計算・本物の過去問からランダムに1問
-  for (let attempt = 0; attempt < 6; attempt++) {
-    const exam = ids[Math.floor(Math.random() * ids.length)];
-    const base = sb
-      .from("questions")
-      .select("id, exam_id, question, year, q_number", { count: "exact" })
-      .eq("type", "past").eq("exam_id", exam).is("image_url", null).eq("is_calc", false);
-    const { count } = await base.range(0, 0);
-    if (!count) continue;
-    const off = Math.floor(Math.random() * count);
-    const { data } = await sb
-      .from("questions")
-      .select("id, exam_id, question, year, q_number")
-      .eq("type", "past").eq("exam_id", exam).is("image_url", null).eq("is_calc", false)
-      .order("id").range(off, off);
-    if (data && data[0]) return data[0];
-  }
-  return null;
+// Xのアンケート選択肢は最大25文字。文字数（コードポイント）で切り詰める
+const POLL_MAX = 25;
+function truncChars(s, max) {
+  const arr = Array.from((s ?? "").replace(/\s+/g, " ").trim());
+  return arr.length <= max ? arr.join("") : arr.slice(0, max - 1).join("") + "…";
+}
+function optionsOf(q) {
+  return [q.option_a, q.option_b, q.option_c, q.option_d].map((o) => truncChars(o || "", POLL_MAX));
+}
+function optionsFitCleanly(q) {
+  return [q.option_a, q.option_b, q.option_c, q.option_d].every(
+    (o) => o && Array.from(o.trim()).length <= POLL_MAX
+  );
 }
 
-function buildTweet(q) {
+async function fetchRandom(sb, exam) {
+  const base = sb
+    .from("questions")
+    .select("id, exam_id, question, year, q_number, option_a, option_b, option_c, option_d", { count: "exact" })
+    .eq("type", "past").eq("exam_id", exam).is("image_url", null).eq("is_calc", false);
+  const { count } = await base.range(0, 0);
+  if (!count) return null;
+  const off = Math.floor(Math.random() * count);
+  const { data } = await sb
+    .from("questions")
+    .select("id, exam_id, question, year, q_number, option_a, option_b, option_c, option_d")
+    .eq("type", "past").eq("exam_id", exam).is("image_url", null).eq("is_calc", false)
+    .order("id").range(off, off);
+  return data?.[0] ?? null;
+}
+
+async function pickQuestion(sb) {
+  const ids = Object.keys(EXAMS);
+  let fallback = null;
+  // 選択肢が4つとも25文字以内に収まる問題（＝アンケートがきれいに出る）を優先的に探す
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const exam = ids[Math.floor(Math.random() * ids.length)];
+    const q = await fetchRandom(sb, exam);
+    if (!q || !q.option_a || !q.option_b || !q.option_c || !q.option_d) continue;
+    if (!fallback) fallback = q;
+    if (optionsFitCleanly(q)) return q;
+  }
+  return fallback; // 全部長い場合は切り詰めて使う
+}
+
+// 本文（リンクなし＝到達ペナルティ回避）＋アンケート選択肢＋リプ用テキストを返す
+function buildPost(q) {
   const e = EXAMS[q.exam_id];
   const head = `【今日の1問】${e.name}\n\n`;
-  const cta = `\n\n答え・解説はこちら👇\n`;
-  const url = `https://kakomon-dojo.com/q/${q.id}`;
-  const tail = `\n${e.tag} 出典:IPA`;
-  const fixed = weight(head) + weight(cta) + 23 + weight(tail);
-  const budget = 270 - fixed; // 余裕をもって270
+  const mid = `\n\n（投票で答えてみよう👇）\n`;
+  const tail = `${e.tag} 出典:IPA`;
+  const budget = 270 - (weight(head) + weight(mid) + weight(tail));
   const question = trimToWeight(q.question.replace(/\s+/g, " ").trim(), budget);
-  return head + question + cta + url + tail;
+  const text = `${head}${question}${mid}${tail}`;
+  const options = optionsOf(q);
+  const replyText = `答え・解説はこちら👇\nhttps://kakomon-dojo.com/q/${q.id}\n出典:IPA`;
+  return { text, options, replyText };
 }
 
 async function main() {
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } });
   const q = await pickQuestion(sb);
   if (!q) { console.error("出題できる問題が見つかりませんでした"); process.exit(1); }
-  const text = buildTweet(q);
+  const { text, options, replyText } = buildPost(q);
 
   const { X_APP_KEY, X_APP_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET } = process.env;
   if (!X_APP_KEY || !X_APP_SECRET || !X_ACCESS_TOKEN || !X_ACCESS_SECRET) {
     console.log("=== ドライラン（X認証なし・投稿しません）===");
+    console.log("【本文（アンケート）】");
     console.log(text);
-    console.log(`--- weighted length: ${weight(text.replace(/https:\/\/\S+/, "x".repeat(23)))} / 280 ---`);
+    console.log("【選択肢】", options.map((o, i) => `${["ア", "イ", "ウ", "エ"][i]} ${o}`).join(" / "));
+    console.log("【リプライ】");
+    console.log(replyText);
+    console.log(`--- 本文 weighted: ${weight(text)} / 280 ---`);
     return;
   }
   const client = new TwitterApi({
     appKey: X_APP_KEY, appSecret: X_APP_SECRET,
     accessToken: X_ACCESS_TOKEN, accessSecret: X_ACCESS_SECRET,
   });
-  const res = await client.v2.tweet(text);
-  console.log("投稿成功:", res?.data?.id, "/", q.exam_id, q.year, "問", q.q_number);
+  // ①アンケート付きの本文を投稿（リンクなし＝到達優先・24時間アンケート）
+  const poll = await client.v2.tweet({ text, poll: { duration_minutes: 1440, options } });
+  const pollId = poll?.data?.id;
+  // ②その投稿への1個目のリプライにリンク（リンクペナルティ回避＋導線）
+  let replyId = null;
+  if (pollId) {
+    const reply = await client.v2.tweet({ text: replyText, reply: { in_reply_to_tweet_id: pollId } });
+    replyId = reply?.data?.id;
+  }
+  console.log("投稿成功:", pollId, "リプ:", replyId, "/", q.exam_id, q.year, "問", q.q_number);
 }
 
 main().catch((e) => { console.error("投稿失敗:", e?.message || e); process.exit(1); });
