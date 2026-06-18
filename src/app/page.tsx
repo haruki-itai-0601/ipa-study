@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HomeDashboard } from "@/components/home-dashboard";
 import { HeaderToday } from "@/components/header-today";
 import { AccountLink } from "@/components/account-link";
-import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles, Ban } from "lucide-react";
+import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -57,11 +57,6 @@ export default function Home() {
                   {t}
                 </span>
               ))}
-            </div>
-            {/* 広告なしの強調（過去問道場との差別化） */}
-            <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm md:text-base font-bold text-white ring-1 ring-inset ring-white/25">
-              <Ban className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              “じゃまな広告”は一切なし
             </div>
           </div>
         </section>
