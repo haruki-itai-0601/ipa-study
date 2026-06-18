@@ -40,12 +40,13 @@ export default function Home() {
               <span className="inline-block">合格は近づきません。</span>
             </h1>
             <p className="mt-2 text-sm md:text-base leading-relaxed text-indigo-100">
-              過去問は約半分が再出題されますが、<span className="font-semibold text-white">その数は膨大</span>。闇雲に解くだけでは<span className="font-semibold text-white">効果的に対策できません</span>。
+              過去問演習は<span className="font-semibold text-white">無料</span>。さらに、<span className="font-bold text-white">AIがあなたの弱点を分析</span>し、
               <br className="hidden sm:block" />
-              <span className="font-bold text-white">そこでAIが、あなたの弱点となる分野を分析し、次に解くべき問題まで示します。</span>
+              応用情報の<span className="font-bold text-white">午後（記述式）はAIが○△×＋講評で採点</span>。
+              <span className="font-bold text-white">自分で採点できない記述まで対策</span>できます。
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
-              {["IPA公式の本物の過去問", "図つき・独自AI解説", "AI弱点分析・ダッシュボード"].map((t) => (
+              {["過去問演習は無料", "AIが弱点を分析", "午後・記述をAIが採点"].map((t) => (
                 <span
                   key={t}
                   className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs md:text-sm font-semibold text-white backdrop-blur-sm"
