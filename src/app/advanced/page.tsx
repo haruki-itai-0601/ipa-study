@@ -5,7 +5,7 @@ import { Brain, ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "高度情報処理技術者試験｜過去問演習道場",
+  title: "高度情報処理技術者試験｜過去問演習ラボ",
 };
 
 export default function AdvancedPage() {

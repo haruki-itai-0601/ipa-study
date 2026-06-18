@@ -49,7 +49,7 @@ export function renderCard(q, em, opts = {}) {
   x.textAlign = "right";
   x.font = "bold 30px NotoJP";
   x.fillStyle = "rgba(255,255,255,0.92)";
-  x.fillText("過去問道場", W - 56, 74);
+  x.fillText("過去問演習ラボ", W - 56, 74);
   x.textAlign = "left";
 
   // 白パネル
@@ -143,7 +143,7 @@ export function renderChallengeCard(em) {
 
   x.font = "bold 30px NotoJP";
   x.fillStyle = "rgba(255,255,255,0.95)";
-  x.fillText("過去問道場", W / 2, H - 50);
+  x.fillText("過去問演習ラボ", W / 2, H - 50);
   x.textAlign = "left";
   return c.toBuffer("image/png");
 }

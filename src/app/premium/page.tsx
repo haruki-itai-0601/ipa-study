@@ -3,7 +3,7 @@ import { ChevronLeft, Sparkles } from "lucide-react";
 import { PremiumClient } from "@/components/premium-client";
 
 export const metadata = {
-  title: "プレミアム会員のご案内｜過去問演習道場",
+  title: "プレミアム会員のご案内｜過去問演習ラボ",
   description:
     "月額980円で午後問題の記述式をAIが○△×＋講評で採点。応用情報技術者試験の記述対策を効率化します。",
 };

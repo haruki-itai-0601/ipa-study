@@ -17,7 +17,7 @@ function sb() {
 export async function generateMetadata({ params }: { params: Promise<{ examId: string }> }): Promise<Metadata> {
   const { examId } = await params;
   const exam = getExam(examId);
-  const title = `${exam?.name ?? ""}の5問チャレンジ｜過去問演習道場`;
+  const title = `${exam?.name ?? ""}の5問チャレンジ｜過去問演習ラボ`;
   const description = `${exam?.name ?? ""}の過去問から5問。あなたは何問解ける？1分で腕試し！`;
   return { title, description, openGraph: { title, description }, twitter: { card: "summary", title, description } };
 }

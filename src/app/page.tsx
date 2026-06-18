@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HomeDashboard } from "@/components/home-dashboard";
 import { HeaderToday } from "@/components/header-today";
 import { AccountLink } from "@/components/account-link";
-import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap } from "lucide-react";
+import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
             </div>
             <div>
               <div className="text-xs md:text-sm text-gray-500 leading-tight">ITパスポート・基本情報・応用情報</div>
-              <div className="font-bold text-gray-900 text-xl leading-tight whitespace-nowrap">過去問演習道場</div>
+              <div className="font-bold text-gray-900 text-xl leading-tight whitespace-nowrap">過去問演習ラボ</div>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -34,6 +34,10 @@ export default function Home() {
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
+            <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/95 backdrop-blur-sm ring-1 ring-inset ring-white/20">
+              <Sparkles className="w-3.5 h-3.5" />
+              AIエージェントと、合格へ最短で
+            </div>
             <h1 className="text-lg md:text-2xl font-bold leading-snug text-white">
               <span className="inline-block">過去問を“ただ解く”だけでは、</span>
               <br className="hidden sm:block" />

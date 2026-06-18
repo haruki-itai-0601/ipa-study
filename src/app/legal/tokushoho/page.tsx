@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Brain, ChevronLeft } from "lucide-react";
 
 export const metadata = {
-  title: "特定商取引法に基づく表記｜過去問演習道場",
+  title: "特定商取引法に基づく表記｜過去問演習ラボ",
 };
 
 // 特定商取引法に基づく表記

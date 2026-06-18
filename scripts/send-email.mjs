@@ -5,7 +5,7 @@
 //     SUPABASE_ANON_KEY（無ければ NEXT_PUBLIC_SUPABASE_ANON_KEY）  ※questions読み取りのみ
 //     RESEND_API_KEY   Resend の API キー（https://resend.com で無料取得）
 //     MAIL_TO          送信先（自分のメールアドレス。Resend登録メールなら独自ドメイン不要）
-//     MAIL_FROM        差出人（省略時 "過去問道場 <onboarding@resend.dev>"）
+//     MAIL_FROM        差出人（省略時 "過去問演習ラボ <onboarding@resend.dev>"）
 //   使い方:
 //     node scripts/send-email.mjs            # メール送信
 //     node scripts/send-email.mjs --dry-run  # 送らず本文だけ表示
@@ -98,13 +98,13 @@ async function main() {
     `選択肢・正解・解説は、投稿内のリンク先ページ（/q/問題ID）に載っています。\n` +
     `※手動投稿ならURL付きでも無料です。\n\n` +
     blocks.join("\n\n\n");
-  const subject = `📚 今週のX投稿ネタ ${picked.length}本（過去問道場）`;
+  const subject = `📚 今週のX投稿ネタ ${picked.length}本（過去問演習ラボ）`;
 
   if (dry) { console.log("件名:", subject, "\n\n", body); return; }
 
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.MAIL_TO;
-  const from = process.env.MAIL_FROM || "過去問道場 <onboarding@resend.dev>";
+  const from = process.env.MAIL_FROM || "過去問演習ラボ <onboarding@resend.dev>";
   if (!apiKey || !to) throw new Error("RESEND_API_KEY / MAIL_TO が必要です");
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",

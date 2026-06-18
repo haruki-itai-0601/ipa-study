@@ -3,7 +3,7 @@ import { Brain, ChevronLeft } from "lucide-react";
 import { AccountClient } from "@/components/account-client";
 
 export const metadata = {
-  title: "会員登録 / ログイン｜過去問演習道場",
+  title: "会員登録 / ログイン｜過去問演習ラボ",
 };
 
 export default function AccountPage() {

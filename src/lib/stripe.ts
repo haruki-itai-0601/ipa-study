@@ -12,4 +12,4 @@ export function getStripe(): Stripe | null {
 
 // プレミアム会員の月額（円・税込）。Checkout の price_data と表示の両方で使う
 export const PREMIUM_PRICE_JPY = 980;
-export const PREMIUM_PRODUCT_NAME = "過去問演習道場 プレミアム会員";
+export const PREMIUM_PRODUCT_NAME = "過去問演習ラボ プレミアム会員";

@@ -10,19 +10,19 @@ import type { Metadata } from "next";
 // 各ページを「ITパスポート専門」「応用情報専門」として検索エンジンに認識させるための要。
 const META: Record<string, { title: string; description: string }> = {
   ip: {
-    title: "ITパスポート過去問 全2,900問が無料｜AIで弱点分析｜過去問演習道場",
+    title: "ITパスポート過去問 全2,900問が無料｜AIで弱点分析｜過去問演習ラボ",
     description:
-      "ITパスポートの本物の過去問2,900問を無料で演習。AIがあなたの弱点分野を自動で分析し、最短ルートで合格へ。スマホで快適に解ける過去問演習道場。",
+      "ITパスポートの本物の過去問2,900問を無料で演習。AIがあなたの弱点分野を自動で分析し、最短ルートで合格へ。スマホで快適に解ける過去問演習ラボ。",
   },
   fe: {
-    title: "基本情報技術者 過去問（科目A）1,760問が無料｜AI弱点分析｜過去問演習道場",
+    title: "基本情報技術者 過去問（科目A）1,760問が無料｜AI弱点分析｜過去問演習ラボ",
     description:
-      "基本情報技術者試験 科目Aの過去問1,760問を無料で演習。AIが分野ごとの弱点を分析して効率的に対策できる、スマホ対応の過去問演習道場。",
+      "基本情報技術者試験 科目Aの過去問1,760問を無料で演習。AIが分野ごとの弱点を分析して効率的に対策できる、スマホ対応の過去問演習ラボ。",
   },
   ap: {
-    title: "応用情報 過去問＋午後記述AI採点｜午前2,640問が無料｜過去問演習道場",
+    title: "応用情報 過去問＋午後記述AI採点｜午前2,640問が無料｜過去問演習ラボ",
     description:
-      "応用情報技術者試験の午前過去問2,640問が無料。さらに自己採点が難しい午後（記述式）をAIが○△×＋講評で採点。令和3〜7年度に対応した過去問演習道場。",
+      "応用情報技術者試験の午前過去問2,640問が無料。さらに自己採点が難しい午後（記述式）をAIが○△×＋講評で採点。令和3〜7年度に対応した過去問演習ラボ。",
   },
 };
 
@@ -49,8 +49,8 @@ function metaOf(examId: string) {
   const exam = getExam(examId);
   return (
     META[examId] ?? {
-      title: `${exam?.name ?? "過去問演習"}｜過去問演習道場`,
-      description: `${exam?.name ?? ""}の過去問を演習。${exam?.description ?? ""}。AIによる弱点分析にも対応した過去問演習道場。`,
+      title: `${exam?.name ?? "過去問演習"}｜過去問演習ラボ`,
+      description: `${exam?.name ?? ""}の過去問を演習。${exam?.description ?? ""}。AIによる弱点分析にも対応した過去問演習ラボ。`,
     }
   );
 }
@@ -73,7 +73,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { examId } = await params;
   const exam = getExam(examId);
-  if (!exam) return { title: "過去問演習道場" };
+  if (!exam) return { title: "過去問演習ラボ" };
   const m = metaOf(examId);
   return {
     title: { absolute: m.title },
@@ -115,7 +115,7 @@ export default async function ExamPage({
             url: `https://kakomon-dojo.com/exam/${examId}`,
             provider: {
               "@type": "Organization",
-              name: "過去問演習道場",
+              name: "過去問演習ラボ",
               url: "https://kakomon-dojo.com",
             },
           }),

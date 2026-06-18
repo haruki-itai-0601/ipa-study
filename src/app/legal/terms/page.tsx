@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Brain, ChevronLeft } from "lucide-react";
 
 export const metadata = {
-  title: "利用規約｜過去問演習道場",
+  title: "利用規約｜過去問演習ラボ",
 };
 
 export default function TermsPage() {
@@ -33,7 +33,7 @@ export default function TermsPage() {
               利用規約
             </h1>
             <p>
-              この利用規約（以下「本規約」といいます）は、「過去問演習道場」（https://kakomon-dojo.com、以下「本サービス」といいます）の利用条件を定めるものです。利用者の皆さま（以下「ユーザー」といいます）は、本規約に同意のうえ本サービスをご利用ください。
+              この利用規約（以下「本規約」といいます）は、「過去問演習ラボ」（https://kakomon-dojo.com、以下「本サービス」といいます）の利用条件を定めるものです。利用者の皆さま（以下「ユーザー」といいます）は、本規約に同意のうえ本サービスをご利用ください。
             </p>
           </div>
 
