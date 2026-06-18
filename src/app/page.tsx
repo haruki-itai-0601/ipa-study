@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HomeDashboard } from "@/components/home-dashboard";
 import { HeaderToday } from "@/components/header-today";
 import { AccountLink } from "@/components/account-link";
-import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles } from "lucide-react";
+import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles, Ban } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -34,12 +34,8 @@ export default function Home() {
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
-            <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1 text-sm md:text-base font-semibold text-white/95 backdrop-blur-sm ring-1 ring-inset ring-white/20">
-              <Sparkles className="w-4 h-4" />
-              AIエージェントと、最短で合格へ
-            </div>
             <h1 className="text-lg md:text-2xl font-bold leading-snug text-white">
-              過去問を“ただ解く”だけでは、合格は近づきません。
+              “ただ解く”だけでは、合格は遠い。
             </h1>
             <p className="mt-2 text-sm md:text-base leading-relaxed text-indigo-100">
               過去問演習は<span className="font-semibold text-white">無料</span>。さらに、<span className="font-bold text-white">AIがあなたの弱点を分析</span>し、
@@ -47,7 +43,12 @@ export default function Home() {
               応用情報の<span className="font-bold text-white">午後（記述式）はAIが○△×＋講評で採点</span>。
               <span className="font-bold text-white">自分で採点できない記述まで対策</span>できます。
             </p>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {/* バリュー帯：AIエージェントの旗を先頭に置く */}
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 py-1 text-sm font-semibold text-white backdrop-blur-sm ring-1 ring-inset ring-white/25">
+                <Sparkles className="w-4 h-4" />
+                AIエージェントと、最短で合格へ
+              </span>
               {["過去問演習は無料", "AIが弱点を分析", "午後・記述をAIが採点"].map((t) => (
                 <span
                   key={t}
@@ -57,13 +58,11 @@ export default function Home() {
                 </span>
               ))}
             </div>
-            <a
-              href="#dashboard"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-white px-5 py-2.5 text-sm md:text-base font-bold text-indigo-700 shadow-md shadow-indigo-900/25 hover:shadow-lg hover:-translate-y-0.5 transition-all"
-            >
-              いますぐ演習を始める
-              <ChevronRight className="w-5 h-5" />
-            </a>
+            {/* 広告なしの強調（過去問道場との差別化） */}
+            <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm md:text-base font-bold text-white ring-1 ring-inset ring-white/25">
+              <Ban className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+              “じゃまな広告”は一切なし
+            </div>
           </div>
         </section>
 
