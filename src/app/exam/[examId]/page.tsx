@@ -1,15 +1,93 @@
 import { getExam, examGroupLabel, sectionLabel } from "@/lib/exams";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine } from "lucide-react";
+import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine, Sparkles, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
-// 仮の進捗データ
-const mockStats = {
-  past: { answered: 0, correct: 0 },
-  ai: { answered: 0, correct: 0 },
+// 試験ごとの検索向けメタデータ（タイトル・説明）。
+// 各ページを「ITパスポート専門」「応用情報専門」として検索エンジンに認識させるための要。
+const META: Record<string, { title: string; description: string }> = {
+  ip: {
+    title: "ITパスポート過去問 全2,900問が無料｜AIで弱点分析｜過去問演習道場",
+    description:
+      "ITパスポートの本物の過去問2,900問を無料で演習。AIがあなたの弱点分野を自動で分析し、最短ルートで合格へ。スマホで快適に解ける過去問演習道場。",
+  },
+  fe: {
+    title: "基本情報技術者 過去問（科目A）1,760問が無料｜AI弱点分析｜過去問演習道場",
+    description:
+      "基本情報技術者試験 科目Aの過去問1,760問を無料で演習。AIが分野ごとの弱点を分析して効率的に対策できる、スマホ対応の過去問演習道場。",
+  },
+  ap: {
+    title: "応用情報 過去問＋午後記述AI採点｜午前2,640問が無料｜過去問演習道場",
+    description:
+      "応用情報技術者試験の午前過去問2,640問が無料。さらに自己採点が難しい午後（記述式）をAIが○△×＋講評で採点。令和3〜7年度に対応した過去問演習道場。",
+  },
 };
+
+// 試験ごとのヒーロー（専門サイトの顔）コピー。
+const LANDING: Record<string, { h1: string; lead: string; facts: string[] }> = {
+  ip: {
+    h1: "ITパスポート 過去問演習",
+    lead: "本物の過去問2,900問が、すべて無料。AIがあなたの弱点分野を自動で見つけ、合格までの最短ルートを示します。",
+    facts: ["過去問 2,900問", "すべて無料", "AIが弱点を分析"],
+  },
+  fe: {
+    h1: "基本情報技術者 過去問演習",
+    lead: "科目Aの本物の過去問1,760問が無料。AIが分野ごとの弱点を分析し、効率よく合格力を伸ばします。",
+    facts: ["科目A 1,760問", "すべて無料", "AIが弱点を分析"],
+  },
+  ap: {
+    h1: "応用情報 過去問＋午後の記述をAI採点",
+    lead: "午前の過去問2,640問が無料。さらに、自分では採点しづらい午後（記述式）を、AIが○△×＋講評で採点。令和3〜7年度・981設問に対応しています。",
+    facts: ["午前 2,640問 無料", "午後の記述をAI採点", "令和3〜7年度対応"],
+  },
+};
+
+function metaOf(examId: string) {
+  const exam = getExam(examId);
+  return (
+    META[examId] ?? {
+      title: `${exam?.name ?? "過去問演習"}｜過去問演習道場`,
+      description: `${exam?.name ?? ""}の過去問を演習。${exam?.description ?? ""}。AIによる弱点分析にも対応した過去問演習道場。`,
+    }
+  );
+}
+
+function landingOf(examId: string) {
+  const exam = getExam(examId);
+  return (
+    LANDING[examId] ?? {
+      h1: `${exam?.name ?? "過去問演習"}`,
+      lead: `${exam?.description ?? "本物の過去問で本番対策"}。AIが弱点分野の分析もサポートします。`,
+      facts: ["本物の過去問", "AIが弱点を分析"],
+    }
+  );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ examId: string }>;
+}): Promise<Metadata> {
+  const { examId } = await params;
+  const exam = getExam(examId);
+  if (!exam) return { title: "過去問演習道場" };
+  const m = metaOf(examId);
+  return {
+    title: { absolute: m.title },
+    description: m.description,
+    alternates: { canonical: `/exam/${examId}` },
+    openGraph: {
+      title: m.title,
+      description: m.description,
+      url: `/exam/${examId}`,
+      images: [{ url: "/og.png", width: 1200, height: 630 }],
+    },
+    twitter: { card: "summary_large_image", title: m.title, description: m.description, images: ["/og.png"] },
+  };
+}
 
 export default async function ExamPage({
   params,
@@ -20,18 +98,30 @@ export default async function ExamPage({
   const exam = getExam(examId);
   if (!exam) notFound();
   const sec = sectionLabel(examId);
-
-  const pastAccuracy =
-    mockStats.past.answered > 0
-      ? Math.round((mockStats.past.correct / mockStats.past.answered) * 100)
-      : 0;
-  const aiAccuracy =
-    mockStats.ai.answered > 0
-      ? Math.round((mockStats.ai.correct / mockStats.ai.answered) * 100)
-      : 0;
+  const m = metaOf(examId);
+  const land = landingOf(examId);
 
   return (
     <div className="min-h-screen">
+      {/* この試験ページの構造化データ（検索エンジンに「特定試験の講座ページ」と伝える） */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Course",
+            name: `${exam.name} 過去問演習`,
+            description: m.description,
+            url: `https://kakomon-dojo.com/exam/${examId}`,
+            provider: {
+              "@type": "Organization",
+              name: "過去問演習道場",
+              url: "https://kakomon-dojo.com",
+            },
+          }),
+        }}
+      />
+
       {/* ヘッダー */}
       <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
@@ -52,70 +142,44 @@ export default async function ExamPage({
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-6">
 
-        {/* この試験の進捗 */}
-        <section>
-          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            この試験の進捗
-          </h2>
-          <div className={`grid gap-4 ${examId === "am1" ? "grid-cols-1" : "grid-cols-2"}`}>
-            {/* 過去問 */}
-            <Card className="border border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="w-5 h-5 text-indigo-500" />
-                  <span className="font-semibold text-gray-700">過去問演習</span>
-                </div>
-                <div className="flex items-end gap-3">
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">{mockStats.past.answered}</div>
-                    <div className="text-sm text-gray-500">解答数</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">{pastAccuracy}%</div>
-                    <div className="text-sm text-gray-500">正解率</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            {/* AI予想問題（午前Ⅰは対象外） */}
-            {examId !== "am1" && (
-              <Card className="border border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Zap className="w-5 h-5 text-yellow-500" />
-                    <span className="font-semibold text-gray-700">AI予想問題</span>
-                  </div>
-                  <div className="flex items-end gap-3">
-                    <div>
-                      <div className="text-3xl font-bold text-gray-900">{mockStats.ai.answered}</div>
-                      <div className="text-sm text-gray-500">解答数</div>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-bold text-gray-900">{aiAccuracy}%</div>
-                      <div className="text-sm text-gray-500">正解率</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </section>
-
-        {/* 出題カテゴリ */}
-        <section>
-          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            出題カテゴリ
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {exam.categories.map((cat) => (
-              <Badge
-                key={cat}
-                variant="secondary"
-                className={`text-sm px-3 py-1 ${exam.textColor} ${exam.badgeBg}`}
+        {/* 試験ごとの専用ヒーロー（専門サイトの顔） */}
+        <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${exam.color} px-6 py-6 md:px-9 md:py-8 shadow-rich-lg`}>
+          <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/15 blur-2xl" />
+          <div className="absolute -bottom-12 left-1/4 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+          <div className="relative text-white">
+            <div className="text-xs md:text-sm font-medium text-white/85">
+              {examGroupLabel(examId)}{sec ? ` ・ ${sec}` : ""}
+            </div>
+            <h1 className="mt-1 text-2xl md:text-3xl font-bold leading-snug">{land.h1}</h1>
+            <p className="mt-2 max-w-2xl text-sm md:text-base leading-relaxed text-white/90">{land.lead}</p>
+            <div className="mt-3.5 flex flex-wrap gap-1.5">
+              {land.facts.map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs md:text-sm font-semibold text-white backdrop-blur-sm"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2.5">
+              <Link
+                href={`/exam/${examId}/past`}
+                className={`inline-flex items-center gap-1.5 rounded-xl bg-white px-5 py-2.5 text-sm md:text-base font-bold ${exam.textColor} shadow-md shadow-black/15 hover:-translate-y-0.5 hover:shadow-lg transition-all`}
               >
-                {cat}
-              </Badge>
-            ))}
+                過去問を解く（無料）
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+              {examId === "ap" && (
+                <Link
+                  href={`/exam/${examId}/pm`}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-5 py-2.5 text-sm md:text-base font-bold text-white ring-1 ring-inset ring-white/50 backdrop-blur-sm hover:bg-white/25 transition-all"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  午後の記述をAI採点
+                </Link>
+              )}
+            </div>
           </div>
         </section>
 
@@ -190,8 +254,8 @@ export default async function ExamPage({
           {examId === "ap" && (
             <div className="mt-5">
               <div className="flex items-center gap-2.5 mb-3">
-                <span className="text-sm font-bold text-violet-700 whitespace-nowrap">午後問題（記述式）</span>
-                <span className="hidden sm:inline text-xs text-gray-400 whitespace-nowrap">午前とは別形式・自己採点</span>
+                <span className="text-sm font-bold text-violet-700 whitespace-nowrap">午後問題（記述式）・AI採点</span>
+                <span className="hidden sm:inline text-xs text-gray-400 whitespace-nowrap">この道場ならではの機能</span>
                 <div className="flex-1 h-px bg-gradient-to-r from-violet-200 to-transparent" />
               </div>
               <Link href={`/exam/${examId}/pm`} className="block">
@@ -203,20 +267,24 @@ export default async function ExamPage({
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-gray-900 text-lg">午後問題</span>
+                          <span className="font-bold text-gray-900 text-lg">午後問題をAIが採点</span>
                           <span className="text-[10px] font-bold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full px-2 py-0.5">NEW</span>
                         </div>
-                        <div className="text-sm text-gray-500">本物の午後問題（記述式）に挑戦</div>
+                        <div className="text-sm text-gray-500">本物の午後問題（記述式）に挑戦＝AIが採点</div>
                       </div>
                     </div>
                     <ul className="space-y-1.5 text-sm text-gray-600">
                       <li className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                        記述の答案をAIが<span className="font-semibold text-gray-700">○△×＋講評</span>で採点
+                      </li>
+                      <li className="flex items-center gap-2">
                         <PenLine className="w-4 h-4 text-violet-500 flex-shrink-0" />
-                        問1〜問11を本番の形式そのままで
+                        問1〜問11を本番の形式そのままで（令和3〜7年度）
                       </li>
                       <li className="flex items-center gap-2">
                         <Target className="w-4 h-4 text-violet-500 flex-shrink-0" />
-                        公式解答例つきで自己採点（○△×）
+                        公式解答例つき。自分で採点しづらい記述まで対策
                       </li>
                     </ul>
                     <div className="mt-4 text-xs text-gray-400">出典：IPA（独立行政法人情報処理推進機構）応用情報技術者試験 午後問題・解答例</div>
@@ -225,6 +293,24 @@ export default async function ExamPage({
               </Link>
             </div>
           )}
+        </section>
+
+        {/* 出題カテゴリ */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            出題カテゴリ
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {exam.categories.map((cat) => (
+              <Badge
+                key={cat}
+                variant="secondary"
+                className={`text-sm px-3 py-1 ${exam.textColor} ${exam.badgeBg}`}
+              >
+                {cat}
+              </Badge>
+            ))}
+          </div>
         </section>
 
       </main>
