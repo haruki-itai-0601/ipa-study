@@ -34,14 +34,12 @@ export default function Home() {
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
-            <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/95 backdrop-blur-sm ring-1 ring-inset ring-white/20">
-              <Sparkles className="w-3.5 h-3.5" />
-              AIエージェントと、合格へ最短で
+            <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1 text-sm md:text-base font-semibold text-white/95 backdrop-blur-sm ring-1 ring-inset ring-white/20">
+              <Sparkles className="w-4 h-4" />
+              AIエージェントと、最短で合格へ
             </div>
             <h1 className="text-lg md:text-2xl font-bold leading-snug text-white">
-              <span className="inline-block">過去問を“ただ解く”だけでは、</span>
-              <br className="hidden sm:block" />
-              <span className="inline-block">合格は近づきません。</span>
+              過去問を“ただ解く”だけでは、合格は近づきません。
             </h1>
             <p className="mt-2 text-sm md:text-base leading-relaxed text-indigo-100">
               過去問演習は<span className="font-semibold text-white">無料</span>。さらに、<span className="font-bold text-white">AIがあなたの弱点を分析</span>し、

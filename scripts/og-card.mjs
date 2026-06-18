@@ -31,7 +31,7 @@ const PAD = 80;
 // 上部キッカー（タグライン）
 x.fillStyle = "rgba(255,255,255,0.92)";
 x.font = "bold 34px NotoJP";
-x.fillText("AIエージェントと、合格へ最短で。", PAD, 152);
+x.fillText("AIエージェントと、最短で合格へ。", PAD, 152);
 
 // ブランド名（大）
 x.fillStyle = "#ffffff";
