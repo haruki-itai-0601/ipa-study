@@ -13,6 +13,7 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
+  Loader2,
 } from "lucide-react";
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
@@ -294,6 +295,11 @@ export function HomeDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<string>(basicExams[0].id);
   const [showDetail, setShowDetail] = useState(false);
+  // AIレコメンド（プレミアム）
+  const [isPremium, setIsPremium] = useState(false);
+  const [rec, setRec] = useState<{ advice: string; steps: string[]; focusCategory: string | null; examId: string } | null>(null);
+  const [recLoading, setRecLoading] = useState(false);
+  const [recError, setRecError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -305,6 +311,17 @@ export function HomeDashboard() {
         setLoading(false);
         return;
       }
+
+      // プレミアム判定（trialing も webhook 側で "active" に正規化済み＝初月無料も会員扱い）
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status, current_period_end")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      setIsPremium(
+        sub?.status === "active" &&
+          (!sub.current_period_end || new Date(sub.current_period_end) > new Date())
+      );
 
       // 弱点分析（区分×中分類ごとの解答数・正答数）
       const { data: statData } = await supabase.rpc("get_weakness_stats");
@@ -422,6 +439,30 @@ export function HomeDashboard() {
   const pastPct = (active.pastSolved / denom) * 100;
   const aiPct = (active.aiSolved / denom) * 100;
   const remain = Math.max(0, active.target - active.solved);
+
+  // AIレコメンドを生成（プレミアム会員のみ・選択中の試験区分について）
+  async function askRecommend() {
+    setRecLoading(true);
+    setRecError(null);
+    try {
+      const res = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ examId: activeExam }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRecError(data?.error ?? "生成に失敗しました");
+        setRec(null);
+      } else {
+        setRec(data);
+      }
+    } catch {
+      setRecError("通信エラーが発生しました。時間をおいて再度お試しください。");
+    } finally {
+      setRecLoading(false);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -718,6 +759,110 @@ export function HomeDashboard() {
                 </Link>
               )}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* AIレコメンド（プレミアム）：弱点分析のすぐ下に配置 */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2.5 px-0.5">
+          <h3 className="flex items-center gap-2 text-lg md:text-xl font-bold text-gray-700 leading-tight">
+            <Sparkles className="w-5 h-5 text-violet-500" />
+            AIレコメンド
+          </h3>
+          <span className="hidden sm:inline text-sm text-gray-400">あなた専用の次の一手</span>
+          <span className="ml-auto inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold text-violet-700">
+            プレミアム
+          </span>
+        </div>
+
+        <Card className="border border-violet-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich overflow-hidden">
+          <CardContent className="p-4 md:p-5">
+            {!isPremium ? (
+              /* 非会員：ロック済みティザー */
+              <div className="text-center py-2">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-md shadow-violet-500/30">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-base md:text-lg font-bold text-gray-800">AIがあなた専用の「次の一手」を提案</p>
+                <p className="mx-auto mt-1.5 max-w-md text-sm text-gray-500 leading-relaxed">
+                  弱点の可視化は無料。<b className="text-gray-700">AIレコメンド</b>では、解答傾向からAIが
+                  <b className="text-gray-700">何をどの順で対策すべきか</b>まで提案します（応用情報の午後記述AI採点も使い放題）。
+                </p>
+                <Link
+                  href="/premium"
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  初月無料で試す
+                </Link>
+                <p className="mt-2 text-xs text-gray-400">月額¥980・初月無料・いつでも解約OK</p>
+              </div>
+            ) : rec && rec.examId === activeExam ? (
+              /* 会員：生成済みレコメンド */
+              <div className="space-y-3">
+                <div className="rounded-xl border border-violet-100 bg-violet-50/70 p-3.5">
+                  <p className="whitespace-pre-wrap text-sm md:text-base leading-relaxed text-gray-800">{rec.advice}</p>
+                </div>
+                {rec.steps.length > 0 && (
+                  <ol className="space-y-1.5">
+                    {rec.steps.map((s, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm md:text-base text-gray-700">
+                        <span className="mt-0.5 inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">
+                          {i + 1}
+                        </span>
+                        <span className="leading-snug">{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+                <div className="flex flex-wrap gap-2.5 pt-1">
+                  {rec.focusCategory && (
+                    <Link
+                      href={studyHref(activeExam, rec.focusCategory)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-sm md:text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 transition-all"
+                    >
+                      <Target className="w-5 h-5" />
+                      「{rec.focusCategory}」を解く
+                    </Link>
+                  )}
+                  <button
+                    onClick={askRecommend}
+                    disabled={recLoading}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 hover:bg-violet-50 transition-all disabled:opacity-50"
+                  >
+                    {recLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    もう一度提案
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* 会員：未生成 → 生成ボタン */
+              <div className="text-center py-2">
+                <p className="text-base font-bold text-gray-800">AIに今日のおすすめを聞く</p>
+                <p className="mx-auto mt-1.5 max-w-md text-sm text-gray-500 leading-relaxed">
+                  {active.exam.name}のあなたの解答傾向から、AIが次にやるべき演習と学習法を提案します。
+                </p>
+                {recError && <p className="mt-2 text-sm text-red-500">{recError}</p>}
+                <button
+                  onClick={askRecommend}
+                  disabled={recLoading}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-60"
+                >
+                  {recLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      AIが分析中…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      AIにおすすめを聞く
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
