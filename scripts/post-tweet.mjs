@@ -99,14 +99,113 @@ function buildPost(q) {
   return { text, options, replyText };
 }
 
+// ───────── サービスPR投稿（夜の枠）─────────
+// 「問題を出すだけ」だと来訪に繋がらないため、サイトの強みを日替わりで宣伝する。
+// 本文はリンクなし（到達優先）＋1個目のリプにリンク、の形は問題投稿と同じ。
+const PR_POSTS = [
+  {
+    text:
+      "応用情報の午後、自分で採点できないのが一番つらい。\n\n" +
+      "記述式の答案を、AIが○△×＋講評で採点します。過去問演習はぜんぶ無料。\n\n" +
+      "#応用情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com/exam/ap\n令和3〜7年度の午後に対応。まずは無料の過去問から。",
+  },
+  {
+    text:
+      "「どこが弱いか分からない」を、AIが解決。\n\n" +
+      "解いた問題からAIが弱点を分析し、次にやるべき分野まで提案。過去問1万問超がぜんぶ無料。\n\n" +
+      "#基本情報技術者試験 #ITパスポート",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com\nAI弱点分析つきの過去問演習。スマホでサクサク。",
+  },
+  {
+    text:
+      "広告だらけで集中できない…という過去問サイトに疲れた人へ。\n\n" +
+      "じゃまな広告なし・過去問は無料・午後はAIが採点。そんな学習サイトを作りました。\n\n" +
+      "#ITパスポート #基本情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+  },
+  {
+    text:
+      "ITパスポート2,900問／基本情報1,760問／応用情報 午前2,640問。\n\n" +
+      "本物の過去問がぜんぶ無料で解けて、AIが弱点まで分析します。\n\n" +
+      "#ITパスポート #基本情報技術者試験 #応用情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+  },
+  {
+    text:
+      "過去問を自分で選び、弱点を探し、解説を本で読む時代は終わり。\n\n" +
+      "AIエージェントと解いて、弱点を分析、次の一手まで提案。気づいたら身につく学習サイトです。\n\n" +
+      "#応用情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+  },
+  {
+    text:
+      "通勤・休憩のスキマに、スマホで過去問。\n\n" +
+      "解くだけでAIが弱点を可視化し、合格への最短ルートを提示します。過去問演習は無料。\n\n" +
+      "#基本情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+  },
+  {
+    text:
+      "応用情報の合否は午後で決まる。\n\n" +
+      "でも午後の記述、自分で採点できない——をAIが解決。○△×＋講評で採点し、弱点まで教えます。\n\n" +
+      "#応用情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com/exam/ap",
+  },
+  {
+    text:
+      "AIが弱点から「次にやるべき演習」を提案するAIレコメンド、はじめました。\n\n" +
+      "過去問は無料。AIレコメンド＋午後AI採点のプレミアムは初月無料でお試しOK。\n\n" +
+      "#応用情報技術者試験",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+  },
+];
+
+// 日替わりでローテーション（毎日ちがうPRが出る・約8日で一周）
+function pickPrPost() {
+  const day = Math.floor(Date.now() / 86400000);
+  return PR_POSTS[day % PR_POSTS.length];
+}
+
 async function main() {
+  const type = (process.env.POST_TYPE || "question").toLowerCase();
+  const { X_APP_KEY, X_APP_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET } = process.env;
+  const hasCreds = X_APP_KEY && X_APP_SECRET && X_ACCESS_TOKEN && X_ACCESS_SECRET;
+  const newClient = () =>
+    new TwitterApi({
+      appKey: X_APP_KEY, appSecret: X_APP_SECRET,
+      accessToken: X_ACCESS_TOKEN, accessSecret: X_ACCESS_SECRET,
+    });
+
+  // ── サービスPR投稿（夜の枠：POST_TYPE=pr）──
+  if (type === "pr") {
+    const pr = pickPrPost();
+    if (!hasCreds) {
+      console.log("=== ドライラン（PR投稿・X認証なし）===");
+      console.log("【本文】\n" + pr.text);
+      console.log("【リプライ】\n" + pr.reply);
+      console.log(`--- 本文 weighted: ${weight(pr.text)} / 280 ---`);
+      return;
+    }
+    const client = newClient();
+    const head = await client.v2.tweet({ text: pr.text });
+    const headId = head?.data?.id;
+    let replyId = null;
+    if (headId) {
+      const reply = await client.v2.tweet({ text: pr.reply, reply: { in_reply_to_tweet_id: headId } });
+      replyId = reply?.data?.id;
+    }
+    console.log("PR投稿成功:", headId, "リプ:", replyId);
+    return;
+  }
+
+  // ── 今日の1問（問題アンケート投稿・朝の枠：POST_TYPE=question）──
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } });
   const q = await pickQuestion(sb);
   if (!q) { console.error("出題できる問題が見つかりませんでした"); process.exit(1); }
   const { text, options, replyText } = buildPost(q);
 
-  const { X_APP_KEY, X_APP_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET } = process.env;
-  if (!X_APP_KEY || !X_APP_SECRET || !X_ACCESS_TOKEN || !X_ACCESS_SECRET) {
+  if (!hasCreds) {
     console.log("=== ドライラン（X認証なし・投稿しません）===");
     console.log("【本文（アンケート）】");
     console.log(text);
@@ -116,10 +215,7 @@ async function main() {
     console.log(`--- 本文 weighted: ${weight(text)} / 280 ---`);
     return;
   }
-  const client = new TwitterApi({
-    appKey: X_APP_KEY, appSecret: X_APP_SECRET,
-    accessToken: X_ACCESS_TOKEN, accessSecret: X_ACCESS_SECRET,
-  });
+  const client = newClient();
   // ①アンケート付きの本文を投稿（リンクなし＝到達優先・24時間アンケート）
   const poll = await client.v2.tweet({ text, poll: { duration_minutes: 1440, options } });
   const pollId = poll?.data?.id;
