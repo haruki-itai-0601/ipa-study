@@ -227,6 +227,19 @@ async function fetchDailyQuestion(sb, day) {
   return data[0];
 }
 
+// 朝の投稿（夜の答え合わせのリプ先ツイートID）を取得
+async function getDailyPost(sb, day) {
+  const { data, error } = await sb.rpc("get_daily_post", { p_day: day });
+  if (error || !data || !data.length) return null;
+  return data[0];
+}
+
+// ID指定で問題を取得（夜の答え合わせは朝に記録した問題そのものを答える）
+async function fetchQuestionById(sb, id) {
+  const { data } = await sb.from("questions").select("*").eq("id", id).maybeSingle();
+  return data || null;
+}
+
 // 「今朝の答え合わせ」投稿（正解＋解説＋カード＋/qリンク）を組み立てる
 const KANA_OPT = ["ア", "イ", "ウ", "エ"];
 function buildAnswerPost(q) {
@@ -246,7 +259,7 @@ function buildAnswerPost(q) {
 }
 
 // 画像カード付きツイート（本文＋ブランド画像＋リプにリンク）。画像失敗時はテキストのみで投稿。
-async function postCardTweet(client, item) {
+async function postCardTweet(client, item, inReplyToId = null) {
   let mediaId = null;
   try {
     const png = renderPrCard(item.card);
@@ -254,9 +267,9 @@ async function postCardTweet(client, item) {
   } catch (e) {
     console.warn("画像の生成/アップロードに失敗。テキストのみで投稿します:", e?.message || e);
   }
-  const head = await client.v2.tweet(
-    mediaId ? { text: item.text, media: { media_ids: [mediaId] } } : { text: item.text }
-  );
+  const headPayload = mediaId ? { text: item.text, media: { media_ids: [mediaId] } } : { text: item.text };
+  if (inReplyToId) headPayload.reply = { in_reply_to_tweet_id: inReplyToId };
+  const head = await client.v2.tweet(headPayload);
   const headId = head?.data?.id;
   let replyId = null;
   if (headId && item.reply) {
@@ -282,22 +295,31 @@ async function main() {
   // ── 夜：今朝の問題の答え合わせ（POST_TYPE=explain）／ サービスPR（手動・POST_TYPE=pr）──
   if (type === "explain" || type === "pr") {
     let item;
+    let replyToId = null; // 答え合わせは朝の投票ツイートへのリプ（スレッド）にする
     if (type === "pr") {
       item = pickPrPost();
     } else {
-      const q = await fetchDailyQuestion(sb, jstDay);
-      item = q ? buildAnswerPost(q) : pickExplainPost(); // 取得不可なら汎用解説にフォールバック
+      // 朝に記録した「その日の問題」を、朝の投票ツイートへのリプ（スレッド）で答え合わせ
+      const morning = await getDailyPost(sb, jstDay);
+      const q = morning?.question_id ? await fetchQuestionById(sb, morning.question_id) : null;
+      if (q && morning?.tweet_id) {
+        item = buildAnswerPost(q);
+        replyToId = morning.tweet_id;
+      } else {
+        item = pickExplainPost(); // 朝の記録が無い日は汎用解説にフォールバック（誤投稿防止）
+      }
     }
     if (!hasCreds) {
       console.log(`=== ドライラン（${type}・X認証なし）===`);
       console.log("【本文】\n" + item.text);
       console.log("【リプライ】\n" + item.reply);
       console.log("【画像カード】", JSON.stringify(item.card));
+      console.log("【スレッド先】", replyToId || "(なし＝単独投稿)");
       console.log(`--- 本文 weighted: ${weight(item.text)} / 280 ---`);
       return;
     }
-    const r = await postCardTweet(newClient(), item);
-    console.log(`${type}投稿成功:`, r.headId, "リプ:", r.replyId, r.hasImage ? "(画像あり)" : "(画像なし)");
+    const r = await postCardTweet(newClient(), item, replyToId);
+    console.log(`${type}投稿成功:`, r.headId, "リプ:", r.replyId, r.hasImage ? "(画像あり)" : "(画像なし)", replyToId ? "(スレッド)" : "");
     return;
   }
 
@@ -320,9 +342,15 @@ async function main() {
   // ①アンケート付きの本文を投稿（リンクなし＝到達優先・24時間アンケート）
   const poll = await client.v2.tweet({ text, poll: { duration_minutes: 1440, options } });
   const pollId = poll?.data?.id;
-  // ②その投稿への1個目のリプライにリンク（リンクペナルティ回避＋導線）
   let replyId = null;
   if (pollId) {
+    // 夜の答え合わせを朝の投票へのスレッドにするため、ツイートIDを記録（best-effort）
+    try {
+      await sb.rpc("record_daily_post", { p_day: jstDay, p_question_id: q.id, p_tweet_id: pollId, p_exam: q.exam_id });
+    } catch (e) {
+      console.warn("record_daily_post に失敗（答え合わせは単独投稿になります）:", e?.message || e);
+    }
+    // ②その投稿への1個目のリプライにリンク（リンクペナルティ回避＋導線）
     const reply = await client.v2.tweet({ text: replyText, reply: { in_reply_to_tweet_id: pollId } });
     replyId = reply?.data?.id;
   }
