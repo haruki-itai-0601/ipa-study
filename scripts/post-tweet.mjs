@@ -176,6 +176,71 @@ function pickPrPost() {
   return PR_POSTS[day % PR_POSTS.length];
 }
 
+// ───────── 解説投稿（夜の枠の軸）─────────
+// 「有益7：共感3」の“有益”の中心。頻出用語のミニ解説＋まぎらわしい用語の違い。
+// 教育コンテンツは正確性が命なので、AI自動生成ではなく手作りプールで品質を担保（随時追加可）。
+const EXPLAIN_REPLY = "👉 関連の過去問を無料で解く\nhttps://kakomon-dojo.com";
+const EXPLAIN_POSTS = [
+  { card: { title: "DNS", sub: "ドメイン名⇔IPアドレスの名前解決" },
+    text: "【3分用語】DNS\n\nドメイン名（example.com）とIPアドレスを相互変換する“名前解決”の仕組み。URLを打つだけでサイトに繋がるのはDNSのおかげ。\n\n#ITパスポート #基本情報技術者試験" },
+  { card: { title: "DHCP", sub: "IP設定を自動で割り当てる" },
+    text: "【3分用語】DHCP\n\nIPアドレスなどのネットワーク設定を、機器に自動で割り当てる仕組み。LANに繋ぐだけで通信できるのはコレのおかげ。\n\n#基本情報技術者試験 #ITパスポート" },
+  { card: { title: "VPN", sub: "公衆網に“仮想の専用線”" },
+    text: "【3分用語】VPN\n\n公衆ネットワーク上に暗号化された“仮想の専用線”を作り、安全に通信する技術。リモートワークの定番。\n\n#応用情報技術者試験 #基本情報技術者試験" },
+  { card: { title: "RAID", sub: "複数ディスクで冗長化・高速化" },
+    text: "【3分用語】RAID\n\n複数のディスクを1台のように扱い、冗長化（故障対策）や高速化を実現する技術。RAID1はミラーリング、RAID5はパリティ分散。\n\n#基本情報技術者試験" },
+  { card: { title: "正規化", sub: "DBの重複をなくす整理術" },
+    text: "【3分用語】正規化\n\nデータベースで重複やムダをなくし、データを整理する設計手法。更新時の不整合（更新時異常）を防げる。\n\n#基本情報技術者試験 #応用情報技術者試験" },
+  { card: { title: "公開鍵暗号", sub: "暗号化と復号で別の鍵" },
+    text: "【3分用語】公開鍵暗号\n\n暗号化と復号で“別の鍵”を使う方式。相手の公開鍵で暗号化し、本人だけが秘密鍵で復号できる。鍵配送問題を解決。\n\n#応用情報技術者試験" },
+  { card: { title: "デジタル署名", sub: "改ざん検知＋本人確認" },
+    text: "【3分用語】デジタル署名\n\n「改ざんされていないこと」と「送信者本人であること」を証明する仕組み。送信者の“秘密鍵”で署名するのがポイント。\n\n#応用情報技術者試験" },
+  { card: { title: "SQLインジェクション", sub: "不正なSQLを注入する攻撃" },
+    text: "【3分用語】SQLインジェクション\n\n入力欄に不正なSQLを“注入”してDBを不正操作する攻撃。対策はプレースホルダ（バインド機構）の利用。\n\n#基本情報技術者試験 #応用情報技術者試験" },
+  { card: { title: "稼働率", sub: "MTBF÷(MTBF+MTTR)" },
+    text: "【3分用語】稼働率\n\nシステムが正常に動いている時間の割合。MTBF÷(MTBF+MTTR) で計算。MTBF=平均故障間隔、MTTR=平均修理時間。\n\n#基本情報技術者試験" },
+  { card: { title: "スループット", sub: "単位時間あたりの処理量" },
+    text: "【3分用語】スループット\n\n単位時間あたりに処理できる仕事量＝システムの“実効的な処理能力”。応答時間（レスポンスタイム）とは別物。\n\n#基本情報技術者試験" },
+  { card: { title: "NAT と NAPT", sub: "1対1か、複数共有か" },
+    text: "【まぎらわしい】NAT と NAPT\n\nNAT：IPアドレスを1対1で変換\nNAPT：ポート番号も使って“複数”を1つのグローバルIPで共有（IPマスカレード）\n\n#基本情報技術者試験 #応用情報技術者試験" },
+  { card: { title: "共通鍵 と 公開鍵", sub: "同じ鍵か、別の鍵か" },
+    text: "【まぎらわしい】共通鍵暗号 と 公開鍵暗号\n\n共通鍵：暗号化も復号も同じ鍵（速いが鍵配送が課題）\n公開鍵：別々の鍵（遅いが安全に配れる）\n\n#応用情報技術者試験" },
+  { card: { title: "認証 と 認可", sub: "本人確認か、権限付与か" },
+    text: "【まぎらわしい】認証 と 認可\n\n認証(Authentication)：誰かを確かめる＝本人確認\n認可(Authorization)：何を許すか決める＝権限付与\n\n#応用情報技術者試験 #基本情報技術者試験" },
+  { card: { title: "TCP と UDP", sub: "確実さか、速さか" },
+    text: "【まぎらわしい】TCP と UDP\n\nTCP：確実だが遅め（再送あり・順序保証）\nUDP：速いが保証なし（動画・音声・ゲーム向き）\n\n#基本情報技術者試験" },
+  { card: { title: "スタック と キュー", sub: "LIFO か、FIFOか" },
+    text: "【まぎらわしい】スタック と キュー\n\nスタック：後入れ先出し（LIFO）\nキュー：先入れ先出し（FIFO）\n\n#基本情報技術者試験 #ITパスポート" },
+  { card: { title: "リスク回避 と 低減", sub: "やめるか、小さくするか" },
+    text: "【まぎらわしい】リスク回避 と リスク低減\n\n回避：リスク源そのものをやめる\n低減：発生確率や影響を小さくする\n\n#応用情報技術者試験 #ITパスポート" },
+];
+function pickExplainPost() {
+  const day = Math.floor(Date.now() / 86400000);
+  const item = EXPLAIN_POSTS[day % EXPLAIN_POSTS.length];
+  return { ...item, reply: EXPLAIN_REPLY };
+}
+
+// 画像カード付きツイート（本文＋ブランド画像＋リプにリンク）。画像失敗時はテキストのみで投稿。
+async function postCardTweet(client, item) {
+  let mediaId = null;
+  try {
+    const png = renderPrCard(item.card);
+    mediaId = await client.v1.uploadMedia(png, { mimeType: "image/png" });
+  } catch (e) {
+    console.warn("画像の生成/アップロードに失敗。テキストのみで投稿します:", e?.message || e);
+  }
+  const head = await client.v2.tweet(
+    mediaId ? { text: item.text, media: { media_ids: [mediaId] } } : { text: item.text }
+  );
+  const headId = head?.data?.id;
+  let replyId = null;
+  if (headId && item.reply) {
+    const reply = await client.v2.tweet({ text: item.reply, reply: { in_reply_to_tweet_id: headId } });
+    replyId = reply?.data?.id;
+  }
+  return { headId, replyId, hasImage: !!mediaId };
+}
+
 async function main() {
   const type = (process.env.POST_TYPE || "question").toLowerCase();
   const { X_APP_KEY, X_APP_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET } = process.env;
@@ -186,35 +251,19 @@ async function main() {
       accessToken: X_ACCESS_TOKEN, accessSecret: X_ACCESS_SECRET,
     });
 
-  // ── サービスPR投稿（夜の枠：POST_TYPE=pr）──
-  if (type === "pr") {
-    const pr = pickPrPost();
+  // ── 解説（夜の枠：POST_TYPE=explain）／ サービスPR（手動・POST_TYPE=pr）──
+  if (type === "explain" || type === "pr") {
+    const item = type === "pr" ? pickPrPost() : pickExplainPost();
     if (!hasCreds) {
-      console.log("=== ドライラン（PR投稿・X認証なし）===");
-      console.log("【本文】\n" + pr.text);
-      console.log("【リプライ】\n" + pr.reply);
-      console.log(`--- 本文 weighted: ${weight(pr.text)} / 280 ---`);
+      console.log(`=== ドライラン（${type}・X認証なし）===`);
+      console.log("【本文】\n" + item.text);
+      console.log("【リプライ】\n" + item.reply);
+      console.log("【画像カード】", JSON.stringify(item.card));
+      console.log(`--- 本文 weighted: ${weight(item.text)} / 280 ---`);
       return;
     }
-    const client = newClient();
-    // ブランド画像を生成して添付（Xは画像つきの方が表示が伸びる）。失敗時はテキストのみで投稿。
-    let mediaId = null;
-    try {
-      const png = renderPrCard(pr.card);
-      mediaId = await client.v1.uploadMedia(png, { mimeType: "image/png" });
-    } catch (e) {
-      console.warn("PR画像の生成/アップロードに失敗。テキストのみで投稿します:", e?.message || e);
-    }
-    const head = await client.v2.tweet(
-      mediaId ? { text: pr.text, media: { media_ids: [mediaId] } } : { text: pr.text }
-    );
-    const headId = head?.data?.id;
-    let replyId = null;
-    if (headId) {
-      const reply = await client.v2.tweet({ text: pr.reply, reply: { in_reply_to_tweet_id: headId } });
-      replyId = reply?.data?.id;
-    }
-    console.log("PR投稿成功:", headId, "リプ:", replyId, mediaId ? "(画像あり)" : "(画像なし)");
+    const r = await postCardTweet(newClient(), item);
+    console.log(`${type}投稿成功:`, r.headId, "リプ:", r.replyId, r.hasImage ? "(画像あり)" : "(画像なし)");
     return;
   }
 

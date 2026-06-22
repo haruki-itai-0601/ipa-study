@@ -4,12 +4,12 @@ on:
   schedule:
     # GitHub Actions は UTC。混雑ピーク(:00)を避け、遅延しても適時に着弾するよう調整。
     - cron: "30 22 * * *" # 07:30 JST頃 → 今日の1問（アンケート）
-    - cron: "30 8 * * *"  # 17:30 JST頃 → サービスPR（GitHub遅延込みで夜に着弾）
+    - cron: "30 8 * * *"  # 17:30 JST頃 → 解説（用語・ひっかけ）。GitHub遅延込みで夜に着弾
   workflow_dispatch: # Actionsタブから手動実行も可能（投稿タイプを選べる）
     inputs:
       post_type:
-        description: "投稿タイプ（question=問題 / pr=サービスPR）"
-        default: "question"
+        description: "投稿タイプ（question=問題 / explain=解説 / pr=サービスPR）"
+        default: "explain"
 
 jobs:
   tweet:
@@ -23,8 +23,8 @@ jobs:
       - run: npm ci
       - name: Post tweet
         env:
-          # 朝(22:30 UTC)=問題、夕(08:30 UTC)=サービスPR。手動実行時は入力値を優先。
-          POST_TYPE: ${{ github.event.inputs.post_type || (github.event.schedule == '30 8 * * *' && 'pr' || 'question') }}
+          # 朝(22:30 UTC)=問題、夕(08:30 UTC)=解説。サービスPRは手動実行(post_type=pr)で出す。
+          POST_TYPE: ${{ github.event.inputs.post_type || (github.event.schedule == '30 8 * * *' && 'explain' || 'question') }}
           # Secret名は X_API_KEY/X_API_SECRET（コンシューマーキー）。スクリプトのenv名へマッピング
           X_APP_KEY: ${{ secrets.X_API_KEY }}
           X_APP_SECRET: ${{ secrets.X_API_SECRET }}
