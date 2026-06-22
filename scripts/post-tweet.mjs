@@ -220,6 +220,31 @@ function pickExplainPost() {
   return { ...item, reply: EXPLAIN_REPLY };
 }
 
+// その日のデイリー問題を決定的に取得（朝の出題・夜の答え合わせで同じ問題を使うため）
+async function fetchDailyQuestion(sb, day) {
+  const { data, error } = await sb.rpc("get_daily_question", { p_day: day });
+  if (error || !data || !data.length) return null;
+  return data[0];
+}
+
+// 「今朝の答え合わせ」投稿（正解＋解説＋カード＋/qリンク）を組み立てる
+const KANA_OPT = ["ア", "イ", "ウ", "エ"];
+function buildAnswerPost(q) {
+  const e = EXAMS[q.exam_id] || { name: "", tag: "" };
+  const idx = { a: 0, b: 1, c: 2, d: 3 }[String(q.correct_answer || "").toLowerCase()] ?? 0;
+  const kana = KANA_OPT[idx];
+  const optText = q[`option_${["a", "b", "c", "d"][idx]}`] || "";
+  const head = `【今朝の答え合わせ】\n\n今朝の${e.name}の問題、正解は【${kana}】でした。\n\n`;
+  const tail = `\n\n${e.tag} 出典:IPA`;
+  const budget = 270 - (weight(head) + weight(tail));
+  const exp = trimToWeight((q.explanation || "").replace(/\s+/g, " ").trim(), Math.max(40, budget));
+  return {
+    text: `${head}${exp}${tail}`,
+    card: { title: `正解は ${kana}`, sub: truncChars(optText, 24) },
+    reply: `👉 解説の続き・類題を解く\nhttps://kakomon-dojo.com/q/${q.id}`,
+  };
+}
+
 // 画像カード付きツイート（本文＋ブランド画像＋リプにリンク）。画像失敗時はテキストのみで投稿。
 async function postCardTweet(client, item) {
   let mediaId = null;
@@ -250,10 +275,19 @@ async function main() {
       appKey: X_APP_KEY, appSecret: X_APP_SECRET,
       accessToken: X_ACCESS_TOKEN, accessSecret: X_ACCESS_SECRET,
     });
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } });
+  // 朝(出題)と夜(答え合わせ)で同じ問題を使うため、JSTの日付で「その日の問題」を決める
+  const jstDay = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
 
-  // ── 解説（夜の枠：POST_TYPE=explain）／ サービスPR（手動・POST_TYPE=pr）──
+  // ── 夜：今朝の問題の答え合わせ（POST_TYPE=explain）／ サービスPR（手動・POST_TYPE=pr）──
   if (type === "explain" || type === "pr") {
-    const item = type === "pr" ? pickPrPost() : pickExplainPost();
+    let item;
+    if (type === "pr") {
+      item = pickPrPost();
+    } else {
+      const q = await fetchDailyQuestion(sb, jstDay);
+      item = q ? buildAnswerPost(q) : pickExplainPost(); // 取得不可なら汎用解説にフォールバック
+    }
     if (!hasCreds) {
       console.log(`=== ドライラン（${type}・X認証なし）===`);
       console.log("【本文】\n" + item.text);
@@ -267,9 +301,8 @@ async function main() {
     return;
   }
 
-  // ── 今日の1問（問題アンケート投稿・朝の枠：POST_TYPE=question）──
-  const sb = createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } });
-  const q = await pickQuestion(sb);
+  // ── 朝：今日の1問（その日のデイリー問題をアンケートで出題：POST_TYPE=question）──
+  const q = (await fetchDailyQuestion(sb, jstDay)) || (await pickQuestion(sb));
   if (!q) { console.error("出題できる問題が見つかりませんでした"); process.exit(1); }
   const { text, options, replyText } = buildPost(q);
 
