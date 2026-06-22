@@ -3,6 +3,7 @@
 // X認証(環境変数)が無い場合はドライラン（投稿せず内容を表示）になる。
 import { createClient } from "@supabase/supabase-js";
 import { TwitterApi } from "twitter-api-v2";
+import { renderPrCard } from "./pr-card.mjs";
 
 // Supabase の URL と anon(publishable) キーは公開情報（サイトのJSにも含まれる）なので直書きで問題ない
 const SUPABASE_URL = "https://qnuedvivehjnfirhnclt.supabase.co";
@@ -109,6 +110,7 @@ const PR_POSTS = [
       "記述式の答案を、AIが○△×＋講評で採点します。過去問演習はぜんぶ無料。\n\n" +
       "#応用情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com/exam/ap\n令和3〜7年度の午後に対応。まずは無料の過去問から。",
+    card: { title: "午後の記述、\nAIが採点。", sub: "○△×＋講評で、自己採点できない問題まで" },
   },
   {
     text:
@@ -116,6 +118,7 @@ const PR_POSTS = [
       "解いた問題からAIが弱点を分析し、次にやるべき分野まで提案。過去問1万問超がぜんぶ無料。\n\n" +
       "#基本情報技術者試験 #ITパスポート",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com\nAI弱点分析つきの過去問演習。スマホでサクサク。",
+    card: { title: "「どこが弱いか」\nAIが分析。", sub: "次にやるべき分野まで提案します" },
   },
   {
     text:
@@ -123,6 +126,7 @@ const PR_POSTS = [
       "じゃまな広告なし・過去問は無料・午後はAIが採点。そんな学習サイトを作りました。\n\n" +
       "#ITパスポート #基本情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    card: { title: "広告ゼロで、\n演習に集中。", sub: "過去問は無料・午後はAIが採点" },
   },
   {
     text:
@@ -130,6 +134,7 @@ const PR_POSTS = [
       "本物の過去問がぜんぶ無料で解けて、AIが弱点まで分析します。\n\n" +
       "#ITパスポート #基本情報技術者試験 #応用情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    card: { title: "過去問1万問超、\nぜんぶ無料。", sub: "IPパスポート / 基本情報 / 応用情報" },
   },
   {
     text:
@@ -137,6 +142,7 @@ const PR_POSTS = [
       "AIエージェントと解いて、弱点を分析、次の一手まで提案。気づいたら身につく学習サイトです。\n\n" +
       "#応用情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    card: { title: "AIエージェントと、\n最短で合格へ。", sub: "解くだけ。あとはAIが伴走します" },
   },
   {
     text:
@@ -144,6 +150,7 @@ const PR_POSTS = [
       "解くだけでAIが弱点を可視化し、合格への最短ルートを提示します。過去問演習は無料。\n\n" +
       "#基本情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    card: { title: "スマホで、\nスキマ過去問。", sub: "解くだけでAIが弱点を可視化" },
   },
   {
     text:
@@ -151,6 +158,7 @@ const PR_POSTS = [
       "でも午後の記述、自分で採点できない——をAIが解決。○△×＋講評で採点し、弱点まで教えます。\n\n" +
       "#応用情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com/exam/ap",
+    card: { title: "応用情報は\n午後で決まる。", sub: "記述をAIが採点・弱点まで可視化" },
   },
   {
     text:
@@ -158,6 +166,7 @@ const PR_POSTS = [
       "過去問は無料。AIレコメンド＋午後AI採点のプレミアムは初月無料でお試しOK。\n\n" +
       "#応用情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    card: { title: "AIレコメンド、\n初月無料。", sub: "弱点から「次の一手」を提案" },
   },
 ];
 
@@ -188,14 +197,24 @@ async function main() {
       return;
     }
     const client = newClient();
-    const head = await client.v2.tweet({ text: pr.text });
+    // ブランド画像を生成して添付（Xは画像つきの方が表示が伸びる）。失敗時はテキストのみで投稿。
+    let mediaId = null;
+    try {
+      const png = renderPrCard(pr.card);
+      mediaId = await client.v1.uploadMedia(png, { mimeType: "image/png" });
+    } catch (e) {
+      console.warn("PR画像の生成/アップロードに失敗。テキストのみで投稿します:", e?.message || e);
+    }
+    const head = await client.v2.tweet(
+      mediaId ? { text: pr.text, media: { media_ids: [mediaId] } } : { text: pr.text }
+    );
     const headId = head?.data?.id;
     let replyId = null;
     if (headId) {
       const reply = await client.v2.tweet({ text: pr.reply, reply: { in_reply_to_tweet_id: headId } });
       replyId = reply?.data?.id;
     }
-    console.log("PR投稿成功:", headId, "リプ:", replyId);
+    console.log("PR投稿成功:", headId, "リプ:", replyId, mediaId ? "(画像あり)" : "(画像なし)");
     return;
   }
 
