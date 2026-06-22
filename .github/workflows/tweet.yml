@@ -2,9 +2,9 @@ name: 今日の1問・サービスPRをXに自動投稿
 
 on:
   schedule:
-    # GitHub Actions は UTC。JST(UTC+9)の朝8時=問題アンケート、夕19時=サービスPR
-    - cron: "0 23 * * *" # 08:00 JST → 今日の1問（アンケート）
-    - cron: "0 10 * * *" # 19:00 JST → サービスPR
+    # GitHub Actions は UTC。混雑ピーク(:00)を避け、遅延しても適時に着弾するよう調整。
+    - cron: "30 22 * * *" # 07:30 JST頃 → 今日の1問（アンケート）
+    - cron: "30 8 * * *"  # 17:30 JST頃 → サービスPR（GitHub遅延込みで夜に着弾）
   workflow_dispatch: # Actionsタブから手動実行も可能（投稿タイプを選べる）
     inputs:
       post_type:
@@ -23,8 +23,8 @@ jobs:
       - run: npm ci
       - name: Post tweet
         env:
-          # 朝(23:00 UTC)=問題、夕(10:00 UTC)=サービスPR。手動実行時は入力値を優先。
-          POST_TYPE: ${{ github.event.inputs.post_type || (github.event.schedule == '0 10 * * *' && 'pr' || 'question') }}
+          # 朝(22:30 UTC)=問題、夕(08:30 UTC)=サービスPR。手動実行時は入力値を優先。
+          POST_TYPE: ${{ github.event.inputs.post_type || (github.event.schedule == '30 8 * * *' && 'pr' || 'question') }}
           # Secret名は X_API_KEY/X_API_SECRET（コンシューマーキー）。スクリプトのenv名へマッピング
           X_APP_KEY: ${{ secrets.X_API_KEY }}
           X_APP_SECRET: ${{ secrets.X_API_SECRET }}
