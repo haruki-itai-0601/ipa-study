@@ -191,7 +191,7 @@ export function PremiumClient() {
             プレミアム登録には、先に無料の会員登録（ログイン）が必要です。
           </p>
           <Link
-            href="/account"
+            href="/account?next=/premium"
             className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-white font-semibold hover:bg-indigo-700"
           >
             <LogIn className="w-4 h-4" />

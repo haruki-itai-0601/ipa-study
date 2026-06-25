@@ -296,10 +296,14 @@ export default function QuizRunner({
                   <span className="text-base text-gray-800 leading-relaxed">{value}</span>
                 )}
                 {isAnswered && key === question.correct_answer && (
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 ml-auto" />
+                  <span className="ml-auto flex items-center gap-1 flex-shrink-0 text-green-600 font-bold text-sm">
+                    <CheckCircle className="w-5 h-5" />正解
+                  </span>
                 )}
                 {isAnswered && key === selectedAnswer && !isCorrect && (
-                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 ml-auto" />
+                  <span className="ml-auto flex items-center gap-1 flex-shrink-0 text-red-600 font-bold text-sm">
+                    <XCircle className="w-5 h-5" />あなたの解答
+                  </span>
                 )}
               </div>
             </button>

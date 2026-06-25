@@ -67,6 +67,15 @@ export function AccountClient() {
     window.history.replaceState(null, "", "/account");
   }, []);
 
+  // プレミアム等から ?next=/... 付きで来た場合、会員になったら元の画面へ戻す（課金導線の取りこぼし防止）
+  useEffect(() => {
+    if (loading || !user || user.is_anonymous) return;
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && next.startsWith("/") && !next.startsWith("//")) {
+      window.location.href = next;
+    }
+  }, [loading, user]);
+
   useEffect(() => {
     let mounted = true;
     supabase.auth.getUser().then(({ data }) => {

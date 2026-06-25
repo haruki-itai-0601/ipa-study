@@ -275,17 +275,17 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
               {s.answer_type === "text" ? (
                 <textarea
                   value={inputs[s.id] ?? ""}
-                  onChange={(e) => setInputs({ ...inputs, [s.id]: e.target.value })}
-                  rows={2}
+                  onChange={(e) => setInputs((prev) => ({ ...prev, [s.id]: e.target.value }))}
+                  rows={4}
                   placeholder="解答を入力（記述）"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base min-h-[6rem] focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
                 />
               ) : (
                 <input
                   value={inputs[s.id] ?? ""}
-                  onChange={(e) => setInputs({ ...inputs, [s.id]: e.target.value })}
+                  onChange={(e) => setInputs((prev) => ({ ...prev, [s.id]: e.target.value }))}
                   placeholder={s.answer_type === "symbol" ? "記号（例：ア）" : s.answer_type === "number" ? "数値" : "解答"}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-200"
                 />
               )}
               {showResult && g && (
