@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { HomeDashboard } from "@/components/home-dashboard";
 import { HeaderToday } from "@/components/header-today";
 import { AccountLink } from "@/components/account-link";
-import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles } from "lucide-react";
+import { Brain, ChevronRight, Trophy, UserPlus, GraduationCap, Sparkles, Pencil } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -31,6 +31,18 @@ export default function Home() {
 
         {/* ヒーロー：このサービスの価値（AI弱点分析で合格を目指す） */}
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-4 md:px-9 md:py-6 shadow-rich-lg">
+          {/* ブループリント・グリッド（CSSのみ・Vercel/Linear風の質感／中心上から下へフェード） */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)",
+              backgroundSize: "26px 26px",
+              maskImage: "radial-gradient(130% 110% at 50% 0%, #000 45%, transparent 100%)",
+              WebkitMaskImage: "radial-gradient(130% 110% at 50% 0%, #000 45%, transparent 100%)",
+            }}
+          />
           <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-violet-300/20 blur-2xl" />
           <div className="relative">
@@ -135,6 +147,16 @@ export default function Home() {
         </section>
 
       </main>
+
+      {/* 右下の浮かぶ「問題を解く」FAB：押すと演習メニュー(#practice)へスムーズスクロール */}
+      <a
+        href="#practice"
+        aria-label="問題を解く（演習メニューへ移動）"
+        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-500/40 ring-1 ring-white/25 hover:-translate-y-0.5 hover:shadow-xl transition-all md:bottom-6 md:right-6"
+      >
+        <Pencil className="w-5 h-5" />
+        問題を解く
+      </a>
     </div>
   );
 }

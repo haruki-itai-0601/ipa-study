@@ -207,6 +207,16 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
   };
   const hasTextAnswered = textSubs.some((s) => graded[s.id]?.status === "member_only");
 
+  // 採点結果に応じたカード配色（親しみ寄り：正解はemeraldで前向きに、不正解も柔らかいrose）
+  const cardTone = (st?: GradeStatus) => {
+    if (!showResult || !st) return "border-gray-200 bg-white";
+    if (st === "correct") return "border-emerald-200 border-l-4 border-l-emerald-400 bg-emerald-50/70";
+    if (st === "partial") return "border-amber-200 border-l-4 border-l-amber-400 bg-amber-50/70";
+    if (st === "wrong") return "border-rose-200 border-l-4 border-l-rose-400 bg-rose-50/70";
+    if (st === "pending") return "border-violet-200 border-l-4 border-l-violet-300 bg-violet-50/70";
+    return "border-gray-200 bg-white";
+  };
+
   return (
     <>
       {/* 閉じている時：画面下に常時固定する「解答・採点」バー */}
@@ -260,7 +270,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
           const g = graded[s.id];
           const badge = TYPE_BADGE[s.answer_type];
           return (
-            <div key={s.id} className="rounded-xl border border-gray-200 bg-white p-3">
+            <div key={s.id} className={`rounded-xl border p-3 transition-colors ${cardTone(g?.status)}`}>
               <div className="flex items-center gap-2 mb-1.5">
                 <span className="text-sm font-bold text-gray-700">{s.label}</span>
                 <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 ${badge.cls}`}>{badge.label}</span>
@@ -289,7 +299,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                 />
               )}
               {showResult && g && (
-                <div className="mt-2 text-sm leading-snug space-y-0.5">
+                <div className="mt-2 text-sm leading-snug space-y-1 animate-in fade-in slide-in-from-bottom-1 duration-300">
                   {g.status === "correct" && <p className="font-bold text-green-700">○ 正解</p>}
                   {g.status === "partial" && <p className="font-bold text-yellow-700">△ 部分点</p>}
                   {g.status === "wrong" && (
@@ -334,9 +344,16 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                   {/* 記述のAI講評・模範解答（採点された会員のみ） */}
                   {s.answer_type === "text" && (g.status === "correct" || g.status === "partial" || g.status === "wrong") && (
                     <>
-                      {g.comment && <p className="text-gray-600">{g.comment}</p>}
-                      <p className="text-violet-700 text-xs">
-                        模範解答：<span className="font-semibold">{s.correct}</span>
+                      {g.comment && (
+                        <div className="mt-1 rounded-lg border border-violet-200 bg-violet-50 p-2.5">
+                          <p className="mb-1 flex items-center gap-1 text-xs font-bold text-violet-700">
+                            <Sparkles className="w-3.5 h-3.5" /> AIからの講評
+                          </p>
+                          <p className="text-sm leading-relaxed text-gray-800">{g.comment}</p>
+                        </div>
+                      )}
+                      <p className="mt-1.5 text-xs text-gray-600">
+                        模範解答：<span className="font-semibold text-gray-800">{s.correct}</span>
                       </p>
                       <p className="text-[10px] text-gray-400">
                         ※AIによる自動採点のため、判定・講評は絶対的な正解ではありません。あくまで参考としてご利用ください。

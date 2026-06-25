@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { getExam } from "@/lib/exams";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen, Share2, RotateCcw } from "lucide-react";
+import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen, Share2, RotateCcw, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
+import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 export type ChQ = {
   id: string;
@@ -38,11 +39,31 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
   const total = questions.length;
   const isCorrect = selected === q?.correct_answer;
 
-  const select = (key: string) => {
+  const select = async (key: string) => {
     if (answered) return;
     setSelected(key);
     setAnswered(true);
-    if (key === q.correct_answer) setScore((s) => s + 1);
+    const correct = key === q.correct_answer;
+    if (correct) setScore((s) => s + 1);
+
+    // 進捗を記録（ログイン時のみ）＝チャレンジで解いた分もホームの弱点分析に反映される
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("user_progress").insert({
+          user_id: user.id,
+          question_id: q.id,
+          exam_id: examId,
+          year: q.year,
+          is_correct: correct,
+        });
+      }
+    } catch {
+      // 記録失敗しても演習は続ける
+    }
   };
   const next = () => {
     if (idx + 1 >= total) { setFinished(true); return; }
@@ -84,6 +105,14 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
               <div className="h-full bg-indigo-500" style={{ width: `${pct}%` }} />
             </div>
             <div className="space-y-3">
+              {/* 解いた直後の主役導線：弱点が反映されたダッシュボードへ戻る */}
+              <Link
+                href="/#dashboard"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-indigo-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                ダッシュボードに戻る（弱点を見る）
+              </Link>
               <a
                 href={intent}
                 target="_blank"
@@ -95,7 +124,7 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
               </a>
               <Link
                 href={`/exam/${examId}/past`}
-                className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+                className="flex items-center justify-center gap-2 border border-indigo-200 text-indigo-700 px-6 py-3 rounded-xl font-semibold hover:bg-indigo-50 transition-colors"
               >
                 <BookOpen className="w-5 h-5" />
                 {exam?.name}をもっと演習する

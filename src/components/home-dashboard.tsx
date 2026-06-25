@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Zap,
   Loader2,
+  Lock,
 } from "lucide-react";
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
@@ -561,14 +562,23 @@ export function HomeDashboard() {
             {loading ? (
               <div className="py-8 text-center text-base text-gray-400">読み込み中…</div>
             ) : !hasData ? (
-              <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-8 text-center">
+              <div className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/40 px-4 py-7 text-center">
                 <Sparkles className="w-9 h-9 text-indigo-400 mx-auto mb-2.5" />
-                <p className="text-lg font-semibold text-gray-700">まだ解答記録がありません</p>
+                <p className="text-lg font-semibold text-gray-700">まずは1問、解いてみよう</p>
                 <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
-                  数問解くだけで、系統別（ストラテジ／マネジメント／テクノロジ）の到達度と、
+                  解くと、ここに<span className="font-semibold text-gray-700">系統別（ストラテジ／マネジメント／テクノロジ）の到達度</span>と
                   <br className="hidden md:block" />
-                  「対策すべき弱点TOP3」が表示されます。
+                  <span className="font-semibold text-gray-700">「対策すべき弱点TOP3」</span>が表示されます。
                 </p>
+                <Link
+                  href={`/challenge/${activeExam}`}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-base font-bold text-white shadow-md shadow-indigo-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                >
+                  <Zap className="w-5 h-5" />
+                  まず解いてみる（無料）
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <p className="mt-2 text-xs text-gray-400">登録不要・5問のミニチャレンジですぐ始められます</p>
               </div>
             ) : (
               <>
@@ -720,7 +730,7 @@ export function HomeDashboard() {
             )}
 
             {/* さっそく解く（過去問＝演習メニューを主役に上。AI予想はIPAシラバス準拠を明記して下に） */}
-            <div className="pt-4 border-t border-gray-100">
+            <div id="practice" className="scroll-mt-20 pt-4 border-t border-gray-100">
               <div className="mb-2.5"><SectionLabel>さっそく解く</SectionLabel></div>
               <Link
                 href={`/exam/${active.exam.id}`}
@@ -789,6 +799,27 @@ export function HomeDashboard() {
                   弱点の可視化は無料。<b className="text-gray-700">AIレコメンド</b>では、解答傾向からAIが
                   <b className="text-gray-700">何をどの順で対策すべきか</b>まで提案します（応用情報の午後記述AI採点も使い放題）。
                 </p>
+                {/* サンプル提案のチラ見せ：価値を見せてから登録（会員=あなた専用に） */}
+                <div className="relative mx-auto mt-4 max-w-md overflow-hidden rounded-xl border border-violet-100 bg-violet-50/60 p-3.5 text-left">
+                  <div className="mb-1.5 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-violet-500" />
+                    <span className="text-xs font-bold text-violet-700">AIからの提案</span>
+                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">サンプル</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-700">
+                    テクノロジ系は安定。一方で<b className="text-gray-900">ストラテジ系（経営戦略）が正答率52%</b>と弱点です。用語を押さえれば伸びやすい分野なので…
+                  </p>
+                  <div className="mt-2 space-y-1.5 select-none blur-[3px]" aria-hidden>
+                    <div className="h-2.5 w-11/12 rounded bg-violet-200/70" />
+                    <div className="h-2.5 w-4/5 rounded bg-violet-200/70" />
+                    <div className="h-2.5 w-2/3 rounded bg-violet-200/70" />
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-violet-50 via-violet-50/85 to-transparent pb-2.5 pt-7">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700">
+                      <Lock className="w-3.5 h-3.5" /> 会員になると、あなた専用の提案がすべて見られます
+                    </span>
+                  </div>
+                </div>
                 <Link
                   href="/premium"
                   className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
