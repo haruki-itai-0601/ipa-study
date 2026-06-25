@@ -785,7 +785,7 @@ export function HomeDashboard() {
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-base md:text-lg font-bold text-gray-800">AIがあなた専用の「次の一手」を提案</p>
-                <p className="mx-auto mt-1.5 max-w-md text-sm text-gray-500 leading-relaxed">
+                <p className="mx-auto mt-1.5 max-w-md text-sm text-gray-500 leading-relaxed text-balance">
                   弱点の可視化は無料。<b className="text-gray-700">AIレコメンド</b>では、解答傾向からAIが
                   <b className="text-gray-700">何をどの順で対策すべきか</b>まで提案します（応用情報の午後記述AI採点も使い放題）。
                 </p>
