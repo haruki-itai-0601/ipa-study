@@ -19,7 +19,8 @@ export async function GET(request: NextRequest) {
     .eq("type", type);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("questions/count error:", error);
+    return NextResponse.json({ error: "件数の取得に失敗しました" }, { status: 500 });
   }
 
   return NextResponse.json({ count: count ?? 0 });

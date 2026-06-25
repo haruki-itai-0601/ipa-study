@@ -41,6 +41,10 @@ export default function PremiumPage() {
             <Link href="/legal/tokushoho" className="underline hover:text-gray-600">
               特定商取引法に基づく表記
             </Link>
+            ・
+            <Link href="/legal/privacy" className="underline hover:text-gray-600">
+              プライバシーポリシー
+            </Link>
           </p>
         </div>
       </main>

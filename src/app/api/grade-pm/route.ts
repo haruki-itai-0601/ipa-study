@@ -41,16 +41,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1日あたりの利用上限（収益ライン。grade-pm と recommend 合算で 40回/日＝午後約1.3セット相当。
-    // Sonnet採点≈¥1.5/回・手取り¥945/月に対し、平均利用は余裕で黒字／濫用はworst-case月¥1,800程度に抑制）
-    const { data: underLimit } = await supabase.rpc("bump_ai_usage", { p_user: user.id, p_limit: 40 });
-    if (underLimit === false) {
-      return NextResponse.json(
-        { error: "本日のAI採点の上限に達しました。明日また利用できます。", code: "rate_limited" },
-        { status: 429 }
-      );
-    }
-
     // 設問の模範解答をサーバー側で取得（pm_sub_answers は select 全員可）
     const { data: sub, error } = await supabase
       .from("pm_sub_answers")
@@ -71,6 +61,16 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "AI採点は現在利用できません（APIキー未設定）" }, { status: 503 });
+    }
+
+    // 1日あたりの利用上限（収益ライン。grade-pm と recommend 合算で 40回/日）。
+    // 採点対象（記述・短答）と確定し、実際にAIを呼ぶ直前にのみ計上＝非対象設問では枠を消費しない。
+    const { data: underLimit } = await supabase.rpc("bump_ai_usage", { p_user: user.id, p_limit: 40 });
+    if (underLimit === false) {
+      return NextResponse.json(
+        { error: "本日のAI採点の上限に達しました。明日また利用できます。", code: "rate_limited" },
+        { status: 429 }
+      );
     }
 
     const client = new Anthropic({ apiKey });
