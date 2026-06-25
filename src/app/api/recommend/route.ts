@@ -78,6 +78,14 @@ export async function POST(request: NextRequest) {
     if (!apiKey) {
       return NextResponse.json({ error: "AIレコメンドは現在利用できません（APIキー未設定）" }, { status: 503 });
     }
+    // 1日あたりの利用上限（コスト暴発・濫用防止。grade-pm と合算で 300回/日）
+    const { data: underLimit } = await supabase.rpc("bump_ai_usage", { p_user: user.id, p_limit: 300 });
+    if (underLimit === false) {
+      return NextResponse.json(
+        { error: "本日のAI利用の上限に達しました。明日また利用できます。", code: "rate_limited" },
+        { status: 429 }
+      );
+    }
     const client = new Anthropic({ apiKey });
 
     const statLines = cats.map((c) => `・${c.category}：${c.acc}%（${c.correct}/${c.answered}問）`).join("\n");

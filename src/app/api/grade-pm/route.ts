@@ -41,6 +41,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 1日あたりの利用上限（コスト暴発・濫用防止。grade-pm と recommend 合算で 300回/日）
+    const { data: underLimit } = await supabase.rpc("bump_ai_usage", { p_user: user.id, p_limit: 300 });
+    if (underLimit === false) {
+      return NextResponse.json(
+        { error: "本日のAI採点の上限に達しました。明日また利用できます。", code: "rate_limited" },
+        { status: 429 }
+      );
+    }
+
     // 設問の模範解答をサーバー側で取得（pm_sub_answers は select 全員可）
     const { data: sub, error } = await supabase
       .from("pm_sub_answers")

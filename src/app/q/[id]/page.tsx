@@ -51,8 +51,36 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
   if (!q) notFound();
   const exam = getExam(q.exam_id);
 
+  // 構造化データ（Quiz/Question）：1万ページのロングテールSEO＆AIの引用対象になりやすくする
+  const opts: Record<string, string | null | undefined> = {
+    a: q.option_a, b: q.option_b, c: q.option_c, d: q.option_d,
+  };
+  const correctText = opts[(q.correct_answer ?? "").toLowerCase()] ?? "";
+  const suggested = (["a", "b", "c", "d"] as const)
+    .filter((k) => opts[k])
+    .map((k, i) => ({ "@type": "Answer", position: i, text: String(opts[k]) }));
+  const quizLd = {
+    "@context": "https://schema.org",
+    "@type": "Quiz",
+    about: { "@type": "Thing", name: `${exam?.name ?? "情報処理技術者試験"} ${q.year}` },
+    hasPart: {
+      "@type": "Question",
+      eduQuestionType: "Multiple choice",
+      text: q.question,
+      ...(suggested.length ? { suggestedAnswer: suggested } : {}),
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: correctText + (q.explanation ? `。${q.explanation}` : ""),
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(quizLd) }}
+      />
       <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <Link href="/" className="text-gray-400 hover:text-gray-600">
