@@ -516,8 +516,9 @@ export function HomeDashboard() {
           </h3>
           <span className="hidden sm:inline text-sm text-gray-400 flex-shrink-0">AIが弱点を可視化</span>
           {hasData && (
-            <span className={`ml-auto text-xl font-bold ${accuracyColor(active.acc).text} flex-shrink-0`}>
-              {active.acc}%
+            <span className="ml-auto flex items-baseline gap-1 flex-shrink-0">
+              <span className="text-xs font-semibold text-gray-400">正答率</span>
+              <span className={`text-xl font-bold ${accuracyColor(active.acc).text}`}>{active.acc}%</span>
             </span>
           )}
         </div>
@@ -790,44 +791,48 @@ export function HomeDashboard() {
           <CardContent className="p-4 md:p-5">
             {!isPremium ? (
               /* 非会員：ロック済みティザー */
-              <div className="text-center py-2">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-md shadow-violet-500/30">
-                  <Sparkles className="w-6 h-6 text-white" />
+              <div className="py-1">
+                {/* デスクトップは横2カラム（左=訴求＋CTA／右=サンプル）で縦を詰める。モバイルは縦積み */}
+                <div className="grid items-center gap-5 md:grid-cols-2 md:gap-6">
+                  {/* 左：訴求＋CTA */}
+                  <div className="text-center md:text-left">
+                    <div className="mx-auto md:mx-0 mb-2.5 flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 shadow-md shadow-violet-500/30">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <p className="text-base md:text-lg font-bold text-gray-800">AIがあなた専用の「次の一手」を提案</p>
+                    <p className="mt-1.5 text-sm text-gray-500 leading-relaxed">
+                      弱点の可視化は無料。<b className="text-gray-700">AIレコメンド</b>では、解答傾向からAIが<b className="text-gray-700">何をどの順で対策すべきか</b>まで提案します（応用情報の午後記述AI採点も使い放題）。
+                    </p>
+                    <Link
+                      href="/premium"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2.5 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                    >
+                      <Sparkles className="w-5 h-5" />
+                      14日間無料で試す
+                    </Link>
+                    <p className="mt-2 text-xs text-gray-400">月額¥980・14日間無料・いつでも解約OK</p>
+                  </div>
+                  {/* 右：サンプル提案のチラ見せ */}
+                  <div className="relative overflow-hidden rounded-xl border border-violet-100 bg-violet-50/60 p-3.5 text-left">
+                    <div className="mb-1.5 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-violet-500" />
+                      <span className="text-xs font-bold text-violet-700">AIからの提案</span>
+                      <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">サンプル</span>
+                    </div>
+                    <p className="text-sm leading-relaxed text-gray-700">
+                      テクノロジ系は安定。一方で<b className="text-gray-900">ストラテジ系（経営戦略）が正答率52%</b>と弱点です。用語を押さえれば伸びやすい分野なので…
+                    </p>
+                    <div className="mt-2 space-y-1.5 select-none blur-[3px]" aria-hidden>
+                      <div className="h-2.5 w-11/12 rounded bg-violet-200/70" />
+                      <div className="h-2.5 w-2/3 rounded bg-violet-200/70" />
+                    </div>
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-violet-50 via-violet-50/85 to-transparent pb-2.5 pt-6">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700">
+                        <Lock className="w-3.5 h-3.5" /> 会員になると、あなた専用の提案がすべて見られます
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-base md:text-lg font-bold text-gray-800">AIがあなた専用の「次の一手」を提案</p>
-                <p className="mx-auto mt-1.5 max-w-md text-sm text-gray-500 leading-relaxed text-balance">
-                  弱点の可視化は無料。<b className="text-gray-700">AIレコメンド</b>では、解答傾向からAIが
-                  <b className="text-gray-700">何をどの順で対策すべきか</b>まで提案します（応用情報の午後記述AI採点も使い放題）。
-                </p>
-                {/* サンプル提案のチラ見せ：価値を見せてから登録（会員=あなた専用に） */}
-                <div className="relative mx-auto mt-4 max-w-md overflow-hidden rounded-xl border border-violet-100 bg-violet-50/60 p-3.5 text-left">
-                  <div className="mb-1.5 flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-violet-500" />
-                    <span className="text-xs font-bold text-violet-700">AIからの提案</span>
-                    <span className="rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-bold text-violet-700">サンプル</span>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-700">
-                    テクノロジ系は安定。一方で<b className="text-gray-900">ストラテジ系（経営戦略）が正答率52%</b>と弱点です。用語を押さえれば伸びやすい分野なので…
-                  </p>
-                  <div className="mt-2 space-y-1.5 select-none blur-[3px]" aria-hidden>
-                    <div className="h-2.5 w-11/12 rounded bg-violet-200/70" />
-                    <div className="h-2.5 w-4/5 rounded bg-violet-200/70" />
-                    <div className="h-2.5 w-2/3 rounded bg-violet-200/70" />
-                  </div>
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center bg-gradient-to-t from-violet-50 via-violet-50/85 to-transparent pb-2.5 pt-7">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-violet-700">
-                      <Lock className="w-3.5 h-3.5" /> 会員になると、あなた専用の提案がすべて見られます
-                    </span>
-                  </div>
-                </div>
-                <Link
-                  href="/premium"
-                  className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  14日間無料で試す
-                </Link>
-                <p className="mt-2 text-xs text-gray-400">月額¥980・14日間無料・いつでも解約OK</p>
               </div>
             ) : rec && rec.examId === activeExam ? (
               /* 会員：生成済みレコメンド */
