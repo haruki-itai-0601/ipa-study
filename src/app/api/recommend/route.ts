@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
       "あなたはIPA情報処理技術者試験の学習を伴走するAIコーチです。受験者の分野別正答率データをもとに、" +
       "合格に向けて『今やるべきこと』を、励ましつつ具体的に助言します。専門用語は噛み砕き、すべて日本語で。" +
       "advice は200字以内で、強み・弱み・なぜその分野を優先すべきかを簡潔に述べる。" +
+      "advice は箇条書き記号や見出し・Markdown記法を使わず、プレーンな日本語の文章にする。" +
       "steps は2〜3個の短い実行手順（各30字以内）。";
     const userPrompt =
       `【試験】${exam.name}\n` +
@@ -93,7 +94,8 @@ export async function POST(request: NextRequest) {
       `最優先で対策すべき分野は「${focusCategory}」です。この分野を中心に、合格への最短アドバイスと実行ステップを作成してください。`;
 
     const message = await client.messages.create({
-      model: "claude-haiku-4-5",
+      // パーソナルな学習助言は質を重視して Sonnet（プレミアム限定＋ユーザー起点で呼び出し頻度が低くコストは軽微）
+      model: "claude-sonnet-4-6",
       max_tokens: 700,
       system,
       messages: [{ role: "user", content: userPrompt }],
