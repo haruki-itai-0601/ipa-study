@@ -794,9 +794,9 @@ export function HomeDashboard() {
                   className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
                 >
                   <Sparkles className="w-5 h-5" />
-                  初月無料で試す
+                  14日間無料で試す
                 </Link>
-                <p className="mt-2 text-xs text-gray-400">月額¥980・初月無料・いつでも解約OK</p>
+                <p className="mt-2 text-xs text-gray-400">月額¥980・14日間無料・いつでも解約OK</p>
               </div>
             ) : rec && rec.examId === activeExam ? (
               /* 会員：生成済みレコメンド */

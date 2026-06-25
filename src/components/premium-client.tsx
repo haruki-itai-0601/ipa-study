@@ -217,10 +217,10 @@ export function PremiumClient() {
           className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:translate-y-0"
         >
           {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-          {busy ? "決済ページへ移動中…" : "初月無料ではじめる（その後 月額980円）"}
+          {busy ? "決済ページへ移動中…" : "14日間無料ではじめる（その後 月額980円）"}
         </button>
         <p className="text-xs text-gray-400 leading-relaxed">
-          初月は無料です。30日間が過ぎると月額980円が発生します（クレジットカード決済・Stripe）。トライアル中を含め、いつでも解約でき、解約後も請求期間の末日までご利用いただけます。
+          14日間は無料です。14日間が過ぎると月額980円が発生します（クレジットカード決済・Stripe）。トライアル中を含め、いつでも解約でき、解約後も請求期間の末日までご利用いただけます。
         </p>
       </CardContent>
     </Card>
@@ -242,7 +242,7 @@ function PlanSummary() {
           <span className="text-sm text-gray-500 font-semibold">円/月（税込）</span>
         </p>
         <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-          🎁 初月無料・いつでも解約OK
+          🎁 14日間無料・いつでも解約OK
         </p>
       </div>
       <ul className="space-y-1.5">

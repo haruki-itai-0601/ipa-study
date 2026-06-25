@@ -77,9 +77,9 @@ export async function POST(request: NextRequest) {
             },
       ],
       metadata: { user_id: user.id },
-      // 初月無料トライアル（30日）。トライアル中は Stripe 上 trialing → Webアプリ側は webhook の
+      // 14日間無料トライアル。トライアル中は Stripe 上 trialing → Webアプリ側は webhook の
       // mapStatus で "active" に正規化されるため、既存のプレミアム判定がそのまま機能する。
-      subscription_data: { metadata: { user_id: user.id }, trial_period_days: 30 },
+      subscription_data: { metadata: { user_id: user.id }, trial_period_days: 14 },
       success_url: `${origin}/premium?checkout=success`,
       cancel_url: `${origin}/premium?checkout=cancel`,
     });

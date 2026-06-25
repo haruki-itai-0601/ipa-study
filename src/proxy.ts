@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { verifyAdminToken } from "@/lib/admin-token";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,7 +19,7 @@ export async function proxy(request: NextRequest) {
     const token = request.cookies.get("admin_token")?.value;
     const secret = process.env.ADMIN_SECRET;
 
-    if (!secret || token !== secret) {
+    if (!secret || !(await verifyAdminToken(token, secret))) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);

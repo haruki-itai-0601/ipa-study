@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
+import { createAdminToken, safeEqual } from "@/lib/admin-token";
 
 /** Base32 → Buffer（crypto のみ、otplib 不要） */
 function base32Decode(base32: string): Buffer {
@@ -54,8 +55,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "ADMIN_SECRET が設定されていません" }, { status: 500 });
   }
 
-  // パスワード検証
-  if (password !== adminSecret) {
+  // パスワード検証（定数時間比較でタイミング攻撃を回避）
+  if (typeof password !== "string" || !safeEqual(password, adminSecret)) {
     return NextResponse.json({ error: "パスワードが違います" }, { status: 401 });
   }
 
@@ -73,7 +74,9 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("admin_token", adminSecret, {
+  // 生の ADMIN_SECRET ではなく HMAC 署名付きトークンを保存（Cookie 漏洩時もマスター秘密は露出せず、期限で自然失効）
+  const token = await createAdminToken(adminSecret, 60 * 60 * 24 * 7);
+  response.cookies.set("admin_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
