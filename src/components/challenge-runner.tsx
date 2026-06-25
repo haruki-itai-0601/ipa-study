@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getExam } from "@/lib/exams";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen, Share2, RotateCcw, LayoutDashboard } from "lucide-react";
+import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen, Share2, RotateCcw, LayoutDashboard, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 
@@ -34,6 +34,13 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
   const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    createSupabaseBrowserClient()
+      .auth.getUser()
+      .then(({ data }) => setLoggedIn(!!data.user));
+  }, []);
 
   const q = questions[idx];
   const total = questions.length;
@@ -105,6 +112,15 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
               <div className="h-full bg-indigo-500" style={{ width: `${pct}%` }} />
             </div>
             <div className="space-y-3">
+              {loggedIn === false && (
+                <Link
+                  href="/account"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-emerald-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                >
+                  <UserPlus className="w-5 h-5" />
+                  無料登録で進捗・弱点分析を保存
+                </Link>
+              )}
               {/* 解いた直後の主役導線：弱点が反映されたダッシュボードへ戻る */}
               <Link
                 href="/#dashboard"

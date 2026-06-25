@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, AlertTriangle, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { accHex, DonutGauge } from "@/components/charts";
 
 function categoryHref(examId: string, category: string) {
   return `/exam/${examId}/study?category=${encodeURIComponent(category)}`;
@@ -160,14 +161,15 @@ export default function AnalysisPage() {
                       >
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex items-start gap-2 min-w-0">
-                            <span className="flex-shrink-0">{c.dot}</span>
+                            <span className="flex-shrink-0 mt-1.5 h-2.5 w-2.5 rounded-full" style={{ background: accHex(w.acc) }} aria-hidden />
                             <span className="font-semibold text-gray-900 leading-snug">{w.category}</span>
                             <span className="text-xs text-gray-400 flex-shrink-0 mt-1">{ex?.shortName}</span>
                           </div>
                           <span className={`font-bold ${c.text} flex-shrink-0`}>{w.acc}%</span>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div className={`h-full ${c.bar}`} style={{ width: `${w.acc}%` }} />
+                          <span className="absolute inset-y-0 w-px bg-gray-500/60" style={{ left: "60%" }} aria-hidden />
                         </div>
                         <div className="flex items-center justify-between mt-1">
                           <span className="text-xs text-gray-400">{w.answered}問 解答済み</span>
@@ -186,6 +188,12 @@ export default function AnalysisPage() {
             {/* 区分ごとの進捗（解答した区分をジャンル別の棒グラフで表示） */}
             <section>
               <h2 className="text-base font-semibold text-gray-700 mb-3">区分ごとの進捗</h2>
+              {/* 区分別の到達度（リングゲージ・60%＝合格ライン目盛りつき） */}
+              <div className="mb-4 grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6">
+                {answeredExams.map(({ exam, answered, correct, acc }) => (
+                  <DonutGauge key={exam.id} label={exam.shortName} acc={acc} answered={answered} correct={correct} />
+                ))}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {answeredExams.map(({ exam, answered, acc, cats }) => {
                   const c = accuracyColor(acc);
@@ -227,8 +235,9 @@ export default function AnalysisPage() {
                                   <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
                                 </span>
                               </div>
-                              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div className={`h-full ${cc.bar}`} style={{ width: `${cat.acc}%` }} />
+                                <span className="absolute inset-y-0 w-px bg-gray-500/60" style={{ left: "60%" }} aria-hidden />
                               </div>
                             </Link>
                           );
