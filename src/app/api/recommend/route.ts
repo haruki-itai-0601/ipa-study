@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createSupabaseServerClient();
 
-    // ログイン＋プレミアム判定（trialing は webhook で "active" に正規化済み＝初月無料も会員扱い）
+    // ログイン＋プレミアム判定（trialing は webhook で "active" に正規化済み＝トライアルも会員扱い）
     const {
       data: { user },
     } = await supabase.auth.getUser();

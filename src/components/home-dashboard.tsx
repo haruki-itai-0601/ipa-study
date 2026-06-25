@@ -312,7 +312,7 @@ export function HomeDashboard() {
         return;
       }
 
-      // プレミアム判定（trialing も webhook 側で "active" に正規化済み＝初月無料も会員扱い）
+      // プレミアム判定（trialing も webhook 側で "active" に正規化済み＝トライアルも会員扱い）
       const { data: sub } = await supabase
         .from("subscriptions")
         .select("status, current_period_end")
