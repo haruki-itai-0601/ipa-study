@@ -589,7 +589,7 @@ export function HomeDashboard() {
                     <SectionLabel>系統別の到達度</SectionLabel>
                     <div className="text-xs text-gray-400">リングの目盛り＝合格ライン（6割）</div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-2xl mx-auto">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:gap-3 max-w-3xl mx-auto">
                     {active.gauges.map((g) => (
                       <DonutGauge
                         key={g.key}
@@ -599,6 +599,16 @@ export function HomeDashboard() {
                         correct={g.correct}
                       />
                     ))}
+                    {/* 3ゲージの右に総合正答率をまとめて表示 */}
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50/60 px-2 py-3">
+                      <div className={`text-3xl md:text-4xl font-extrabold leading-none ${accuracyColor(active.acc).text}`}>
+                        {active.acc}%
+                      </div>
+                      <div className="mt-1.5 text-sm font-bold text-gray-800 leading-tight text-center">総合正答率</div>
+                      <div className="mt-0.5 text-xs text-gray-400">
+                        {active.gauges.reduce((s, g) => s + g.correct, 0)}/{active.answered}問
+                      </div>
+                    </div>
                   </div>
                 </div>
 
