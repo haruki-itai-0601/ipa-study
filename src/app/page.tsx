@@ -55,11 +55,11 @@ export default function Home() {
               応用情報の<span className="font-bold text-white">午後（記述式）はAIが○△×＋講評で採点</span>。
               <span className="font-bold text-white">自分で採点できない記述まで対策</span>できます。
             </p>
-            {/* バリュー帯：AIエージェントの旗を先頭に置く */}
+            {/* バリュー帯：AIレコメンドの旗を先頭に置く */}
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3.5 py-1 text-sm font-semibold text-white backdrop-blur-sm ring-1 ring-inset ring-white/25">
                 <Sparkles className="w-4 h-4" />
-                AIエージェントと、最短で合格へ
+                AIレコメンドと、最短で合格へ
               </span>
               {["過去問演習は無料", "AIが弱点を分析", "午後・記述をAIが採点"].map((t) => (
                 <span
