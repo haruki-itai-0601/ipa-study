@@ -179,6 +179,15 @@ export default async function ExamPage({
                   午後の記述をAI採点
                 </Link>
               )}
+              {examId === "fe" && (
+                <Link
+                  href={`/exam/${examId}/b`}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-5 py-2.5 text-sm md:text-base font-bold text-white ring-1 ring-inset ring-white/50 backdrop-blur-sm hover:bg-white/25 transition-all"
+                >
+                  <FileText className="w-4 h-4" />
+                  科目B（午後）を解く
+                </Link>
+              )}
             </div>
           </div>
         </section>
@@ -288,6 +297,46 @@ export default async function ExamPage({
                       </li>
                     </ul>
                     <div className="mt-4 text-xs text-gray-400">出典：IPA（独立行政法人情報処理推進機構）応用情報技術者試験 午後問題・解答例</div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          )}
+
+          {/* 科目B（基本情報のみ・午後相当。プログラミング＋情報セキュリティの多肢選択） */}
+          {examId === "fe" && (
+            <div className="mt-5">
+              <div className="flex items-center gap-2.5 mb-3">
+                <span className="text-sm font-bold text-violet-700 whitespace-nowrap">科目B（午後）・プログラミング＆セキュリティ</span>
+                <span className="hidden sm:inline text-xs text-gray-400 whitespace-nowrap">IPA公式問題で演習</span>
+                <div className="flex-1 h-px bg-gradient-to-r from-violet-200 to-transparent" />
+              </div>
+              <Link href={`/exam/${examId}/b`} className="block">
+                <Card className="group border border-violet-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-xl p-2.5 shadow-md shadow-violet-500/30 group-hover:scale-105 transition-transform">
+                        <FileText className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900 text-lg">科目Bを解く</span>
+                          <span className="text-[10px] font-bold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full px-2 py-0.5">NEW</span>
+                        </div>
+                        <div className="text-sm text-gray-500">擬似言語のアルゴリズム＋情報セキュリティ（多肢選択）</div>
+                      </div>
+                    </div>
+                    <ul className="space-y-1.5 text-sm text-gray-600">
+                      <li className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                        IPA公式のサンプル問題・公開問題で演習（無料）
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Target className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                        本番形式の多肢選択を自動採点
+                      </li>
+                    </ul>
+                    <div className="mt-4 text-xs text-gray-400">出典：IPA（独立行政法人情報処理推進機構）基本情報技術者試験 科目B サンプル問題・公開問題</div>
                   </CardContent>
                 </Card>
               </Link>

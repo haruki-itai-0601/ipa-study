@@ -42,3 +42,4 @@ next-env.d.ts
 
 # daily-question 投稿済みログ（ローカル状態）
 scripts/.posted-questions.json
+data/past-questions/fe/render/
