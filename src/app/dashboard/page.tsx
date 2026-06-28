@@ -1,7 +1,9 @@
 "use client";
 
-// モック準拠の新ダッシュボード（フラット青）。既存 home-dashboard.tsx とは別ルートで「叩く」用。
-// KPI・弱点横棒・AI大CTAは実データ。推移グラフ／最近の演習は現状サンプル（実データ接続は次工程）。
+// モック準拠の新ダッシュボード（フラット青）。/dashboard。
+// 反映済み: ①ゲスト挨拶＋ログイン導線 ②試験選択をサイドバーのツリー化 ③ロゴ「ラ」削除
+//          ④AIおすすめ枠をログイン状態で出し分け ⑤解答数表示＋推移タブ(正答率/解答数)を実データ化(get_accuracy_timeline)
+// 履歴(最近の演習)は現状サンプル。復習/解説/AI特訓モードは別タスク(項目6)。
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -9,8 +11,6 @@ import { basicExams } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
   LayoutDashboard,
-  PenLine,
-  FileText,
   BarChart3,
   Clock,
   Settings,
@@ -18,11 +18,11 @@ import {
   Bell,
   Bot,
   Sparkles,
-  Target,
   ArrowRight,
-  ChevronRight,
   Lock,
   Loader2,
+  LogIn,
+  ChevronRight,
 } from "lucide-react";
 
 // ===== フラット青パレット（モック準拠） =====
@@ -50,45 +50,52 @@ const C = {
 
 type Row = { exam_id: string; category: string; answered: number; correct: number };
 type Overview = { exam_id: string; total: number; ai: number };
+type TimelineRow = { week_start: string; answered: number; correct: number };
 
 const EXAM_TARGET: Record<string, number> = { ip: 600, fe: 600, ap: 800 };
-const PASS_LINE = 65; // 合格可能性スコアの合格ライン（簡易）
+const PASS_LINE = 65;
+const EXAM_DATE: Record<string, string | null> = { ip: null, fe: null, ap: "2026-10-18" }; // AP秋期は暫定
 
-// CBT(通年)＝ip/fe、固定日程＝ap。AP秋期日は暫定（設定で変更可にする予定）。
-const EXAM_DATE: Record<string, string | null> = { ip: null, fe: null, ap: "2026-10-18" };
+// サイドバーのツリー（フルネーム）＋ 各試験の演習サブリンク
+const EXAM_TREE: { id: string; label: string }[] = [
+  { id: "ip", label: "ITパスポート演習" },
+  { id: "fe", label: "基本情報演習" },
+  { id: "ap", label: "応用情報演習" },
+];
+const EXAM_SUB: Record<string, { label: string; href: string }[]> = {
+  ip: [{ label: "演習メニュー", href: "/exam/ip" }],
+  fe: [
+    { label: "午前（科目A）", href: "/exam/fe" },
+    { label: "午後（科目B）", href: "/exam/fe/b" },
+  ],
+  ap: [
+    { label: "午前", href: "/exam/ap" },
+    { label: "午後", href: "/exam/ap/pm" },
+  ],
+};
 
-// 正答率→色分け（モック凡例: 要対策〜49 / あと一歩50-59 / 標準60-69 / 得意70+）
 function band(acc: number) {
   if (acc >= 70) return { hex: C.good, soft: C.goodSoft, label: "得意" };
   if (acc >= 60) return { hex: C.std, soft: C.stdSoft, label: "標準" };
   if (acc >= 50) return { hex: C.warn, soft: C.warnSoft, label: "あと一歩" };
   return { hex: C.bad, soft: C.badSoft, label: "要対策" };
 }
-
-// 合格可能性スコア（簡易β）：正答率を主に、網羅度（解答数/目標）で割り引く
 function passScore(acc: number, solved: number, target: number) {
   if (solved === 0) return 0;
   const cov = Math.min(1, solved / target);
   return Math.round(Math.min(100, acc * (0.7 + 0.3 * cov)));
 }
-
 function studyHref(examId: string, category: string) {
   return `/exam/${examId}/study?category=${encodeURIComponent(category)}`;
 }
-
 function fmtDate(dt: Date) {
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth() + 1).padStart(2, "0");
-  const d = String(dt.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
 }
-
-// 連続学習日数（answered_days_jst の配列から）
 function calcStreak(days: string[]): number {
   if (!days?.length) return 0;
   const set = new Set(days);
   const cur = new Date();
-  if (!set.has(fmtDate(cur))) cur.setDate(cur.getDate() - 1); // 今日未回答でも継続扱い
+  if (!set.has(fmtDate(cur))) cur.setDate(cur.getDate() - 1);
   let s = 0;
   while (set.has(fmtDate(cur))) {
     s++;
@@ -96,8 +103,6 @@ function calcStreak(days: string[]): number {
   }
   return s;
 }
-
-// 直近7日に学習した日数
 function thisWeekDays(days: string[]): number {
   if (!days?.length) return 0;
   const set = new Set(days);
@@ -109,12 +114,9 @@ function thisWeekDays(days: string[]): number {
   }
   return n;
 }
-
 function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;
-  const target = new Date(dateStr + "T00:00:00");
-  const now = new Date();
-  const diff = Math.ceil((target.getTime() - now.getTime()) / 86400000);
+  const diff = Math.ceil((new Date(dateStr + "T00:00:00").getTime() - Date.now()) / 86400000);
   return diff >= 0 ? diff : null;
 }
 
@@ -122,11 +124,14 @@ export default function DashboardPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [overview, setOverview] = useState<Overview[]>([]);
   const [answeredDays, setAnsweredDays] = useState<string[]>([]);
+  const [timeline, setTimeline] = useState<TimelineRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeExam, setActiveExam] = useState<string>(basicExams[0].id);
   const [isPremium, setIsPremium] = useState(false);
+  const [isGuest, setIsGuest] = useState(true);
   const [name, setName] = useState<string>("");
   const [pmTab, setPmTab] = useState<"am" | "pm">("am");
+  const [trendTab, setTrendTab] = useState<"acc" | "count">("acc");
 
   useEffect(() => {
     (async () => {
@@ -135,11 +140,17 @@ export default function DashboardPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
+        setIsGuest(true);
         setLoading(false);
         return;
       }
+      // ゲスト＝匿名ユーザー（is_anonymous）。会員＝Google/メール登録済み。
+      const guest = !!user.is_anonymous;
+      setIsGuest(guest);
       const meta = user.user_metadata ?? {};
-      setName((meta.full_name as string) || (meta.name as string) || user.email?.split("@")[0] || "あなた");
+      if (!guest) {
+        setName((meta.full_name as string) || (meta.name as string) || user.email?.split("@")[0] || "あなた");
+      }
 
       const { data: sub } = await supabase
         .from("subscriptions")
@@ -156,15 +167,12 @@ export default function DashboardPage() {
           ? (statData as Row[]).map((x) => ({ ...x, answered: Number(x.answered), correct: Number(x.correct) }))
           : []
       );
-
       const ovRes = await supabase.rpc("get_progress_overview");
       const ov = (ovRes.data as Overview[] | null) ?? [];
       setOverview(ov);
-
       const daysRes = await supabase.rpc("get_answered_days_jst");
       setAnsweredDays((daysRes.data as string[] | null) ?? []);
 
-      // 解答が最も多い区分を初期選択に
       const byExam = basicExams
         .map((e) => ({ id: e.id, n: ov.find((o) => o.exam_id === e.id)?.total ?? 0 }))
         .sort((a, b) => b.n - a.n);
@@ -173,6 +181,15 @@ export default function DashboardPage() {
       setLoading(false);
     })();
   }, []);
+
+  // 推移（直近8週・試験別）を activeExam 切替ごとに取得
+  useEffect(() => {
+    (async () => {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = await supabase.rpc("get_accuracy_timeline", { p_exam_id: activeExam, p_weeks: 8 });
+      setTimeline((data as TimelineRow[] | null) ?? []);
+    })();
+  }, [activeExam]);
 
   const active = useMemo(() => {
     const exam = basicExams.find((e) => e.id === activeExam)!;
@@ -192,8 +209,7 @@ export default function DashboardPage() {
     const ov = overview.find((o) => o.exam_id === activeExam);
     const solved = ov?.total ?? 0;
     const target = EXAM_TARGET[activeExam] ?? 600;
-    const score = passScore(acc, solved, target);
-    return { exam, answered, correct, acc, cats, solved, target, score, top: cats[0] ?? null };
+    return { exam, answered, correct, acc, cats, solved, target, score: passScore(acc, solved, target), top: cats[0] ?? null };
   }, [rows, overview, activeExam]);
 
   const streak = useMemo(() => calcStreak(answeredDays), [answeredDays]);
@@ -201,77 +217,119 @@ export default function DashboardPage() {
   const countdown = daysUntil(EXAM_DATE[activeExam]);
   const hasData = !loading && active.answered > 0;
 
-  const NAV = [
-    { icon: LayoutDashboard, label: "ダッシュボード", href: "/dashboard", active: true },
-    { icon: PenLine, label: "午前演習", href: `/exam/${activeExam}` },
-    {
-      icon: FileText,
-      label: "午後演習",
-      href: activeExam === "ap" ? "/exam/ap/pm" : activeExam === "fe" ? "/exam/fe/b" : "/exam/ap/pm",
-      pro: true,
-    },
-    { icon: BarChart3, label: "AI弱点分析", href: "/analysis" },
-    { icon: Clock, label: "学習履歴", href: "#" },
-  ];
+  // 推移グラフ（タブ: 正答率 / 解答数）
+  const trend = useMemo(() => {
+    const accArr = timeline.map((t) => (t.answered > 0 ? Math.round((t.correct / t.answered) * 100) : 0));
+    const cntArr = timeline.map((t) => t.answered);
+    const isAcc = trendTab === "acc";
+    const vals = isAcc ? accArr : cntArr;
+    const maxV = isAcc ? 100 : Math.max(1, ...cntArr);
+    const first = vals[0] ?? 0;
+    const last = vals[vals.length - 1] ?? 0;
+    return { vals, maxV, first, last, diff: last - first, isAcc, total: cntArr.reduce((a, b) => a + b, 0) };
+  }, [timeline, trendTab]);
+
+  // SVG 折れ線の座標
+  const chart = useMemo(() => {
+    const W0 = 6, W1 = 314, H0 = 130, H1 = 20;
+    const n = trend.vals.length;
+    const pts = trend.vals.map((v, i) => {
+      const x = n <= 1 ? W0 : W0 + ((W1 - W0) * i) / (n - 1);
+      const y = H0 + (H1 - H0) * (Math.min(v, trend.maxV) / (trend.maxV || 1));
+      return [x, y] as const;
+    });
+    const poly = pts.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+    const area = pts.length ? `${poly} ${W1},150 ${W0},150` : "";
+    return { pts, poly, area, last: pts[pts.length - 1] };
+  }, [trend]);
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
       <div className="grid min-h-screen" style={{ gridTemplateColumns: "236px 1fr" }}>
-        {/* ===== Sidebar（モバイルは hidden） ===== */}
+        {/* ===== Sidebar ===== */}
         <aside
-          className="hidden md:flex flex-col sticky top-0 h-screen p-[18px_14px]"
+          className="hidden md:flex flex-col sticky top-0 h-screen"
           style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "18px 14px" }}
         >
-          <Link href="/" className="flex items-center gap-2.5 px-2 pb-[18px] pt-1.5">
-            <span
-              className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] font-bold text-lg text-white"
-              style={{ background: C.brand, letterSpacing: "-1px" }}
-            >
-              ラ
-            </span>
-            <span className="leading-tight">
-              <span className="block text-[15px] font-bold">過去問演習ラボ</span>
-              <span className="block text-[11px] font-normal" style={{ color: C.faint }}>
-                AIと、最短で合格へ
-              </span>
+          {/* ロゴ（「ラ」マーク削除・テキストのみ） */}
+          <Link href="/" className="px-2 pb-4 pt-1 leading-tight">
+            <span className="block text-[16px] font-bold">過去問演習ラボ</span>
+            <span className="block text-[11px] font-normal" style={{ color: C.faint }}>
+              AIと、最短で合格へ
             </span>
           </Link>
-          <nav className="mt-1.5 flex flex-col gap-0.5">
-            {NAV.map((n) => (
-              <Link
-                key={n.label}
-                href={n.href}
-                className="flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors"
-                style={
-                  n.active
-                    ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 }
-                    : { color: C.muted }
-                }
-              >
-                <n.icon className="h-[18px] w-[18px]" />
-                <span>{n.label}</span>
-                {n.pro && (
-                  <span
-                    className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold"
-                    style={{ background: C.brandSoft, color: C.brandDeep }}
-                  >
-                    Pro
-                  </span>
-                )}
-              </Link>
-            ))}
-            <div className="px-3 pb-1.5 pt-3.5 text-[11px] font-bold tracking-wide" style={{ color: C.faint }}>
-              アカウント
+
+          <nav className="mt-1 flex flex-col gap-0.5">
+            <span
+              className="flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-sm font-bold"
+              style={{ background: C.brandSoft, color: C.brandDeep }}
+            >
+              <LayoutDashboard className="h-[18px] w-[18px]" />
+              ダッシュボード
+            </span>
+
+            {/* 試験を選ぶ（ツリー） */}
+            <div className="px-3 pb-1 pt-3 text-[11px] font-bold tracking-wide" style={{ color: C.faint }}>
+              試験を選ぶ
             </div>
+            {EXAM_TREE.map((ex) => {
+              const on = ex.id === activeExam;
+              return (
+                <div key={ex.id}>
+                  <button
+                    onClick={() => setActiveExam(ex.id)}
+                    className="flex w-full items-center gap-2 rounded-[10px] py-2 pl-5 pr-3 text-left text-[13.5px] transition-colors"
+                    style={on ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 } : { color: C.muted }}
+                  >
+                    <span className="text-[10px]" style={{ color: on ? C.brand : C.faint }}>
+                      {on ? "▾" : "▸"}
+                    </span>
+                    {ex.label}
+                  </button>
+                  {/* アクティブ試験のサブ（午前/午後）をインデント表示 */}
+                  {on &&
+                    (EXAM_SUB[ex.id] ?? []).map((s) => (
+                      <Link
+                        key={s.href}
+                        href={s.href}
+                        className="flex items-center gap-1.5 rounded-[10px] py-1.5 pl-12 pr-3 text-[12.5px]"
+                        style={{ color: C.muted }}
+                      >
+                        <ChevronRight className="h-3 w-3" style={{ color: C.faint }} />
+                        {s.label}
+                      </Link>
+                    ))}
+                </div>
+              );
+            })}
+
+            <div className="my-1 h-px" style={{ background: C.line }} />
+            <Link
+              href="/analysis"
+              className="flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-sm font-medium"
+              style={{ color: C.muted }}
+            >
+              <BarChart3 className="h-[18px] w-[18px]" />
+              AI弱点分析
+            </Link>
+            <Link
+              href="#"
+              className="flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-sm font-medium"
+              style={{ color: C.muted }}
+            >
+              <Clock className="h-[18px] w-[18px]" />
+              学習履歴
+            </Link>
             <Link
               href="/account"
               className="flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-sm font-medium"
               style={{ color: C.muted }}
             >
               <Settings className="h-[18px] w-[18px]" />
-              設定
+              {isGuest ? "ログイン・設定" : "設定"}
             </Link>
           </nav>
+
           {!isPremium && (
             <div className="mt-auto rounded-[14px] p-3.5 text-white" style={{ background: C.dark }}>
               <b className="text-[13px]">Pro で午後も最短合格</b>
@@ -316,9 +374,9 @@ export default function DashboardPage() {
                 className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-sm font-bold"
                 style={{ background: C.brandSoft, color: C.brandDeep }}
               >
-                {(name || "あ").charAt(0)}
+                {isGuest ? "ゲ" : (name || "あ").charAt(0)}
               </span>
-              <span className="hidden text-[13px] font-medium sm:inline">{name || "あなた"}さん</span>
+              <span className="hidden text-[13px] font-medium sm:inline">{isGuest ? "ゲスト" : `${name}さん`}</span>
             </div>
           </header>
 
@@ -326,31 +384,37 @@ export default function DashboardPage() {
             {/* page head */}
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h1 className="text-[22px] font-bold tracking-tight">こんにちは、{name || "あなた"}さん</h1>
-                <p className="mt-0.5 text-[13.5px]" style={{ color: C.muted }}>
-                  今日も合格に一歩近づきましょう。直近の学習からAIがおすすめを用意しました。
-                </p>
+                <h1 className="text-[22px] font-bold tracking-tight">
+                  こんにちは、{isGuest ? "ゲスト" : name}さん
+                </h1>
+                {isGuest ? (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2.5">
+                    <p className="text-[13px]" style={{ color: C.muted }}>
+                      ログインすると学習進捗が保存され、どの端末でも続きから学べます。
+                    </p>
+                    <Link
+                      href="/account"
+                      className="inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[13px] font-bold text-white"
+                      style={{ background: C.brand }}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      ログイン・新規登録はこちら
+                    </Link>
+                  </div>
+                ) : (
+                  <p className="mt-0.5 text-[13.5px]" style={{ color: C.muted }}>
+                    今日も合格に一歩近づきましょう。直近の学習からAIがおすすめを用意しました。
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2.5">
-                <div className="flex rounded-[11px] p-[3px]" style={{ background: C.card, border: `1px solid ${C.line2}` }}>
-                  {basicExams.map((e) => {
-                    const on = e.id === activeExam;
-                    return (
-                      <button
-                        key={e.id}
-                        onClick={() => setActiveExam(e.id)}
-                        className="rounded-lg px-4 py-1.5 text-[13px] font-bold transition-colors"
-                        style={on ? { background: C.brand, color: "#fff" } : { color: C.muted }}
-                      >
-                        {e.shortName}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div
-                  className="flex items-center gap-2 rounded-[11px] px-3.5 py-2 text-white"
-                  style={{ background: C.dark }}
+                <span
+                  className="hidden rounded-[10px] px-3 py-2 text-[12.5px] font-bold sm:inline-flex"
+                  style={{ background: C.brandSoft, color: C.brandDeep }}
                 >
+                  {active.exam.name}
+                </span>
+                <div className="flex items-center gap-2 rounded-[11px] px-3.5 py-2 text-white" style={{ background: C.dark }}>
                   {countdown != null ? (
                     <div className="leading-tight">
                       <span className="text-[11px]" style={{ color: "#A9B6CC" }}>
@@ -455,10 +519,10 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-2.5 flex items-center gap-3.5">
                   <span
-                    className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl"
+                    className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[20px] font-bold"
                     style={{ background: C.brandSoft, color: C.brandDeep }}
                   >
-                    <PenLine className="h-5 w-5" />
+                    ✎
                   </span>
                   <div>
                     <div className="text-[30px] font-bold leading-none tracking-tight">
@@ -469,7 +533,7 @@ export default function DashboardPage() {
                       </small>
                     </div>
                     <div className="mt-2 text-[12px]" style={{ color: C.muted }}>
-                      {active.exam.shortName} の累計
+                      今週 +{trend.total}問
                     </div>
                   </div>
                 </div>
@@ -503,48 +567,86 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* next action */}
-            <div
-              className="mb-[18px] flex flex-col items-start gap-4 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5"
-              style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}
-            >
-              <span
-                className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white"
-                style={{ background: C.brand }}
+            {/* next action / AIおすすめ（ログイン状態で出し分け） */}
+            {isGuest ? (
+              <div
+                className="mb-[18px] flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5"
+                style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}
               >
-                <Bot className="h-6 w-6" />
-              </span>
-              <div className="flex-1">
-                <div className="text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>
-                  AIからの今日のおすすめ
+                <span
+                  className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white"
+                  style={{ background: C.brand }}
+                >
+                  <Sparkles className="h-6 w-6" />
+                </span>
+                <div className="flex-1">
+                  <div className="text-[15px] font-bold">AIレコメンドで「次の一手」まで提案</div>
+                  <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>
+                    まずは<b style={{ color: C.ink }}>無料会員登録</b>で進捗を保存。
+                    <b style={{ color: C.ink }}>有料登録（Pro）</b>なら、AIがあなた専用に何をどの順で対策すべきか提案します。
+                  </div>
                 </div>
-                {hasData && active.top ? (
-                  <>
-                    <div className="mt-0.5 text-[15px] font-bold">
-                      弱点の <span style={{ color: C.bad }}>「{active.top.category}」</span> を重点演習しましょう
-                    </div>
-                    <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>
-                      正答率 {active.top.acc}% 。集中演習で底上げが見込めます。
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="mt-0.5 text-[15px] font-bold">まずは1問、解いてみましょう</div>
-                    <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>
-                      解くと、ここにAIがあなた専用のおすすめを表示します。
-                    </div>
-                  </>
-                )}
+                <div className="flex flex-none gap-2.5">
+                  <Link
+                    href="/account"
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-3 text-[13.5px] font-bold"
+                    style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}
+                  >
+                    無料会員登録
+                  </Link>
+                  <Link
+                    href="/premium"
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-3 text-[13.5px] font-bold text-white"
+                    style={{ background: C.brand }}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    有料でAIレコメンド
+                  </Link>
+                </div>
               </div>
-              <Link
-                href={hasData && active.top ? studyHref(activeExam, active.top.category) : `/challenge/${activeExam}`}
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white"
-                style={{ background: C.brand }}
+            ) : (
+              <div
+                className="mb-[18px] flex flex-col items-start gap-4 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5"
+                style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}
               >
-                {hasData && active.top ? `「${active.top.category}」を演習` : "まず解いてみる"}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+                <span
+                  className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white"
+                  style={{ background: C.brand }}
+                >
+                  <Bot className="h-6 w-6" />
+                </span>
+                <div className="flex-1">
+                  <div className="text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>
+                    AIからの今日のおすすめ
+                  </div>
+                  {hasData && active.top ? (
+                    <>
+                      <div className="mt-0.5 text-[15px] font-bold">
+                        弱点の <span style={{ color: C.bad }}>「{active.top.category}」</span> を重点演習しましょう
+                      </div>
+                      <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>
+                        正答率 {active.top.acc}%（{active.top.answered}問）。集中演習で底上げが見込めます。
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="mt-0.5 text-[15px] font-bold">まずは1問、解いてみましょう</div>
+                      <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>
+                        解くと、ここにAIがあなた専用のおすすめを表示します。
+                      </div>
+                    </>
+                  )}
+                </div>
+                <Link
+                  href={hasData && active.top ? studyHref(activeExam, active.top.category) : `/challenge/${activeExam}`}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white"
+                  style={{ background: C.brand }}
+                >
+                  {hasData && active.top ? `「${active.top.category}」を演習` : "まず解いてみる"}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
 
             {/* two columns */}
             <div className="grid gap-[18px] lg:grid-cols-[1.35fr_1fr]">
@@ -616,6 +718,9 @@ export default function DashboardPage() {
                               <span className="flex items-center gap-2 font-medium">
                                 <span className="h-[7px] w-[7px] rounded-full" style={{ background: b.hex }} />
                                 {c.category}
+                                <span className="text-[11px]" style={{ color: C.faint }}>
+                                  ({c.correct}/{c.answered}問)
+                                </span>
                                 <span
                                   className="ml-1 text-[11px] font-bold opacity-0 transition-opacity group-hover:opacity-100"
                                   style={{ color: C.brand }}
@@ -654,35 +759,75 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* right: trend + history（現状サンプル） */}
+              {/* right: trend(実データ・タブ) + history(サンプル) */}
               <div className="flex flex-col gap-[18px]">
                 <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                   <div className="flex items-center justify-between">
-                    <h2 className="text-[15.5px] font-bold">正答率の推移</h2>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                      style={{ background: C.warnSoft, color: C.warn }}
-                    >
-                      サンプル
-                    </span>
+                    <h2 className="text-[15.5px] font-bold">{trend.isAcc ? "正答率の推移" : "解答数の推移"}</h2>
+                    <div className="flex gap-1">
+                      {([
+                        { k: "acc", t: "正答率" },
+                        { k: "count", t: "解答数" },
+                      ] as const).map((o) => (
+                        <button
+                          key={o.k}
+                          onClick={() => setTrendTab(o.k)}
+                          className="rounded-lg px-3 py-1.5 text-[12px] font-bold"
+                          style={
+                            trendTab === o.k
+                              ? { background: C.dark, color: "#fff" }
+                              : { background: C.card, color: C.muted, border: `1px solid ${C.line2}` }
+                          }
+                        >
+                          {o.t}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                   <svg viewBox="0 0 320 150" preserveAspectRatio="none" className="mt-2 h-[150px] w-full">
                     <line x1="0" y1="30" x2="320" y2="30" stroke="#EDF1F6" />
                     <line x1="0" y1="70" x2="320" y2="70" stroke="#EDF1F6" />
                     <line x1="0" y1="110" x2="320" y2="110" stroke="#EDF1F6" />
-                    <polyline
-                      fill="none"
-                      stroke={C.brand}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      points="6,108 50,100 94,92 138,95 182,82 226,72 270,66 314,58"
-                    />
-                    <polygon fill={C.brand} opacity="0.07" points="6,108 50,100 94,92 138,95 182,82 226,72 270,66 314,58 314,150 6,150" />
-                    <circle cx="314" cy="58" r="4" fill={C.brand} />
+                    {chart.area && <polygon fill={C.brand} opacity="0.07" points={chart.area} />}
+                    {chart.poly && (
+                      <polyline
+                        fill="none"
+                        stroke={C.brand}
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        points={chart.poly}
+                      />
+                    )}
+                    {chart.last && <circle cx={chart.last[0]} cy={chart.last[1]} r="4" fill={C.brand} />}
                   </svg>
+                  <div className="mt-2 flex gap-5">
+                    <div className="text-[12px]" style={{ color: C.muted }}>
+                      今週
+                      <b className="ml-1 block text-[18px]" style={{ color: C.ink }}>
+                        {trend.isAcc ? `${trend.last}%` : `${trend.last}問`}
+                      </b>
+                    </div>
+                    <div className="text-[12px]" style={{ color: C.muted }}>
+                      8週前
+                      <b className="ml-1 block text-[18px]" style={{ color: C.ink }}>
+                        {trend.isAcc ? `${trend.first}%` : `${trend.first}問`}
+                      </b>
+                    </div>
+                    <div className="text-[12px]" style={{ color: C.muted }}>
+                      増減
+                      <b
+                        className="ml-1 block text-[18px]"
+                        style={{ color: trend.diff >= 0 ? C.good : C.bad }}
+                      >
+                        {trend.diff >= 0 ? "+" : ""}
+                        {trend.diff}
+                        {trend.isAcc ? "pt" : "問"}
+                      </b>
+                    </div>
+                  </div>
                   <div className="mt-2 text-[11px]" style={{ color: C.faint }}>
-                    ※ 推移は実データ接続を次の工程で実装します（直近8週・サンプル表示）。
+                    直近8週・{active.exam.shortName}（実データ）
                   </div>
                 </div>
 
@@ -731,6 +876,9 @@ export default function DashboardPage() {
                         </span>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-1 text-[11px]" style={{ color: C.faint }}>
+                    ※ 履歴は実データ接続を次の工程で実装します。
                   </div>
                 </div>
               </div>
