@@ -28,7 +28,7 @@ export default function KamokuBPage() {
       const supabase = createSupabaseBrowserClient();
       const { data } = await supabase
         .from("fe_b_questions")
-        .select("id, source, q_number, category, options, correct, image_urls")
+        .select("id, source, q_number, category, options, correct, image_urls, explanation")
         .order("source")
         .order("q_number");
       if (on) {
