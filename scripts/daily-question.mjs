@@ -13,7 +13,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const LINK = "https://kakomon-dojo.com";
+const LINK = "https://kakomon-labo.com";
 const POSTED_LOG = join(__dirname, ".posted-questions.json");
 
 // --- .env.local 読み込み ---

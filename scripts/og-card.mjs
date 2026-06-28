@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 GlobalFonts.registerFromPath(join(__dirname, "..", "assets", "NotoSansJP.ttf"), "NotoJP");
 
 const W = 1200, H = 630;
-const DOMAIN = "kakomon-dojo.com"; // ドメイン移行後は kakomon-lab.com に変更して再生成
+const DOMAIN = "kakomon-labo.com"; // ドメイン移行後は kakomon-labo.com に変更して再生成
 
 const c = createCanvas(W, H);
 const x = c.getContext("2d");

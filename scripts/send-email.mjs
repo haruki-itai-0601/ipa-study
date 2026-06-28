@@ -18,7 +18,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const LINK = "https://kakomon-dojo.com";
+const LINK = "https://kakomon-labo.com";
 
 (function loadEnvLocal() {
   const p = join(ROOT, ".env.local");

@@ -8,7 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 GlobalFonts.registerFromPath(join(__dirname, "..", "assets", "NotoSansJP.ttf"), "NotoJP");
 
 const W = 1200, H = 675; // X タイムライン表示に最適な 16:9
-const DOMAIN = "kakomon-dojo.com"; // ドメイン移行後は kakomon-labo.com に変更
+const DOMAIN = "kakomon-labo.com"; // ドメイン移行後は kakomon-labo.com に変更
 
 // title は "\n" で改行可。各行を大きく描画する。
 export function renderPrCard({ title, sub }) {

@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin", "/api/", "/auth/", "/analysis"],
       },
     ],
-    sitemap: "https://kakomon-dojo.com/sitemap.xml",
+    sitemap: "https://kakomon-labo.com/sitemap.xml",
   };
 }

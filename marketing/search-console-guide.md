@@ -4,14 +4,14 @@ SEOは**数ヶ月かけて効く本命チャネル**（「応用情報 過去問
 あなたは既に**1万ページをsitemap登録済み**。あとは「Googleに早く見つけて・登録してもらう」だけ。
 
 > 所要：初回15分。あとは週1で様子見。
-> 対象ドメインは現在の本番 **kakomon-dojo.com**（将来 kakomon-labo.com へ移行したら新ドメインで同手順をやり直し＋301で評価は引き継がれます）。
+> 対象ドメインは **kakomon-labo.com**（旧 kakomon-dojo.com からは308で転送され、評価は引き継がれます）。
 
 ---
 
 ## STEP 1. Search Console にサイトを登録（5分）
 1. https://search.google.com/search-console を開く（GAと同じGoogleアカウントで）
 2. 左上「プロパティを追加」→ **「URL プレフィックス」** を選ぶ
-3. `https://kakomon-dojo.com` を入力 → 続行
+3. `https://kakomon-labo.com` を入力 → 続行
 4. 所有権の確認：**「Google アナリティクス」** を選ぶ
    - ※ サイトに既にGA(gtag)が入っているので、**ワンクリックで確認完了**するはず（DNSいじり不要）
    - もしGA確認が出ない場合は「HTMLタグ」方式 → 出てきた`<meta>`を教えてくれれば私が`layout.tsx`に入れます
@@ -23,12 +23,12 @@ SEOは**数ヶ月かけて効く本命チャネル**（「応用情報 過去問
 
 ## STEP 3. 主要ページのインデックス申請（5分）
 左上の検索窓（URL検査）に下記を1つずつ入れ →「**インデックス登録をリクエスト**」：
-1. `https://kakomon-dojo.com/`
-2. `https://kakomon-dojo.com/exam/ip`
-3. `https://kakomon-dojo.com/exam/fe`
-4. `https://kakomon-dojo.com/exam/ap`
-5. `https://kakomon-dojo.com/exam/ap/pm`
-6. `https://kakomon-dojo.com/premium`
+1. `https://kakomon-labo.com/`
+2. `https://kakomon-labo.com/exam/ip`
+3. `https://kakomon-labo.com/exam/fe`
+4. `https://kakomon-labo.com/exam/ap`
+5. `https://kakomon-labo.com/exam/ap/pm`
+6. `https://kakomon-labo.com/premium`
 
 > ⚠️ 1万ページ全部はやらない（申請には1日あたりの上限あり）。**主要ページだけ手動申請、残りはsitemap経由でGoogleが順次クロール**します。
 

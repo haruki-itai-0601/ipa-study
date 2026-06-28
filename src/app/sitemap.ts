@@ -5,7 +5,7 @@ import { exams } from "@/lib/exams";
 // 1日ごとに再生成（新しい問題が増えたら自動で反映される）
 export const revalidate = 86400;
 
-const BASE = "https://kakomon-dojo.com";
+const BASE = "https://kakomon-labo.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [

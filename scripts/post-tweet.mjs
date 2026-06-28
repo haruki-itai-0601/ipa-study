@@ -96,7 +96,7 @@ function buildPost(q) {
   const question = trimToWeight(q.question.replace(/\s+/g, " ").trim(), budget);
   const text = `${head}${question}${mid}${tail}`;
   const options = optionsOf(q);
-  const replyText = `答え・解説はこちら👇\nhttps://kakomon-dojo.com/q/${q.id}\n出典:IPA`;
+  const replyText = `答え・解説はこちら👇\nhttps://kakomon-labo.com/q/${q.id}\n出典:IPA`;
   return { text, options, replyText };
 }
 
@@ -109,7 +109,7 @@ const PR_POSTS = [
       "応用情報の午後、自分で採点できないのが一番つらい。\n\n" +
       "記述式の答案を、AIが○△×＋講評で採点します。過去問演習はぜんぶ無料。\n\n" +
       "#応用情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com/exam/ap\n令和3〜7年度の午後に対応。まずは無料の過去問から。",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com/exam/ap\n令和3〜7年度の午後に対応。まずは無料の過去問から。",
     card: { title: "午後の記述、\nAIが採点。", sub: "○△×＋講評で、自己採点できない問題まで" },
   },
   {
@@ -117,7 +117,7 @@ const PR_POSTS = [
       "「どこが弱いか分からない」を、AIが解決。\n\n" +
       "解いた問題からAIが弱点を分析し、次にやるべき分野まで提案。過去問1万問超がぜんぶ無料。\n\n" +
       "#基本情報技術者試験 #ITパスポート",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com\nAI弱点分析つきの過去問演習。スマホでサクサク。",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com\nAI弱点分析つきの過去問演習。スマホでサクサク。",
     card: { title: "「どこが弱いか」\nAIが分析。", sub: "次にやるべき分野まで提案します" },
   },
   {
@@ -125,7 +125,7 @@ const PR_POSTS = [
       "広告だらけで集中できない…という過去問サイトに疲れた人へ。\n\n" +
       "じゃまな広告なし・過去問は無料・午後はAIが採点。そんな学習サイトを作りました。\n\n" +
       "#ITパスポート #基本情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com",
     card: { title: "広告ゼロで、\n演習に集中。", sub: "過去問は無料・午後はAIが採点" },
   },
   {
@@ -133,7 +133,7 @@ const PR_POSTS = [
       "ITパスポート2,900問／基本情報1,760問／応用情報 午前2,640問。\n\n" +
       "本物の過去問がぜんぶ無料で解けて、AIが弱点まで分析します。\n\n" +
       "#ITパスポート #基本情報技術者試験 #応用情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com",
     card: { title: "過去問1万問超、\nぜんぶ無料。", sub: "IPパスポート / 基本情報 / 応用情報" },
   },
   {
@@ -141,7 +141,7 @@ const PR_POSTS = [
       "過去問を自分で選び、弱点を探し、解説を本で読む時代は終わり。\n\n" +
       "AIエージェントと解いて、弱点を分析、次の一手まで提案。気づいたら身につく学習サイトです。\n\n" +
       "#応用情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com",
     card: { title: "AIエージェントと、\n最短で合格へ。", sub: "解くだけ。あとはAIが伴走します" },
   },
   {
@@ -149,7 +149,7 @@ const PR_POSTS = [
       "通勤・休憩のスキマに、スマホで過去問。\n\n" +
       "解くだけでAIが弱点を可視化し、合格への最短ルートを提示します。過去問演習は無料。\n\n" +
       "#基本情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com",
     card: { title: "スマホで、\nスキマ過去問。", sub: "解くだけでAIが弱点を可視化" },
   },
   {
@@ -157,7 +157,7 @@ const PR_POSTS = [
       "応用情報の合否は午後で決まる。\n\n" +
       "でも午後の記述、自分で採点できない——をAIが解決。○△×＋講評で採点し、弱点まで教えます。\n\n" +
       "#応用情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com/exam/ap",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com/exam/ap",
     card: { title: "応用情報は\n午後で決まる。", sub: "記述をAIが採点・弱点まで可視化" },
   },
   {
@@ -165,7 +165,7 @@ const PR_POSTS = [
       "AIが弱点から「次にやるべき演習」を提案するAIレコメンド、はじめました。\n\n" +
       "過去問は無料。AIレコメンド＋午後AI採点のプレミアムは14日間無料でお試しOK。\n\n" +
       "#応用情報技術者試験",
-    reply: "👉 過去問演習ラボ\nhttps://kakomon-dojo.com",
+    reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com",
     card: { title: "AIレコメンド、\n14日間無料。", sub: "弱点から「次の一手」を提案" },
   },
 ];
@@ -179,7 +179,7 @@ function pickPrPost() {
 // ───────── 解説投稿（夜の枠の軸）─────────
 // 「有益7：共感3」の“有益”の中心。頻出用語のミニ解説＋まぎらわしい用語の違い。
 // 教育コンテンツは正確性が命なので、AI自動生成ではなく手作りプールで品質を担保（随時追加可）。
-const EXPLAIN_REPLY = "👉 関連の過去問を無料で解く\nhttps://kakomon-dojo.com";
+const EXPLAIN_REPLY = "👉 関連の過去問を無料で解く\nhttps://kakomon-labo.com";
 const EXPLAIN_POSTS = [
   { card: { title: "DNS", sub: "ドメイン名⇔IPアドレスの名前解決" },
     text: "【3分用語】DNS\n\nドメイン名（example.com）とIPアドレスを相互変換する“名前解決”の仕組み。URLを打つだけでサイトに繋がるのはDNSのおかげ。\n\n#ITパスポート #基本情報技術者試験" },
@@ -254,7 +254,7 @@ function buildAnswerPost(q) {
   return {
     text: `${head}${exp}${tail}`,
     card: { title: `正解は ${kana}`, sub: truncChars(optText, 24) },
-    reply: `👉 解説の続き・類題を解く\nhttps://kakomon-dojo.com/q/${q.id}`,
+    reply: `👉 解説の続き・類題を解く\nhttps://kakomon-labo.com/q/${q.id}`,
   };
 }
 

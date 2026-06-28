@@ -23,7 +23,7 @@ const SITE_DESC =
   "ITパスポート・基本情報技術者・応用情報技術者試験の過去問を、図つき・独自解説つきで演習。スキマ時間に効率よく対策できる無料の過去問演習ラボ。応用情報の午後問題はAI採点にも対応。";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kakomon-dojo.com"),
+  metadataBase: new URL("https://kakomon-labo.com"),
   title: {
     default: "ITパスポート・基本情報・応用情報 過去問演習ラボ",
     template: `%s｜${SITE_NAME}`,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: SITE_NAME,
     locale: "ja_JP",
-    url: "https://kakomon-dojo.com",
+    url: "https://kakomon-labo.com",
     title: "ITパスポート・基本情報・応用情報 過去問演習ラボ",
     description: SITE_DESC,
     images: [{ url: "/og.png", width: 1200, height: 630, alt: SITE_NAME }],
@@ -72,7 +72,7 @@ export default function RootLayout({
               "@type": "WebSite",
               name: SITE_NAME,
               alternateName: "ITパスポート・基本情報・応用情報 過去問演習ラボ",
-              url: "https://kakomon-dojo.com",
+              url: "https://kakomon-labo.com",
               description: SITE_DESC,
               inLanguage: "ja",
             }),

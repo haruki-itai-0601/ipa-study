@@ -1,5 +1,5 @@
 # 【Qiita/Zenn 記事ドラフト】そのまま投稿OK（技術者＝FE/AP受験層に届く狙い）
-# リンクは現行ドメイン kakomon-dojo.com（移行後は自動で kakomon-labo.com へ転送）
+# リンクは kakomon-labo.com
 
 ---
 
@@ -118,6 +118,6 @@ export async function POST(request: NextRequest) {
 「LLMで曖昧な正誤を判定し、有料機能として安全に提供する」一例として、誰かの参考になれば嬉しいです。
 
 サイトはこちら（過去問演習・AI弱点分析は無料、午後AI採点は14日間無料で試せます）：
-👉 **過去問演習ラボ** https://kakomon-dojo.com
+👉 **過去問演習ラボ** https://kakomon-labo.com
 
 ITパスポート・基本情報・応用情報を受ける方、よかったら触ってフィードバックをもらえると飛び上がって喜びます。

@@ -112,11 +112,11 @@ export default async function ExamPage({
             "@type": "Course",
             name: `${exam.name} 過去問演習`,
             description: m.description,
-            url: `https://kakomon-dojo.com/exam/${examId}`,
+            url: `https://kakomon-labo.com/exam/${examId}`,
             provider: {
               "@type": "Organization",
               name: "過去問演習ラボ",
-              url: "https://kakomon-dojo.com",
+              url: "https://kakomon-labo.com",
             },
           }),
         }}
