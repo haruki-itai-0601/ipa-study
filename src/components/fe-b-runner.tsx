@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { CheckCircle, XCircle, ChevronRight, RotateCcw, LayoutDashboard, UserPlus } from "lucide-react";
+import { CheckCircle, XCircle, ChevronRight, RotateCcw, LayoutDashboard, UserPlus, Lightbulb } from "lucide-react";
 import ZoomableImage from "@/components/zoomable-image";
 
 export type FeBQ = {
@@ -15,6 +15,7 @@ export type FeBQ = {
   image_urls: string[]; // 問題ページ画像（1〜複数）
   options: string[]; // 選択肢キー（例 ["ア","イ","ウ","エ","オ","カ"]）可変個数
   correct: string; // 正解キー
+  explanation?: string; // AI解説（任意）
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -202,6 +203,15 @@ export default function FeBRunner({ questions, sourceLabel }: { questions: FeBQ[
             </div>
             <p className="mt-2 text-xs text-gray-400">出典：IPA 基本情報技術者試験 科目B（{SOURCE_LABEL[q.source] ?? q.source}）</p>
           </div>
+          {q.explanation && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+              <div className="mb-1 flex items-center gap-1.5 text-sm font-bold text-amber-700">
+                <Lightbulb className="w-4 h-4" /> 解説
+              </div>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">{q.explanation}</p>
+              <p className="mt-2 text-[11px] text-gray-400">※AIが作成した解説です。公式解説ではないため参考程度にご利用ください。</p>
+            </div>
+          )}
           <div className="flex justify-center">
             <button
               onClick={next}
