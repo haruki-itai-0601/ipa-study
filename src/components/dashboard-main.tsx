@@ -25,6 +25,7 @@ import {
   CalendarDays,
   PenLine,
   BookOpen,
+  HelpCircle,
 } from "lucide-react";
 
 // ===== フラット青パレット =====
@@ -195,6 +196,7 @@ export function DashboardMain() {
   // C: 試験日（試験ごと・localStorage）
   const [examDates, setExamDates] = useState<Record<string, string>>({});
   const [editingDate, setEditingDate] = useState(false);
+  const [showScoreHelp, setShowScoreHelp] = useState(false); // 合格可能性スコアの説明モーダル
 
   useEffect(() => {
     try {
@@ -309,18 +311,18 @@ export function DashboardMain() {
   }
 
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
-  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[15px] font-medium transition-colors";
+  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[16px] font-medium transition-colors";
   // 問題を解く / 学習する の項目（単リンク or 午前/午後サブ）
   const renderNavItem = (it: NavItem) =>
     it.href ? (
-      <Link key={it.id} href={it.href} className="block rounded-[10px] py-2 pl-9 pr-3 text-[14.5px] font-medium transition-colors hover:bg-gray-50" style={{ color: C.ink }}>
+      <Link key={it.id} href={it.href} className="block rounded-[10px] py-2 pl-9 pr-3 text-[16px] font-medium transition-colors hover:bg-gray-50" style={{ color: C.ink }}>
         {it.label}
       </Link>
     ) : (
       <div key={it.id}>
-        <div className="py-2 pl-9 pr-3 text-[14.5px] font-medium" style={{ color: C.ink }}>{it.label}</div>
+        <div className="py-2 pl-9 pr-3 text-[16px] font-medium" style={{ color: C.ink }}>{it.label}</div>
         {(it.subs ?? []).map((s) => (
-          <Link key={s.href} href={s.href} className="flex items-center gap-1.5 rounded-[10px] py-1.5 pl-14 pr-3 text-[13px] transition-colors hover:bg-gray-50" style={{ color: C.muted }}>
+          <Link key={s.href} href={s.href} className="flex items-center gap-1.5 rounded-[10px] py-1.5 pl-14 pr-3 text-[14px] transition-colors hover:bg-gray-50" style={{ color: C.muted }}>
             <ChevronRight className="h-3.5 w-3.5" style={{ color: C.faint }} /> {s.label}
           </Link>
         ))}
@@ -329,17 +331,17 @@ export function DashboardMain() {
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      <div className="grid min-h-screen" style={{ gridTemplateColumns: "248px 1fr" }}>
+      <div className="grid min-h-screen" style={{ gridTemplateColumns: "256px 1fr" }}>
         {/* ===== Sidebar ===== */}
         <aside className="hidden md:flex flex-col sticky top-0 h-screen" style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "18px 14px" }}>
           <Link href="/" className="px-2 pb-4 pt-1 leading-tight">
-            <span className="block text-[17px] font-bold">過去問演習ラボ</span>
+            <span className="block text-[18px] font-bold">過去問演習ラボ</span>
             <span className="block text-[11.5px] font-normal" style={{ color: C.faint }}>AIと、最短で合格へ</span>
           </Link>
 
           <nav className="mt-1 flex flex-col gap-0.5">
             {/* ① ダッシュボードを選択（クリックで表示中の試験を切替） */}
-            <div className="flex items-center gap-2 px-3 pb-0.5 pt-1 text-[13px] font-bold" style={{ color: C.ink }}>
+            <div className="flex items-center gap-2 px-3 pb-0.5 pt-1 text-[15px] font-bold" style={{ color: C.ink }}>
               <LayoutDashboard className="h-[18px] w-[18px]" style={{ color: C.brand }} /> ダッシュボードを選択
             </div>
             {basicExams.map((ex) => {
@@ -348,7 +350,7 @@ export function DashboardMain() {
                 <button
                   key={ex.id}
                   onClick={() => setActiveExam(ex.id)}
-                  className="flex w-full items-center rounded-[10px] py-2 pl-9 pr-3 text-left text-[14.5px] transition-colors"
+                  className="flex w-full items-center rounded-[10px] py-2 pl-9 pr-3 text-left text-[16px] transition-colors"
                   style={on ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 } : { color: C.ink, fontWeight: 500 }}
                 >
                   {shortJa(ex.name)}
@@ -357,13 +359,13 @@ export function DashboardMain() {
             })}
 
             {/* ② 学習する（用語・概念。午前/午後の区別なし） */}
-            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[13px] font-bold" style={{ color: C.ink }}>
+            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[15px] font-bold" style={{ color: C.ink }}>
               <BookOpen className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 学習する
             </div>
             {LEARN_NAV.map(renderNavItem)}
 
             {/* ③ 演習する（問題を解く。午前/午後あり） */}
-            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[13px] font-bold" style={{ color: C.ink }}>
+            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[15px] font-bold" style={{ color: C.ink }}>
               <PenLine className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 演習する
             </div>
             {SOLVE_NAV.map(renderNavItem)}
@@ -483,7 +485,38 @@ export function DashboardMain() {
             {/* KPI */}
             <div className="mb-[18px] grid grid-cols-2 gap-4 lg:grid-cols-4">
               <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="text-[12.5px] font-medium" style={{ color: C.muted }}>合格可能性スコア</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12.5px] font-medium" style={{ color: C.muted }}>合格可能性スコア</span>
+                  <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="flex-none transition-opacity hover:opacity-70" style={{ color: C.faint }}>
+                    <HelpCircle className="h-[15px] w-[15px]" />
+                  </button>
+                </div>
+                {showScoreHelp && (
+                  <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: "rgba(15,27,51,0.4)" }} onClick={() => setShowScoreHelp(false)}>
+                    <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[360px] rounded-2xl bg-white p-5 text-left shadow-2xl" style={{ color: C.ink }}>
+                      <div className="mb-2.5 flex items-center justify-between">
+                        <b className="text-[16px]">合格可能性スコアとは</b>
+                        <button onClick={() => setShowScoreHelp(false)} aria-label="閉じる" className="-mr-1 -mt-1 p-1 text-[20px] leading-none" style={{ color: C.faint }}>×</button>
+                      </div>
+                      <p className="text-[13px] leading-relaxed" style={{ color: C.muted }}>
+                        いまの「合格しやすさ」を 0〜100 で表した、本サービス独自の目安です。
+                      </p>
+                      <div className="mt-3 rounded-xl px-3 py-3 text-center text-[15px] font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>
+                        正答率 ×（0.7 ＋ 0.3 × 網羅率）
+                      </div>
+                      <ul className="mt-3 space-y-2 text-[12.5px] leading-relaxed" style={{ color: C.ink }}>
+                        <li><b>網羅率</b>＝ 累計演習数 ÷ 目安問題数（{active.target}問）。100%が上限です。</li>
+                        <li>正答率が同じでも、<b>たくさん解くほどスコアが上がります</b>（最大で正答率と同じ値）。</li>
+                        <li>演習量が少ないうちは“まぐれ”を割り引くため、<b>正答率の約7割</b>からスタートします。</li>
+                        <li>スコアが <b>合格ライン{PASS_LINE}</b> を超えると「合格圏」と表示されます。</li>
+                      </ul>
+                      <p className="mt-3 text-[11px] leading-relaxed" style={{ color: C.faint }}>
+                        ※ IPA公式の合否判定ではなく、学習の目安として独自に算出した参考値です。
+                      </p>
+                      <button onClick={() => setShowScoreHelp(false)} className="mt-4 w-full rounded-[11px] py-2.5 text-center text-[13.5px] font-bold text-white" style={{ background: C.brand }}>とじる</button>
+                    </div>
+                  </div>
+                )}
                 <div className="mt-2.5 flex items-center gap-3.5">
                   <div className="relative h-[78px] w-[78px] flex-none">
                     <svg viewBox="0 0 80 80">
