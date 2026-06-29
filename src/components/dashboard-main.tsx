@@ -618,62 +618,63 @@ export function DashboardMain() {
                   <Link href="/premium" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />有料でAIレコメンド</Link>
                 </div>
               </div>
-            ) : !isPremium ? (
-              /* 無料会員: AIレコメンドは Pro 機能（ティーザー） */
-              <div className="mb-[18px] flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
-                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 text-[15px] font-bold">
-                    AIからの今日のおすすめ
-                    <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: C.dark, color: "#fff" }}>Pro</span>
-                  </div>
-                  <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>あなたの弱点データをAIが分析し、「何をどの順で対策すべきか」を提案します。<b style={{ color: C.ink }}>Proで解放</b>されます。</div>
-                </div>
-                <Link href="/premium" className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />Proにアップグレード</Link>
-              </div>
             ) : (
-              /* Pro会員: ボタンで本物AIレコメンド（押すたびに最新を新規生成・キャッシュなし） */
-              <div className="mb-[18px] flex items-start gap-4 rounded-[14px] p-4 sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
-                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Bot className="h-6 w-6" /></span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>
-                    <Sparkles className="h-3.5 w-3.5" /> AIレコメンド
+              /* ログイン会員: 弱点分析ベースのおすすめ（全員・即時/無料）＋ Proは本物AIで深掘り */
+              <div className="mb-[18px] rounded-[14px] p-4 sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>今日のおすすめ</div>
+                    {active.answered > 0 && active.top ? (
+                      <>
+                        <div className="mt-0.5 text-[15px] font-bold">弱点の <span style={{ color: C.bad }}>「{displayCategory(activeExam, active.top.category)}」</span> を重点的に対策しましょう</div>
+                        <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>正答率 {active.top.acc}%（{active.top.answered}問）。集中演習で底上げが見込めます。</div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="mt-0.5 text-[15px] font-bold">まずは1問、解いてみましょう</div>
+                        <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>解くと、分野ごとの弱点からおすすめを表示します。</div>
+                      </>
+                    )}
                   </div>
-                  {recLoading ? (
-                    <div className="mt-1 flex items-center gap-2 text-[13px]" style={{ color: C.muted }}><Loader2 className="h-4 w-4 animate-spin" /> AIがあなたの弱点を分析しています…</div>
-                  ) : rec ? (
-                    <>
-                      <div className="mt-0.5 text-[13.5px] leading-relaxed" style={{ color: C.ink }}>{rec.advice}</div>
-                      {rec.steps.length > 0 && (
-                        <ul className="mt-2 space-y-1">
-                          {rec.steps.map((s, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-[12px]" style={{ color: C.muted }}>
-                              <span className="mt-[5px] h-1.5 w-1.5 flex-none rounded-full" style={{ background: C.brand }} /> {s}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <div className="mt-3 flex flex-wrap items-center gap-2.5">
-                        {rec.focusCategory && (
-                          <Link href={studyHref(activeExam, rec.focusCategory)} className="inline-flex items-center gap-1.5 rounded-[11px] px-4 py-2.5 text-[13px] font-bold text-white" style={{ background: C.brand }}>
-                            「{displayCategory(activeExam, rec.focusCategory)}」を演習<ArrowRight className="h-4 w-4" />
-                          </Link>
-                        )}
-                        <button onClick={askRecommend} className="inline-flex items-center gap-1.5 rounded-[11px] px-4 py-2.5 text-[13px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>
-                          <Sparkles className="h-3.5 w-3.5" /> もう一度AIに聞く
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="mt-0.5 text-[13px]" style={{ color: C.muted }}>あなたの弱点データをもとに、AIが「次にやるべきこと」と学習プランをその場で提案します。</div>
-                      {recError && <div className="mt-1.5 text-[12px]" style={{ color: C.bad }}>{recError}</div>}
-                      <button onClick={askRecommend} className="mt-2.5 inline-flex items-center gap-1.5 rounded-[11px] px-5 py-2.5 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
-                        <Sparkles className="h-4 w-4" /> AIレコメンドを受け取る
-                      </button>
-                    </>
-                  )}
+                  <Link href={active.answered > 0 && active.top ? studyHref(activeExam, active.top.category) : `/challenge/${activeExam}`} className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
+                    {active.answered > 0 && active.top ? `「${displayCategory(activeExam, active.top.category)}」を演習` : "まず解いてみる"}<ArrowRight className="h-4 w-4" />
+                  </Link>
                 </div>
+
+                {/* AIで深掘り（Pro限定・本物のAI／無料はProアップセル） */}
+                {isPremium ? (
+                  <div className="mt-3 border-t pt-3" style={{ borderColor: "#CFE0FB" }}>
+                    {rec ? (
+                      <>
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: C.brandDeep }}><Bot className="h-3.5 w-3.5" /> AIからの学習プラン</div>
+                        <div className="mt-1 text-[13px] leading-relaxed" style={{ color: C.ink }}>{rec.advice}</div>
+                        {rec.steps.length > 0 && (
+                          <ul className="mt-1.5 space-y-1">
+                            {rec.steps.map((s, i) => (
+                              <li key={i} className="flex items-start gap-1.5 text-[12px]" style={{ color: C.muted }}><span className="mt-[5px] h-1.5 w-1.5 flex-none rounded-full" style={{ background: C.brand }} /> {s}</li>
+                            ))}
+                          </ul>
+                        )}
+                        <button onClick={askRecommend} disabled={recLoading} className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold disabled:opacity-50" style={{ color: C.brandDeep }}>
+                          {recLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} もう一度AIに聞く
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={askRecommend} disabled={recLoading} className="inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[12.5px] font-bold disabled:opacity-60" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>
+                          {recLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
+                          {recLoading ? "AIが分析しています…" : "AIに詳しい学習プランを聞く"}
+                        </button>
+                        {recError && <div className="mt-1.5 text-[12px]" style={{ color: C.bad }}>{recError}</div>}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <Link href="/premium" className="mt-3 flex items-center gap-1.5 border-t pt-3 text-[12px] font-bold" style={{ borderColor: "#CFE0FB", color: C.brandDeep }}>
+                    <Bot className="h-3.5 w-3.5" /> AIがあなた専用の学習プランまで提案します（Pro）→
+                  </Link>
+                )}
               </div>
             )}
 
