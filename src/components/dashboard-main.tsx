@@ -48,16 +48,16 @@ const PASS_LINE = 65;
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
 const SOLVE_NAV: NavItem[] = [
   { id: "ip", label: "ITパスポート", href: "/exam/ip" },
-  { id: "fe", label: "基本情報", subs: [{ label: "午前", href: "/exam/fe" }, { label: "午後", href: "/exam/fe/b" }] },
-  { id: "ap", label: "応用情報", href: "/exam/ap" },
+  { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe" }, { label: "午後", href: "/exam/fe/b" }] },
+  { id: "ap", label: "応用情報技術者", href: "/exam/ap" },
 ];
 const LEARN_NAV: NavItem[] = [
   { id: "ip", label: "ITパスポート", href: "/exam/ip/study" },
-  { id: "fe", label: "基本情報", subs: [{ label: "午前", href: "/exam/fe/study" }, { label: "午後", href: "/exam/fe/b" }] },
-  { id: "ap", label: "応用情報", href: "/exam/ap/study" },
+  { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe/study" }, { label: "午後", href: "/exam/fe/b" }] },
+  { id: "ap", label: "応用情報技術者", href: "/exam/ap/study" },
 ];
 // 試験名を短縮（ITパスポート / 基本情報 / 応用情報）
-const shortJa = (name: string) => name.replace("技術者試験", "").replace("試験", "");
+const shortJa = (name: string) => name.replace("試験", ""); // ITパスポート / 基本情報技術者 / 応用情報技術者
 
 // ===== 系統（レーダー用・home-dashboardから移植） =====
 const SERIES_OF: Record<string, SeriesKey> = {
