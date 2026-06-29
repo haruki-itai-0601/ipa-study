@@ -49,7 +49,7 @@ type NavItem = { id: string; label: string; href?: string; subs?: { label: strin
 const SOLVE_NAV: NavItem[] = [
   { id: "ip", label: "ITパスポート", href: "/exam/ip" },
   { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe" }, { label: "午後", href: "/exam/fe/b" }] },
-  { id: "ap", label: "応用情報技術者", href: "/exam/ap" },
+  { id: "ap", label: "応用情報技術者", subs: [{ label: "午前", href: "/exam/ap" }, { label: "午後", href: "/exam/ap/pm" }] },
 ];
 const LEARN_NAV: NavItem[] = [
   // 学習する（用語・概念）＝午前/午後の区別なし。分野一覧 /learn/[試験] へ
