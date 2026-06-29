@@ -6,7 +6,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchAllRows } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, BookOpen, RotateCcw, CheckCircle, Lightbulb } from "lucide-react";
+import { ArrowLeft, BookOpen, RotateCcw, CheckCircle, Lightbulb, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { Question } from "@/components/quiz-runner";
@@ -103,6 +103,14 @@ export default function StudyPage() {
             <div className="text-sm text-gray-500">{exam.name}</div>
             <div className="font-bold text-gray-900 truncate">{displayCategory(examId, category)}</div>
           </div>
+          <Link
+            href="/"
+            className="ml-auto inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden sm:inline">ダッシュボードへ戻る</span>
+            <span className="sm:hidden">戻る</span>
+          </Link>
         </div>
       </header>
 
