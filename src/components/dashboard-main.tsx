@@ -106,6 +106,13 @@ function passScore(acc: number, solved: number, target: number) {
   const cov = Math.min(1, solved / target);
   return Math.round(Math.min(100, acc * (0.7 + 0.3 * cov)));
 }
+// 合格可能性スコアの判定バッジ。65以上は一律「合格圏」、65未満は要対策/あと少し、未演習は未測定。
+function scoreBand(score: number, solved: number): { label: string; bg: string; fg: string } {
+  if (solved === 0) return { label: "未測定", bg: C.stdSoft, fg: C.std };
+  if (score >= PASS_LINE) return { label: "合格圏", bg: C.goodSoft, fg: C.good };
+  if (score >= 40) return { label: "あと少し", bg: C.warnSoft, fg: C.warn };
+  return { label: "要対策", bg: C.badSoft, fg: C.bad };
+}
 function studyHref(examId: string, category: string) {
   return `/exam/${examId}/study?category=${encodeURIComponent(category)}`;
 }
@@ -506,8 +513,24 @@ export function DashboardMain() {
                         <li><b>網羅率</b>＝ 累計演習数 ÷ 目安問題数（{active.target}問）。100%が上限です。</li>
                         <li>正答率が同じでも、<b>たくさん解くほどスコアが上がります</b>（最大で正答率と同じ値）。</li>
                         <li>演習量が少ないうちは“まぐれ”を割り引くため、<b>正答率の約7割</b>からスタートします。</li>
-                        <li>スコアが <b>合格ライン{PASS_LINE}</b> を超えると「合格圏」と表示されます。</li>
+                        <li>スコアが <b>合格ライン{PASS_LINE}</b> 以上で「合格圏」と判定されます。</li>
                       </ul>
+                      <div className="mt-3 rounded-xl p-3" style={{ background: C.bg, border: `1px solid ${C.line}` }}>
+                        <div className="mb-1.5 text-[12px] font-bold" style={{ color: C.ink }}>判定の目安</div>
+                        <div className="space-y-1 text-[12px]" style={{ color: C.muted }}>
+                          {[
+                            { r: "0問（未演習）", l: "未測定", c: C.std },
+                            { r: "0〜39点", l: "要対策", c: C.bad },
+                            { r: "40〜64点", l: "あと少し", c: C.warn },
+                            { r: "65〜100点", l: "合格圏", c: C.good },
+                          ].map((b) => (
+                            <div key={b.l} className="flex items-center justify-between">
+                              <span>{b.r}</span>
+                              <span className="font-bold" style={{ color: b.c }}>{b.l}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                       <p className="mt-3 text-[11px] leading-relaxed" style={{ color: C.faint }}>
                         ※ IPA公式の合否判定ではなく、学習の目安として独自に算出した参考値です。
                       </p>
@@ -527,9 +550,10 @@ export function DashboardMain() {
                     </div>
                   </div>
                   <div>
-                    <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={active.score >= PASS_LINE ? { background: C.goodSoft, color: C.good } : { background: C.warnSoft, color: C.warn }}>
-                      {active.score >= PASS_LINE ? "合格圏" : "あと少し"}
-                    </span>
+                    {(() => {
+                      const sb = scoreBand(active.score, active.solved);
+                      return <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
+                    })()}
                     <div className="mt-2 text-[12px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
                   </div>
                 </div>

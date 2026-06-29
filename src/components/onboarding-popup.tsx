@@ -10,9 +10,9 @@ import { Sparkles, Check, X } from "lucide-react";
 const KEY = "labOnboardedV1";
 const FEATURES = [
   "過去問演習は すべて無料",
-  "AIがあなたの弱点を分析・可視化",
+  "弱点を分野別に分析・可視化（正答率・レーダー）",
   "応用情報の午後（記述式）を AIが○△×＋講評で採点",
-  "AIレコメンドで「次の一手」まで提案",
+  "弱点分析を踏まえたレコメンドで「次の一手」まで提案",
 ];
 
 export function OnboardingPopup() {
@@ -67,7 +67,7 @@ export function OnboardingPopup() {
         </div>
         <h2 className="mt-1 text-[20px] font-bold leading-snug">“ただ解く”だけでは、合格は遠い。</h2>
         <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: "#677488" }}>
-          過去問演習は無料。さらに<b style={{ color: "#15202E" }}>AIがあなたの弱点を分析</b>し、自分で採点できない記述問題まで対策できます。
+          過去問演習は無料。<b style={{ color: "#15202E" }}>弱点を分析</b>して次の一手を提案し、自分で採点できない記述問題は<b style={{ color: "#15202E" }}>AIが採点</b>します。
         </p>
 
         <ul className="mt-4 space-y-2.5">
