@@ -197,6 +197,10 @@ export function DashboardMain() {
   const [examDates, setExamDates] = useState<Record<string, string>>({});
   const [editingDate, setEditingDate] = useState(false);
   const [showScoreHelp, setShowScoreHelp] = useState(false); // 合格可能性スコアの説明モーダル
+  // AIレコメンド（Pro限定・/api/recommend）
+  const [rec, setRec] = useState<{ advice: string; steps: string[]; focusCategory: string | null } | null>(null);
+  const [recLoading, setRecLoading] = useState(false);
+  const [recError, setRecError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -240,6 +244,41 @@ export function DashboardMain() {
     })();
   }, [activeExam]);
 
+  // Pro会員のAIレコメンド。1日1回/試験ぶんを生成→localStorageにキャッシュ（コスト・レート制限に配慮）。
+  useEffect(() => {
+    if (isGuest || !isPremium) { setRec(null); setRecError(null); setRecLoading(false); return; }
+    const key = `aiReco:${activeExam}:${fmtDate(new Date())}`;
+    try {
+      const cached = localStorage.getItem(key);
+      if (cached) { setRec(JSON.parse(cached)); setRecError(null); setRecLoading(false); return; }
+    } catch {}
+    let on = true;
+    (async () => {
+      setRecLoading(true); setRecError(null); setRec(null);
+      try {
+        const res = await fetch("/api/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ examId: activeExam }),
+        });
+        const data = await res.json();
+        if (!on) return;
+        if (!res.ok) {
+          setRecError(data?.error ?? "AIレコメンドの生成に失敗しました");
+        } else {
+          const r = { advice: data.advice ?? "", steps: Array.isArray(data.steps) ? data.steps : [], focusCategory: data.focusCategory ?? null };
+          setRec(r);
+          try { localStorage.setItem(key, JSON.stringify(r)); } catch {}
+        }
+      } catch {
+        if (on) setRecError("通信エラーが発生しました。時間をおいて再度お試しください。");
+      } finally {
+        if (on) setRecLoading(false);
+      }
+    })();
+    return () => { on = false; };
+  }, [isGuest, isPremium, activeExam]);
+
   const active = useMemo(() => {
     const exam = basicExams.find((e) => e.id === activeExam)!;
     const er = rows.filter((x) => x.exam_id === activeExam);
@@ -279,7 +318,6 @@ export function DashboardMain() {
   const streak = useMemo(() => calcStreak(answeredDays), [answeredDays]);
   const week = useMemo(() => thisWeekDays(answeredDays), [answeredDays]);
   const countdown = daysUntil(examDates[activeExam]);
-  const hasData = !loading && active.answered > 0;
 
   const trend = useMemo(() => {
     const accArr = timeline.map((t) => (t.answered > 0 ? Math.round((t.correct / t.answered) * 100) : 0));
@@ -584,33 +622,60 @@ export function DashboardMain() {
                   <Link href="/premium" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />有料でAIレコメンド</Link>
                 </div>
               </div>
-            ) : (
-              <div className="mb-[18px] flex flex-col items-start gap-4 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
-                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Bot className="h-6 w-6" /></span>
+            ) : !isPremium ? (
+              /* 無料会員: AIレコメンドは Pro 機能（ティーザー） */
+              <div className="mb-[18px] flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
+                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                 <div className="flex-1">
-                  <div className="text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>AIからの今日のおすすめ</div>
-                  {hasData && active.top ? (
+                  <div className="flex items-center gap-2 text-[15px] font-bold">
+                    AIからの今日のおすすめ
+                    <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: C.dark, color: "#fff" }}>Pro</span>
+                  </div>
+                  <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>あなたの弱点データをAIが分析し、「何をどの順で対策すべきか」を提案します。<b style={{ color: C.ink }}>Proで解放</b>されます。</div>
+                </div>
+                <Link href="/premium" className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />Proにアップグレード</Link>
+              </div>
+            ) : (
+              /* Pro会員: 実AIレコメンド（/api/recommend・Claude） */
+              <div className="mb-[18px] flex flex-col items-start gap-4 rounded-[14px] p-4 sm:flex-row sm:items-start sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
+                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Bot className="h-6 w-6" /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>
+                    <Sparkles className="h-3.5 w-3.5" /> AIからの今日のおすすめ
+                  </div>
+                  {recLoading ? (
+                    <div className="mt-1 flex items-center gap-2 text-[13px]" style={{ color: C.muted }}><Loader2 className="h-4 w-4 animate-spin" /> AIがあなたの弱点を分析しています…</div>
+                  ) : rec ? (
                     <>
-                      <div className="mt-0.5 text-[15px] font-bold">弱点の <span style={{ color: C.bad }}>「{displayCategory(activeExam, active.top.category)}」</span> を重点演習しましょう</div>
-                      <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>正答率 {active.top.acc}%（{active.top.answered}問）。集中演習で底上げが見込めます。</div>
+                      <div className="mt-0.5 text-[13.5px] leading-relaxed" style={{ color: C.ink }}>{rec.advice}</div>
+                      {rec.steps.length > 0 && (
+                        <ul className="mt-2 space-y-1">
+                          {rec.steps.map((s, i) => (
+                            <li key={i} className="flex items-start gap-1.5 text-[12px]" style={{ color: C.muted }}>
+                              <span className="mt-[5px] h-1.5 w-1.5 flex-none rounded-full" style={{ background: C.brand }} /> {s}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </>
+                  ) : recError ? (
+                    <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>{recError}</div>
                   ) : (
-                    <>
-                      <div className="mt-0.5 text-[15px] font-bold">まずは1問、解いてみましょう</div>
-                      <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>解くと、ここにAIがあなた専用のおすすめを表示します。</div>
-                    </>
+                    <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>まず数問解くと、AIがあなた専用のおすすめを表示します。</div>
                   )}
                 </div>
-                <Link href={hasData && active.top ? studyHref(activeExam, active.top.category) : `/challenge/${activeExam}`} className="flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
-                  {hasData && active.top ? `「${displayCategory(activeExam, active.top.category)}」を演習` : "まず解いてみる"}<ArrowRight className="h-4 w-4" />
-                </Link>
+                {rec?.focusCategory && (
+                  <Link href={studyHref(activeExam, rec.focusCategory)} className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
+                    「{displayCategory(activeExam, rec.focusCategory)}」を演習<ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
               </div>
             )}
 
             {/* D: 弱点分析（全幅）= 弱点バー + 系統ごとのレーダー */}
             <div className="mb-[18px] rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div className="flex items-center justify-between">
-                <h2 className="text-[15.5px] font-bold">AI弱点分析 — 分野別正答率</h2>
+                <h2 className="text-[15.5px] font-bold">弱点分析 — 分野別正答率</h2>
                 <div className="flex gap-1">
                   {(["am", "pm"] as const).map((t) => (
                     <button key={t} onClick={() => setPmTab(t)} className="rounded-lg px-3 py-1.5 text-[12px] font-bold" style={pmTab === t ? { background: C.dark, color: "#fff" } : { background: C.card, color: C.muted, border: `1px solid ${C.line2}` }}>
