@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         // 管理画面・API・認証コールバック・個人の学習分析はクロール不要
-        disallow: ["/admin", "/api/", "/auth/", "/analysis"],
+        disallow: ["/admin", "/api/", "/auth/"],
       },
     ],
     sitemap: "https://kakomon-labo.com/sitemap.xml",
