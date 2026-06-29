@@ -244,40 +244,8 @@ export function DashboardMain() {
     })();
   }, [activeExam]);
 
-  // Pro会員のAIレコメンド。1日1回/試験ぶんを生成→localStorageにキャッシュ（コスト・レート制限に配慮）。
-  useEffect(() => {
-    if (isGuest || !isPremium) { setRec(null); setRecError(null); setRecLoading(false); return; }
-    const key = `aiReco:${activeExam}:${fmtDate(new Date())}`;
-    try {
-      const cached = localStorage.getItem(key);
-      if (cached) { setRec(JSON.parse(cached)); setRecError(null); setRecLoading(false); return; }
-    } catch {}
-    let on = true;
-    (async () => {
-      setRecLoading(true); setRecError(null); setRec(null);
-      try {
-        const res = await fetch("/api/recommend", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ examId: activeExam }),
-        });
-        const data = await res.json();
-        if (!on) return;
-        if (!res.ok) {
-          setRecError(data?.error ?? "AIレコメンドの生成に失敗しました");
-        } else {
-          const r = { advice: data.advice ?? "", steps: Array.isArray(data.steps) ? data.steps : [], focusCategory: data.focusCategory ?? null };
-          setRec(r);
-          try { localStorage.setItem(key, JSON.stringify(r)); } catch {}
-        }
-      } catch {
-        if (on) setRecError("通信エラーが発生しました。時間をおいて再度お試しください。");
-      } finally {
-        if (on) setRecLoading(false);
-      }
-    })();
-    return () => { on = false; };
-  }, [isGuest, isPremium, activeExam]);
+  // 試験を切り替えたらAIレコメンドはリセット（毎回ボタンでその場生成するため）
+  useEffect(() => { setRec(null); setRecError(null); setRecLoading(false); }, [activeExam]);
 
   const active = useMemo(() => {
     const exam = basicExams.find((e) => e.id === activeExam)!;
@@ -346,6 +314,34 @@ export function DashboardMain() {
     else delete next[activeExam];
     setExamDates(next);
     try { localStorage.setItem("examDates", JSON.stringify(next)); } catch {}
+  }
+
+  // AIレコメンド生成（ボタンで都度・Pro限定 /api/recommend）。押すたびに最新の助言を生成。
+  async function askRecommend() {
+    setRecLoading(true);
+    setRecError(null);
+    try {
+      const res = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ examId: activeExam }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRecError(data?.error ?? "AIレコメンドの生成に失敗しました");
+        setRec(null);
+      } else {
+        setRec({
+          advice: data.advice ?? "",
+          steps: Array.isArray(data.steps) ? data.steps : [],
+          focusCategory: data.focusCategory ?? null,
+        });
+      }
+    } catch {
+      setRecError("通信エラーが発生しました。時間をおいて再度お試しください。");
+    } finally {
+      setRecLoading(false);
+    }
   }
 
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
@@ -636,12 +632,12 @@ export function DashboardMain() {
                 <Link href="/premium" className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />Proにアップグレード</Link>
               </div>
             ) : (
-              /* Pro会員: 実AIレコメンド（/api/recommend・Claude） */
-              <div className="mb-[18px] flex flex-col items-start gap-4 rounded-[14px] p-4 sm:flex-row sm:items-start sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
+              /* Pro会員: ボタンで本物AIレコメンド（押すたびに最新を新規生成・キャッシュなし） */
+              <div className="mb-[18px] flex items-start gap-4 rounded-[14px] p-4 sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
                 <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Bot className="h-6 w-6" /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>
-                    <Sparkles className="h-3.5 w-3.5" /> AIからの今日のおすすめ
+                    <Sparkles className="h-3.5 w-3.5" /> AIレコメンド
                   </div>
                   {recLoading ? (
                     <div className="mt-1 flex items-center gap-2 text-[13px]" style={{ color: C.muted }}><Loader2 className="h-4 w-4 animate-spin" /> AIがあなたの弱点を分析しています…</div>
@@ -657,18 +653,27 @@ export function DashboardMain() {
                           ))}
                         </ul>
                       )}
+                      <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                        {rec.focusCategory && (
+                          <Link href={studyHref(activeExam, rec.focusCategory)} className="inline-flex items-center gap-1.5 rounded-[11px] px-4 py-2.5 text-[13px] font-bold text-white" style={{ background: C.brand }}>
+                            「{displayCategory(activeExam, rec.focusCategory)}」を演習<ArrowRight className="h-4 w-4" />
+                          </Link>
+                        )}
+                        <button onClick={askRecommend} className="inline-flex items-center gap-1.5 rounded-[11px] px-4 py-2.5 text-[13px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>
+                          <Sparkles className="h-3.5 w-3.5" /> もう一度AIに聞く
+                        </button>
+                      </div>
                     </>
-                  ) : recError ? (
-                    <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>{recError}</div>
                   ) : (
-                    <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>まず数問解くと、AIがあなた専用のおすすめを表示します。</div>
+                    <>
+                      <div className="mt-0.5 text-[13px]" style={{ color: C.muted }}>あなたの弱点データをもとに、AIが「次にやるべきこと」と学習プランをその場で提案します。</div>
+                      {recError && <div className="mt-1.5 text-[12px]" style={{ color: C.bad }}>{recError}</div>}
+                      <button onClick={askRecommend} className="mt-2.5 inline-flex items-center gap-1.5 rounded-[11px] px-5 py-2.5 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
+                        <Sparkles className="h-4 w-4" /> AIレコメンドを受け取る
+                      </button>
+                    </>
                   )}
                 </div>
-                {rec?.focusCategory && (
-                  <Link href={studyHref(activeExam, rec.focusCategory)} className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
-                    「{displayCategory(activeExam, rec.focusCategory)}」を演習<ArrowRight className="h-4 w-4" />
-                  </Link>
-                )}
               </div>
             )}
 
