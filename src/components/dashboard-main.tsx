@@ -15,7 +15,6 @@ import {
   Settings,
   Search,
   Bell,
-  Bot,
   Sparkles,
   ArrowRight,
   Lock,
@@ -197,10 +196,6 @@ export function DashboardMain() {
   const [examDates, setExamDates] = useState<Record<string, string>>({});
   const [editingDate, setEditingDate] = useState(false);
   const [showScoreHelp, setShowScoreHelp] = useState(false); // 合格可能性スコアの説明モーダル
-  // AIレコメンド（Pro限定・/api/recommend）
-  const [rec, setRec] = useState<{ advice: string; steps: string[]; focusCategory: string | null } | null>(null);
-  const [recLoading, setRecLoading] = useState(false);
-  const [recError, setRecError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -243,9 +238,6 @@ export function DashboardMain() {
       setTimeline((data as TimelineRow[] | null) ?? []);
     })();
   }, [activeExam]);
-
-  // 試験を切り替えたらAIレコメンドはリセット（毎回ボタンでその場生成するため）
-  useEffect(() => { setRec(null); setRecError(null); setRecLoading(false); }, [activeExam]);
 
   const active = useMemo(() => {
     const exam = basicExams.find((e) => e.id === activeExam)!;
@@ -314,34 +306,6 @@ export function DashboardMain() {
     else delete next[activeExam];
     setExamDates(next);
     try { localStorage.setItem("examDates", JSON.stringify(next)); } catch {}
-  }
-
-  // AIレコメンド生成（ボタンで都度・Pro限定 /api/recommend）。押すたびに最新の助言を生成。
-  async function askRecommend() {
-    setRecLoading(true);
-    setRecError(null);
-    try {
-      const res = await fetch("/api/recommend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ examId: activeExam }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setRecError(data?.error ?? "AIレコメンドの生成に失敗しました");
-        setRec(null);
-      } else {
-        setRec({
-          advice: data.advice ?? "",
-          steps: Array.isArray(data.steps) ? data.steps : [],
-          focusCategory: data.focusCategory ?? null,
-        });
-      }
-    } catch {
-      setRecError("通信エラーが発生しました。時間をおいて再度お試しください。");
-    } finally {
-      setRecLoading(false);
-    }
   }
 
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
@@ -619,7 +583,7 @@ export function DashboardMain() {
                 </div>
               </div>
             ) : (
-              /* ログイン会員: 弱点分析ベースのおすすめ（全員・即時/無料）＋ Proは本物AIで深掘り */
+              /* ログイン会員: 弱点分析ベースのおすすめ（全員・即時/無料） */
               <div className="mb-[18px] rounded-[14px] p-4 sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
                 <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                   <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
@@ -641,33 +605,6 @@ export function DashboardMain() {
                     {active.answered > 0 && active.top ? `「${displayCategory(activeExam, active.top.category)}」を演習` : "まず解いてみる"}<ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
-
-                {/* AIで深掘り（Pro限定・本物のAI／無料はProアップセル） */}
-                {isPremium ? (
-                  <div className="mt-3 border-t pt-3" style={{ borderColor: "#CFE0FB" }}>
-                    {rec ? (
-                      <>
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: C.brandDeep }}><Bot className="h-3.5 w-3.5" /> AIからの学習プラン</div>
-                        <div className="mt-1 text-[13px] leading-relaxed" style={{ color: C.ink }}>{rec.advice}</div>
-                        <button onClick={askRecommend} disabled={recLoading} className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold disabled:opacity-50" style={{ color: C.brandDeep }}>
-                          {recLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} もう一度AIに聞く
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={askRecommend} disabled={recLoading} className="inline-flex items-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[12.5px] font-bold disabled:opacity-60" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>
-                          {recLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bot className="h-3.5 w-3.5" />}
-                          {recLoading ? "AIが分析しています…" : "AIに詳しい学習プランを聞く"}
-                        </button>
-                        {recError && <div className="mt-1.5 text-[12px]" style={{ color: C.bad }}>{recError}</div>}
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <Link href="/premium" className="mt-3 flex items-center gap-1.5 border-t pt-3 text-[12px] font-bold" style={{ borderColor: "#CFE0FB", color: C.brandDeep }}>
-                    <Bot className="h-3.5 w-3.5" /> AIがあなた専用の学習プランまで提案します（Pro）→
-                  </Link>
-                )}
               </div>
             )}
 
