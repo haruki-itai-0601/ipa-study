@@ -649,13 +649,6 @@ export function DashboardMain() {
                       <>
                         <div className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: C.brandDeep }}><Bot className="h-3.5 w-3.5" /> AIからの学習プラン</div>
                         <div className="mt-1 text-[13px] leading-relaxed" style={{ color: C.ink }}>{rec.advice}</div>
-                        {rec.steps.length > 0 && (
-                          <ul className="mt-1.5 space-y-1">
-                            {rec.steps.map((s, i) => (
-                              <li key={i} className="flex items-start gap-1.5 text-[12px]" style={{ color: C.muted }}><span className="mt-[5px] h-1.5 w-1.5 flex-none rounded-full" style={{ background: C.brand }} /> {s}</li>
-                            ))}
-                          </ul>
-                        )}
                         <button onClick={askRecommend} disabled={recLoading} className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-bold disabled:opacity-50" style={{ color: C.brandDeep }}>
                           {recLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} もう一度AIに聞く
                         </button>
