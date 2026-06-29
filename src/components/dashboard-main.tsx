@@ -574,12 +574,11 @@ export function DashboardMain() {
               <div className="mb-[18px] flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
                 <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                 <div className="flex-1">
-                  <div className="text-[15px] font-bold">AIレコメンドで「次の一手」まで提案</div>
-                  <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}>まずは<b style={{ color: C.ink }}>無料会員登録</b>で進捗を保存。<b style={{ color: C.ink }}>有料登録（Pro）</b>なら、AIがあなた専用に何をどの順で対策すべきか提案します。</div>
+                  <div className="text-[15px] font-bold">弱点分析を踏まえたレコメンドで「次の一手」まで提案</div>
+                  <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}><b style={{ color: C.ink }}>無料会員登録</b>で進捗を保存。あなたの解答データを<b style={{ color: C.ink }}>弱点分析</b>し、次にやるべき分野まで提案します。</div>
                 </div>
                 <div className="flex flex-none gap-2.5">
-                  <Link href="/account" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-3 text-[13.5px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>無料会員登録</Link>
-                  <Link href="/premium" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />有料でAIレコメンド</Link>
+                  <Link href="/account" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />無料会員登録</Link>
                 </div>
               </div>
             ) : (

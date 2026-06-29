@@ -135,6 +135,8 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    /* ページの高さでスクロールバーが出/消しても横位置がズレないようガターを常時確保 */
+    scrollbar-gutter: stable;
   }
 }
 
