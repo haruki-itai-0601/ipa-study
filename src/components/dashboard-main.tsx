@@ -52,9 +52,10 @@ const SOLVE_NAV: NavItem[] = [
   { id: "ap", label: "応用情報技術者", href: "/exam/ap" },
 ];
 const LEARN_NAV: NavItem[] = [
-  { id: "ip", label: "ITパスポート", href: "/exam/ip/study" },
-  { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe/study" }, { label: "午後", href: "/exam/fe/b" }] },
-  { id: "ap", label: "応用情報技術者", href: "/exam/ap/study" },
+  // 学習する（用語・概念）＝午前/午後の区別なし。分野一覧 /learn/[試験] へ
+  { id: "ip", label: "ITパスポート", href: "/learn/ip" },
+  { id: "fe", label: "基本情報技術者", href: "/learn/fe" },
+  { id: "ap", label: "応用情報技術者", href: "/learn/ap" },
 ];
 // 試験名を短縮（ITパスポート / 基本情報 / 応用情報）
 const shortJa = (name: string) => name.replace("試験", ""); // ITパスポート / 基本情報技術者 / 応用情報技術者
@@ -355,17 +356,17 @@ export function DashboardMain() {
               );
             })}
 
-            {/* ② 問題を解く */}
-            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[13px] font-bold" style={{ color: C.ink }}>
-              <PenLine className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 問題を解く
-            </div>
-            {SOLVE_NAV.map(renderNavItem)}
-
-            {/* ③ 学習する（解説で学ぶ） */}
+            {/* ② 学習する（用語・概念。午前/午後の区別なし） */}
             <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[13px] font-bold" style={{ color: C.ink }}>
               <BookOpen className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 学習する
             </div>
             {LEARN_NAV.map(renderNavItem)}
+
+            {/* ③ 演習する（問題を解く。午前/午後あり） */}
+            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[13px] font-bold" style={{ color: C.ink }}>
+              <PenLine className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 演習する
+            </div>
+            {SOLVE_NAV.map(renderNavItem)}
 
             <div className="my-1.5 h-px" style={{ background: C.line }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
