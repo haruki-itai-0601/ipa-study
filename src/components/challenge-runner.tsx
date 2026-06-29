@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getExam } from "@/lib/exams";
+import { getExam, displayCategory } from "@/lib/exams";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen, Share2, RotateCcw, LayoutDashboard, UserPlus } from "lucide-react";
 import Link from "next/link";
@@ -123,7 +123,7 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
               )}
               {/* 解いた直後の主役導線：弱点が反映されたダッシュボードへ戻る */}
               <Link
-                href="/#dashboard"
+                href="/"
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-indigo-500/30 hover:-translate-y-0.5 hover:shadow-lg transition-all"
               >
                 <LayoutDashboard className="w-5 h-5" />
@@ -171,7 +171,7 @@ export default function ChallengeRunner({ examId, questions }: { examId: string;
     <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-500">Q {idx + 1} / {total}</span>
-        <span className="text-sm text-gray-400">{q.category}</span>
+        <span className="text-sm text-gray-400">{displayCategory(examId, q.category)}</span>
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className="h-full bg-indigo-500 transition-all" style={{ width: `${((idx + (answered ? 1 : 0)) / total) * 100}%` }} />

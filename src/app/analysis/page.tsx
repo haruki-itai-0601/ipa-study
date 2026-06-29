@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { exams, getExam, BASIC_EXAM_IDS } from "@/lib/exams";
+import { exams, getExam, BASIC_EXAM_IDS, displayCategory } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, TrendingUp, AlertTriangle, ChevronRight } from "lucide-react";
@@ -162,7 +162,7 @@ export default function AnalysisPage() {
                         <div className="flex items-start justify-between gap-2 mb-2">
                           <div className="flex items-start gap-2 min-w-0">
                             <span className="flex-shrink-0 mt-1.5 h-2.5 w-2.5 rounded-full" style={{ background: accHex(w.acc) }} aria-hidden />
-                            <span className="font-semibold text-gray-900 leading-snug">{w.category}</span>
+                            <span className="font-semibold text-gray-900 leading-snug">{displayCategory(w.exam_id, w.category)}</span>
                             <span className="text-xs text-gray-400 flex-shrink-0 mt-1">{ex?.shortName}</span>
                           </div>
                           <span className={`font-bold ${c.text} flex-shrink-0`}>{w.acc}%</span>
@@ -228,7 +228,7 @@ export default function AnalysisPage() {
                               className="block rounded-lg p-1 -m-1 hover:bg-gray-50 transition-colors"
                             >
                               <div className="flex items-center justify-between gap-2 mb-1">
-                                <span className="text-sm text-gray-700 leading-snug">{cat.category}</span>
+                                <span className="text-sm text-gray-700 leading-snug">{displayCategory(exam.id, cat.category)}</span>
                                 <span className="flex items-center gap-1.5 flex-shrink-0">
                                   <span className={`text-sm font-semibold ${cc.text}`}>{cat.acc}%</span>
                                   <span className="text-xs text-gray-400">{cat.correct}/{cat.answered}</span>

@@ -118,7 +118,7 @@ export default function FeBRunner({ questions, sourceLabel }: { questions: FeBQ[
               </Link>
             )}
             <Link
-              href="/#dashboard"
+              href="/"
               className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 font-bold text-white shadow-md shadow-indigo-500/30 transition-all hover:-translate-y-0.5 hover:shadow-lg"
             >
               <LayoutDashboard className="w-5 h-5" />

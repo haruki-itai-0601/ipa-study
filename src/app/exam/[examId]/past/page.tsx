@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getExam, sectionLabel } from "@/lib/exams";
+import { getExam, sectionLabel, displayCategory } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchAllRows, fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -225,7 +225,7 @@ export default function PastExamPage() {
     setLoading(false);
     const set = new Set(wrongIds);
     const picked = shuffle(data.filter((q) => set.has(q.id)));
-    startQuiz(picked, "誤答を解き直す", `${category} ・ 間違えた問題`);
+    startQuiz(picked, "誤答を解き直す", `${displayCategory(examId, category)} ・ 間違えた問題`);
   };
 
   // 誤答復習: 過去に間違えた問題だけ

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getExam, questionSource } from "@/lib/exams";
+import { getExam, questionSource, displayCategory } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -248,7 +248,7 @@ export default function QuizRunner({
         {/* 問題メタ情報 */}
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className={`text-sm ${exam.textColor} ${exam.badgeBg}`}>
-            {question.category}
+            {displayCategory(examId, question.category)}
           </Badge>
           <span className="text-sm text-gray-400">{question.year}</span>
         </div>

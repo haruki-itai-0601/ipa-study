@@ -287,6 +287,14 @@ export function getExam(id: string) {
   return exams.find((e) => e.id === id);
 }
 
+// 中分類名の表記を試験ごとの正式名に出し分けて表示する。
+// データは "ユーザーインタフェース" で統一保持（FE/APの正式名・レーダー軸も統一）。
+// ITパスポートのみIPAが「情報デザイン」（中分類19）へ改称済みのため、表示だけ差し替える。
+export function displayCategory(examId: string, category: string): string {
+  if (examId === "ip" && category === "ユーザーインタフェース") return "情報デザイン";
+  return category;
+}
+
 // 問題ごとの正式な出典表記を生成する。
 // 例(午前Ⅱ): 出典：IPA プロジェクトマネージャ試験 令和6年度 秋期 午前Ⅱ 問1
 // 例(午前Ⅰ): 出典：IPA 高度情報処理技術者試験 午前Ⅰ（全区分共通） 令和6年度 春期 問1

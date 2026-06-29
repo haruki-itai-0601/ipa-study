@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getExam, questionSource } from "@/lib/exams";
+import { getExam, questionSource, displayCategory } from "@/lib/exams";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
@@ -50,7 +50,7 @@ export default function SingleQuestion({ q }: { q: SingleQ }) {
       {/* メタ */}
       <div className="flex flex-wrap items-center gap-2">
         {exam && (
-          <span className={`text-sm px-3 py-1 rounded-full ${exam.textColor} ${exam.badgeBg}`}>{q.category}</span>
+          <span className={`text-sm px-3 py-1 rounded-full ${exam.textColor} ${exam.badgeBg}`}>{displayCategory(q.exam_id, q.category)}</span>
         )}
         <span className="text-sm text-gray-400">{q.year}</span>
       </div>

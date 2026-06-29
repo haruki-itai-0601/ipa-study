@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getExam } from "@/lib/exams";
+import { getExam, displayCategory } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -197,7 +197,7 @@ export default function AIExamPage() {
         {/* 問題メタ情報 */}
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-sm text-yellow-600 bg-yellow-100">
-            {question.category}
+            {displayCategory(examId, question.category)}
           </Badge>
           <Badge variant="secondary" className="text-xs text-gray-500 bg-gray-100">
             難易度：{difficultyLabel[question.difficulty] ?? question.difficulty}

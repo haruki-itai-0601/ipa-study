@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getExam, questionSource } from "@/lib/exams";
+import { getExam, questionSource, displayCategory } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchAllRows } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -101,7 +101,7 @@ export default function StudyPage() {
           </Link>
           <div className="min-w-0">
             <div className="text-sm text-gray-500">{exam.name}</div>
-            <div className="font-bold text-gray-900 truncate">{category}</div>
+            <div className="font-bold text-gray-900 truncate">{displayCategory(examId, category)}</div>
           </div>
         </div>
       </header>

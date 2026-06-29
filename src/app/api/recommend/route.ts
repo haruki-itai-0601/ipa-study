@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase";
-import { getExam } from "@/lib/exams";
+import { getExam, displayCategory } from "@/lib/exams";
 import Anthropic from "@anthropic-ai/sdk";
 
 // AIレコメンド（プレミアム会員限定）。
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
     const client = new Anthropic({ apiKey });
 
-    const statLines = cats.map((c) => `・${c.category}：${c.acc}%（${c.correct}/${c.answered}問）`).join("\n");
+    const statLines = cats.map((c) => `・${displayCategory(examId, c.category)}：${c.acc}%（${c.correct}/${c.answered}問）`).join("\n");
     const system =
       "あなたはIPA情報処理技術者試験の学習を伴走するAIコーチです。受験者の分野別正答率データをもとに、" +
       "合格に向けて『今やるべきこと』を、励ましつつ具体的に助言します。専門用語は噛み砕き、すべて日本語で。" +
