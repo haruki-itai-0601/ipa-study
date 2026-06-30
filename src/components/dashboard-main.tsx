@@ -5,7 +5,7 @@
 // ラウンド2(見た目系): A常時展開 B目立たせ+文字大 C試験日ユーザー設定(localStorage) D系統レーダー併用 E正式名称 G弱点分析ナビ削除 J右上→account K試験名チップを右箱と同サイズ
 // 別プラン(機能): F学習する H学習履歴フィード I設定 L学習カレンダー M/N分野別ページ 項目6復習/解説/AI特訓
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { basicExams, displayCategory } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -203,6 +203,7 @@ export function DashboardMain() {
   const [examDates, setExamDates] = useState<Record<string, string>>({});
   const [editingDate, setEditingDate] = useState(false);
   const [showScoreHelp, setShowScoreHelp] = useState(false); // 合格可能性スコアの説明モーダル
+  const [analysisLocked, setAnalysisLocked] = useState(false); // 弱点分析+レコメンドの閲覧上限ゲート
 
   useEffect(() => {
     try {
@@ -237,6 +238,24 @@ export function DashboardMain() {
       setLoading(false);
     })();
   }, []);
+
+  // 弱点分析＋レコメンドの1日あたり閲覧上限（非会員1/無料5/Pro∞）。localStorageソフトゲート・JST日付でリセット。
+  const viewCountedRef = useRef(false);
+  useEffect(() => {
+    if (loading || viewCountedRef.current) return;
+    viewCountedRef.current = true;
+    if (isPremium) { setAnalysisLocked(false); return; }
+    const limit = isGuest ? 1 : 5;
+    const key = `waViews:${fmtDate(new Date())}`;
+    let count = 0;
+    try { count = parseInt(localStorage.getItem(key) || "0", 10) || 0; } catch {}
+    if (count >= limit) {
+      setAnalysisLocked(true);
+    } else {
+      try { localStorage.setItem(key, String(count + 1)); } catch {}
+      setAnalysisLocked(false);
+    }
+  }, [loading, isGuest, isPremium]);
 
   useEffect(() => {
     (async () => {
@@ -285,6 +304,10 @@ export function DashboardMain() {
   const streak = useMemo(() => calcStreak(answeredDays), [answeredDays]);
   const week = useMemo(() => thisWeekDays(answeredDays), [answeredDays]);
   const countdown = daysUntil(examDates[activeExam]);
+  // 閲覧上限ゲートの案内（ティア別）
+  const lockTier = isGuest
+    ? { msg: "未ログインは1日1回まで閲覧できます。無料会員登録すると1日5回に増えます。", href: "/account", label: "無料会員登録" }
+    : { msg: "無料会員は1日5回まで閲覧できます。Pro（有料）なら無制限に見られます。", href: "/premium", label: "Proにアップグレード" };
 
   const trend = useMemo(() => {
     const accArr = timeline.map((t) => (t.answered > 0 ? Math.round((t.correct / t.answered) * 100) : 0));
@@ -593,8 +616,17 @@ export function DashboardMain() {
               </div>
             </div>
 
-            {/* AIおすすめ（ログイン状態で出し分け） */}
-            {isGuest ? (
+            {/* 弱点に基づくレコメンド（閲覧上限ゲートつき） */}
+            {analysisLocked ? (
+              <div className="mb-[18px] flex flex-col items-start gap-4 rounded-[14px] px-[18px] py-3.5 sm:flex-row sm:items-center" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl" style={{ background: C.stdSoft, color: C.muted }}><Lock className="h-6 w-6" /></span>
+                <div className="flex-1">
+                  <div className="text-[15px] font-bold">弱点に基づくレコメンドは本日の上限に達しました</div>
+                  <div className="mt-0.5 text-[13px]" style={{ color: C.muted }}>{lockTier.msg}</div>
+                </div>
+                <Link href={lockTier.href} className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>{lockTier.label}</Link>
+              </div>
+            ) : isGuest ? (
               <div className="mb-[18px] flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
                 <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                 <div className="flex-1">
@@ -656,7 +688,14 @@ export function DashboardMain() {
               </div>
               <div className="mt-1 text-[11.5px]" style={{ color: C.faint }}>正答率の低い分野から表示。クリックでその分野を演習できます。</div>
 
-              {pmTab === "pm" ? (
+              {analysisLocked ? (
+                <div className="mt-4 flex flex-col items-center justify-center rounded-xl px-4 py-12 text-center" style={{ background: C.bg, border: `1px dashed ${C.line2}` }}>
+                  <Lock className="mb-2 h-7 w-7" style={{ color: C.faint }} />
+                  <p className="text-[14.5px] font-bold">弱点分析は本日の閲覧上限に達しました</p>
+                  <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>{lockTier.msg}</p>
+                  <Link href={lockTier.href} className="mt-3 inline-flex items-center gap-1.5 rounded-[11px] px-5 py-2.5 text-[13px] font-bold text-white" style={{ background: C.brand }}>{lockTier.label}</Link>
+                </div>
+              ) : pmTab === "pm" ? (
                 <div className="mt-4 flex flex-col items-center justify-center rounded-xl px-4 py-10 text-center" style={{ background: C.bg, border: `1px dashed ${C.line2}` }}>
                   <Lock className="mb-2 h-6 w-6" style={{ color: C.faint }} />
                   <p className="text-[13px] font-bold">午後（記述）の分析は Pro 機能です</p>
