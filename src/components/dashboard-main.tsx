@@ -316,18 +316,18 @@ export function DashboardMain() {
   }
 
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
-  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[16px] font-medium transition-colors";
+  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[17.5px] font-medium transition-colors";
   // 問題を解く / 学習する の項目（単リンク or 午前/午後サブ）
   const renderNavItem = (it: NavItem) =>
     it.href ? (
-      <Link key={it.id} href={it.href} className="block rounded-[10px] py-2 pl-9 pr-3 text-[16px] font-medium transition-colors hover:bg-gray-50" style={{ color: C.ink }}>
+      <Link key={it.id} href={it.href} className="block rounded-[10px] py-2 pl-9 pr-3 text-[17.5px] font-medium transition-colors hover:bg-gray-50" style={{ color: C.ink }}>
         {it.label}
       </Link>
     ) : (
       <div key={it.id}>
-        <div className="py-2 pl-9 pr-3 text-[16px] font-medium" style={{ color: C.ink }}>{it.label}</div>
+        <div className="py-2 pl-9 pr-3 text-[17.5px] font-medium" style={{ color: C.ink }}>{it.label}</div>
         {(it.subs ?? []).map((s) => (
-          <Link key={s.href} href={s.href} className="flex items-center gap-1.5 rounded-[10px] py-1.5 pl-14 pr-3 text-[14px] transition-colors hover:bg-gray-50" style={{ color: C.muted }}>
+          <Link key={s.href} href={s.href} className="flex items-center gap-1.5 rounded-[10px] py-1.5 pl-14 pr-3 text-[15px] transition-colors hover:bg-gray-50" style={{ color: C.muted }}>
             <ChevronRight className="h-3.5 w-3.5" style={{ color: C.faint }} /> {s.label}
           </Link>
         ))}
@@ -336,18 +336,18 @@ export function DashboardMain() {
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      <div className="grid min-h-screen" style={{ gridTemplateColumns: "256px 1fr" }}>
+      <div className="grid min-h-screen" style={{ gridTemplateColumns: "292px 1fr" }}>
         {/* ===== Sidebar ===== */}
         <aside className="hidden md:flex flex-col sticky top-0 h-screen" style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "18px 14px" }}>
           <Link href="/" className="px-2 pb-4 pt-1 leading-tight">
-            <span className="block text-[18px] font-bold">過去問演習ラボ</span>
+            <span className="block text-[20px] font-bold">過去問演習ラボ</span>
             <span className="block text-[11.5px] font-normal" style={{ color: C.faint }}>AIと、最短で合格へ</span>
           </Link>
 
           <nav className="mt-1 flex flex-col gap-0.5">
             {/* ① ダッシュボードを選択（クリックで表示中の試験を切替） */}
-            <div className="flex items-center gap-2 px-3 pb-0.5 pt-1 text-[15px] font-bold" style={{ color: C.ink }}>
-              <LayoutDashboard className="h-[18px] w-[18px]" style={{ color: C.brand }} /> ダッシュボードを選択
+            <div className="flex items-center gap-2 px-3 pb-0.5 pt-1 text-[16.5px] font-bold" style={{ color: C.ink }}>
+              <LayoutDashboard className="h-5 w-5" style={{ color: C.brand }} /> ダッシュボードを選択
             </div>
             {basicExams.map((ex) => {
               const on = ex.id === activeExam;
@@ -355,7 +355,7 @@ export function DashboardMain() {
                 <button
                   key={ex.id}
                   onClick={() => setActiveExam(ex.id)}
-                  className="flex w-full items-center rounded-[10px] py-2 pl-9 pr-3 text-left text-[16px] transition-colors"
+                  className="flex w-full items-center rounded-[10px] py-2 pl-9 pr-3 text-left text-[17.5px] transition-colors"
                   style={on ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 } : { color: C.ink, fontWeight: 500 }}
                 >
                   {shortJa(ex.name)}
@@ -364,14 +364,14 @@ export function DashboardMain() {
             })}
 
             {/* ② 学習する（用語・概念。午前/午後の区別なし） */}
-            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[15px] font-bold" style={{ color: C.ink }}>
-              <BookOpen className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 学習する
+            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[16.5px] font-bold" style={{ color: C.ink }}>
+              <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習する
             </div>
             {LEARN_NAV.map(renderNavItem)}
 
             {/* ③ 演習する（問題を解く。午前/午後あり） */}
-            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[15px] font-bold" style={{ color: C.ink }}>
-              <PenLine className="h-[18px] w-[18px]" style={{ color: C.brand }} /> 演習する
+            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[16.5px] font-bold" style={{ color: C.ink }}>
+              <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 演習する
             </div>
             {SOLVE_NAV.map(renderNavItem)}
 
@@ -421,11 +421,11 @@ export function DashboardMain() {
             </Link>
           </header>
 
-          <div className="w-full max-w-[1280px] px-4 py-6 md:px-7 md:pb-10">
+          <div className="w-full px-4 py-6 md:px-8 md:pb-10">
             {/* page head */}
             <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <h1 className="text-[22px] font-bold tracking-tight">こんにちは、{isGuest ? "ゲスト" : name}さん</h1>
+                <h1 className="text-[25px] font-bold tracking-tight">こんにちは、{isGuest ? "ゲスト" : name}さん</h1>
                 {isGuest ? (
                   <p className="mt-1.5 text-[13px]" style={{ color: C.muted }}>
                     ログインすると学習進捗が保存され、どの端末でも続きから学べます（右上からログイン）。
@@ -489,9 +489,9 @@ export function DashboardMain() {
 
             {/* KPI */}
             <div className="mb-[18px] grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] font-medium" style={{ color: C.muted }}>合格可能性スコア</span>
+                  <span className="text-[14px] font-medium" style={{ color: C.muted }}>合格可能性スコア</span>
                   <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="flex-none transition-opacity hover:opacity-70" style={{ color: C.faint }}>
                     <HelpCircle className="h-[15px] w-[15px]" />
                   </button>
@@ -539,54 +539,54 @@ export function DashboardMain() {
                   </div>
                 )}
                 <div className="mt-2.5 flex items-center gap-3.5">
-                  <div className="relative h-[78px] w-[78px] flex-none">
+                  <div className="relative h-[90px] w-[90px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
                       <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - active.score / 100)} transform="rotate(-90 40 40)" />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <b className="text-[23px] leading-none">{loading ? "–" : active.score}</b>
-                      <span className="text-[9.5px]" style={{ color: C.muted }}>/ 100</span>
+                      <b className="text-[27px] leading-none">{loading ? "–" : active.score}</b>
+                      <span className="text-[11px]" style={{ color: C.muted }}>/ 100</span>
                     </div>
                   </div>
                   <div>
+                    <div className="text-[14px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
                     {(() => {
                       const sb = scoreBand(active.score, active.solved);
-                      return <span className="rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
+                      return <span className="mt-2 inline-block rounded-full px-2.5 py-1 text-[13px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
                     })()}
-                    <div className="mt-2 text-[12px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="text-[12.5px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
+              <div className="rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="text-[14px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
                 <div className="mt-2.5 flex items-center gap-3.5">
-                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.warnSoft }}>🔥</span>
+                  <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.warnSoft }}>🔥</span>
                   <div>
-                    <div className="text-[30px] font-bold leading-none tracking-tight">{streak}<small className="text-sm font-medium" style={{ color: C.muted }}> 日</small></div>
+                    <div className="text-[34px] font-bold leading-none tracking-tight">{streak}<small className="text-sm font-medium" style={{ color: C.muted }}> 日</small></div>
                     <div className="mt-2 text-[12px]" style={{ color: C.good }}>今週 {week} / 7 日 達成</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="text-[12.5px] font-medium" style={{ color: C.muted }}>累計演習数</div>
+              <div className="rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="text-[14px] font-medium" style={{ color: C.muted }}>累計演習数</div>
                 <div className="mt-2.5 flex items-center gap-3.5">
-                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[20px] font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>✎</span>
+                  <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[20px] font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>✎</span>
                   <div>
-                    <div className="text-[30px] font-bold leading-none tracking-tight">{loading ? "–" : active.solved.toLocaleString()}<small className="text-sm font-medium" style={{ color: C.muted }}> 問</small></div>
+                    <div className="text-[34px] font-bold leading-none tracking-tight">{loading ? "–" : active.solved.toLocaleString()}<small className="text-sm font-medium" style={{ color: C.muted }}> 問</small></div>
                     <div className="mt-2 text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="text-[12.5px] font-medium" style={{ color: C.muted }}>平均正答率</div>
+              <div className="rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="text-[14px] font-medium" style={{ color: C.muted }}>平均正答率</div>
                 <div className="mt-2.5 flex items-center gap-3.5">
-                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[22px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
+                  <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[22px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div>
-                    <div className="text-[30px] font-bold leading-none tracking-tight">{loading ? "–" : active.acc}<small className="text-sm font-medium" style={{ color: C.muted }}> %</small></div>
+                    <div className="text-[34px] font-bold leading-none tracking-tight">{loading ? "–" : active.acc}<small className="text-sm font-medium" style={{ color: C.muted }}> %</small></div>
                     <div className="mt-2 text-[12px]" style={{ color: C.muted }}>{active.answered.toLocaleString()}問で算出</div>
                   </div>
                 </div>
@@ -596,7 +596,7 @@ export function DashboardMain() {
             {/* AIおすすめ（ログイン状態で出し分け） */}
             {isGuest ? (
               <div className="mb-[18px] flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
-                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
+                <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                 <div className="flex-1">
                   <div className="text-[15px] font-bold">弱点分析を踏まえたレコメンドで「次の一手」まで提案</div>
                   <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}><b style={{ color: C.ink }}>無料会員登録</b>で進捗を保存。あなたの解答データを<b style={{ color: C.ink }}>弱点分析</b>し、次にやるべき分野まで提案します。</div>
@@ -609,9 +609,9 @@ export function DashboardMain() {
               /* ログイン会員: 弱点分析ベースのおすすめ（全員・即時/無料） */
               <div className="mb-[18px] rounded-[14px] p-4 sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
                 <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
+                  <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-bold tracking-wide" style={{ color: C.brandDeep }}>今日のおすすめ</div>
+                    <div className="text-[12px] font-bold tracking-wide" style={{ color: C.brandDeep }}>弱点分析に基づくレコメンド</div>
                     {active.answered > 0 && active.top ? (
                       <>
                         <div className="mt-0.5 text-[15px] font-bold">弱点の <span style={{ color: C.bad }}>「{displayCategory(activeExam, active.top.category)}」</span> を重点的に対策しましょう</div>
@@ -624,17 +624,28 @@ export function DashboardMain() {
                       </>
                     )}
                   </div>
-                  <Link href={active.answered > 0 && active.top ? studyHref(activeExam, active.top.category) : `/challenge/${activeExam}`} className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
-                    {active.answered > 0 && active.top ? `「${displayCategory(activeExam, active.top.category)}」を演習` : "まず解いてみる"}<ArrowRight className="h-4 w-4" />
-                  </Link>
+                  {active.answered > 0 && active.top ? (
+                    <div className="flex w-full flex-none flex-col gap-2 sm:w-auto">
+                      <Link href={studyHref(activeExam, active.top.category)} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-2.5 text-[13.5px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>
+                        <BookOpen className="h-4 w-4" />「{displayCategory(activeExam, active.top.category)}」を学習
+                      </Link>
+                      <Link href={`/exam/${activeExam}/past?mode=category&category=${encodeURIComponent(active.top.category)}`} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-2.5 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
+                        <PenLine className="h-4 w-4" />「{displayCategory(activeExam, active.top.category)}」を演習
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link href={`/challenge/${activeExam}`} className="flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>
+                      まず解いてみる<ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
                 </div>
               </div>
             )}
 
             {/* D: 弱点分析（全幅）= 弱点バー + 系統ごとのレーダー */}
-            <div className="mb-[18px] rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+            <div className="mb-[18px] rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div className="flex items-center justify-between">
-                <h2 className="text-[15.5px] font-bold">弱点分析 — 分野別正答率</h2>
+                <h2 className="text-[17px] font-bold">弱点分析 — 分野別正答率</h2>
                 <div className="flex gap-1">
                   {(["am", "pm"] as const).map((t) => (
                     <button key={t} onClick={() => setPmTab(t)} className="rounded-lg px-3 py-1.5 text-[12px] font-bold" style={pmTab === t ? { background: C.dark, color: "#fff" } : { background: C.card, color: C.muted, border: `1px solid ${C.line2}` }}>
@@ -712,9 +723,9 @@ export function DashboardMain() {
 
             {/* 推移(実データ・タブ) + 履歴(サンプル) */}
             <div className="grid gap-[18px] lg:grid-cols-2">
-              <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[15.5px] font-bold">{trend.isAcc ? "正答率の推移" : "解答数の推移"}</h2>
+                  <h2 className="text-[17px] font-bold">{trend.isAcc ? "正答率の推移" : "解答数の推移"}</h2>
                   <div className="flex gap-1">
                     {([{ k: "acc", t: "正答率" }, { k: "count", t: "解答数" }] as const).map((o) => (
                       <button key={o.k} onClick={() => setTrendTab(o.k)} className="rounded-lg px-3 py-1.5 text-[12px] font-bold" style={trendTab === o.k ? { background: C.dark, color: "#fff" } : { background: C.card, color: C.muted, border: `1px solid ${C.line2}` }}>{o.t}</button>
@@ -737,9 +748,9 @@ export function DashboardMain() {
                 <div className="mt-2 text-[11px]" style={{ color: C.faint }}>直近8週・{active.exam.shortName}（実データ）</div>
               </div>
 
-              <div className="rounded-[14px] p-[18px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
-                  <h2 className="text-[15.5px] font-bold">最近の演習</h2>
+                  <h2 className="text-[17px] font-bold">最近の演習</h2>
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: C.warnSoft, color: C.warn }}>サンプル</span>
                 </div>
                 <div className="mt-2">
