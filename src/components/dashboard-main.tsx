@@ -309,7 +309,7 @@ export function DashboardMain() {
     const acc = answered > 0 ? Math.round((correct / answered) * 100) : 0;
     const cats = er.filter((x) => x.answered > 0).map((x) => ({
       category: x.category, answered: x.answered, correct: x.correct, acc: Math.round((x.correct / x.answered) * 100),
-    })).sort((a, b) => a.acc - b.acc);
+    })).sort((a, b) => a.acc - b.acc || b.answered - a.answered);
     const ov = overview.find((o) => o.exam_id === activeExam);
     const solved = ov?.total ?? 0;
     const target = EXAM_TARGET[activeExam] ?? 600;
@@ -618,7 +618,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-start gap-3.5">
+                <div className="flex items-center gap-3.5">
                   <div className="relative h-[70px] w-[70px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
@@ -641,7 +641,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-start gap-3.5">
+                <div className="flex items-center gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[26px]" style={{ background: C.warnSoft }}>🔥</span>
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
@@ -652,7 +652,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-start gap-3.5">
+                <div className="flex items-center gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium" style={{ color: C.muted }}>平均正答率</div>
@@ -760,7 +760,7 @@ export function DashboardMain() {
                 <>
                   {/* 弱点バー（弱点順・件数つき） */}
                   <div className="mt-3 grid gap-x-6 gap-y-2.5 md:grid-cols-2">
-                    {active.cats.slice(0, 8).map((c) => {
+                    {active.cats.slice(0, 4).map((c) => {
                       const b = band(c.acc);
                       return (
                         <Link key={c.category} href={studyHref(activeExam, c.category)} className="group block">
