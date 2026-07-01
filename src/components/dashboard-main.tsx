@@ -144,7 +144,7 @@ function daysUntil(dateStr?: string | null): number | null {
 // 汎用レーダー（フラット青）
 function Radar({ items, examId }: { items: RadarItem[]; examId: string }) {
   const [active, setActive] = useState<number | null>(null);
-  const w = 420, h = 380, cx = 210, cy = 190, rx = 120, ry = 120;
+  const w = 420, h = 350, cx = 210, cy = 165, rx = 120, ry = 120;
   const n = items.length;
   const axes = items.map((v, i) => {
     const rad = ((-90 + (i * 360) / n) * Math.PI) / 180;
@@ -787,10 +787,10 @@ export function DashboardMain() {
                     </div>
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                       {active.seriesRadars.map((s) => (
-                        <div key={s.key} className="rounded-xl px-3 py-2" style={{ border: `1px solid ${C.line}` }}>
-                          <div className="mb-1 flex items-center justify-between">
-                            <span className="text-[14px] font-bold">{s.label}</span>
-                            <span className="text-[14px] font-bold" style={{ color: s.answered > 0 ? accHex(s.acc) : C.faint }}>{s.answered > 0 ? `${s.acc}%` : "—"}</span>
+                        <div key={s.key} className="rounded-xl px-3 py-1.5" style={{ border: `1px solid ${C.line}` }}>
+                          <div className="mb-0.5 flex items-center justify-between">
+                            <span className="text-[17px] font-bold">{s.label}</span>
+                            <span className="text-[17px] font-bold" style={{ color: s.answered > 0 ? accHex(s.acc) : C.faint }}>{s.answered > 0 ? `${s.acc}%` : "—"}</span>
                           </div>
                           <Radar items={s.items} examId={activeExam} />
                         </div>
