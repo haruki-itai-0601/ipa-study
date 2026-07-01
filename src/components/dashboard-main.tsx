@@ -477,9 +477,9 @@ export function DashboardMain() {
             </Link>
           </header>
 
-          <div className="w-full px-4 py-6 md:px-8 md:pb-10">
+          <div className="w-full px-4 py-4 md:px-8 md:pb-10">
             {/* page head */}
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h1 className="text-[25px] font-bold tracking-tight">こんにちは、{isGuest ? "ゲスト" : name}さん</h1>
                 {isGuest ? (
