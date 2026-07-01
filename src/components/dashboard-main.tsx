@@ -596,9 +596,18 @@ export function DashboardMain() {
               <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="text-[14px] font-medium" style={{ color: C.muted }}>累計演習数</div>
                 <div className="mt-2 flex items-center gap-3.5">
-                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[20px] font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>✎</span>
+                  <div className="relative h-[80px] w-[80px] flex-none">
+                    <svg viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
+                      <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - Math.min(1, active.solved / active.target))} transform="rotate(-90 40 40)" />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <b className="text-[22px] leading-none">{loading ? "–" : active.solved.toLocaleString()}</b>
+                      <span className="text-[9.5px]" style={{ color: C.muted }}>/ {active.target}問</span>
+                    </div>
+                  </div>
                   <div>
-                    <div className="text-[29px] font-bold leading-none tracking-tight">{loading ? "–" : active.solved.toLocaleString()}<small className="text-sm font-medium" style={{ color: C.muted }}> 問</small></div>
+                    <div className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></div>
                     <div className="mt-1.5 text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</div>
                   </div>
                 </div>
