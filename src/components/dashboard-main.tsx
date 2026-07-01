@@ -545,10 +545,7 @@ export function DashboardMain() {
 
             {/* KPI */}
             <div className="mb-3.5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <div className="relative rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="absolute right-2.5 top-2.5 transition-opacity hover:opacity-70" style={{ color: C.faint }}>
-                  <HelpCircle className="h-[15px] w-[15px]" />
-                </button>
+              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 {showScoreHelp && (
                   <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: "rgba(15,27,51,0.4)" }} onClick={() => setShowScoreHelp(false)}>
                     <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[360px] rounded-2xl bg-white p-5 text-left shadow-2xl" style={{ color: C.ink }}>
@@ -603,12 +600,19 @@ export function DashboardMain() {
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[13px] font-medium" style={{ color: C.muted }}>合格可能性スコア</div>
-                    <div className="mt-1 text-[13px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
-                    {(() => {
-                      const sb = scoreBand(active.score, active.solved);
-                      return <span className="mt-1.5 inline-block rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
-                    })()}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[13px] font-medium" style={{ color: C.muted }}>合格可能性スコア</span>
+                      <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="flex-none transition-opacity hover:opacity-70" style={{ color: C.faint }}>
+                        <HelpCircle className="h-[15px] w-[15px]" />
+                      </button>
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                      <span className="text-[13px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></span>
+                      {(() => {
+                        const sb = scoreBand(active.score, active.solved);
+                        return <span className="inline-block rounded-full px-2.5 py-0.5 text-[12px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
+                      })()}
+                    </div>
                   </div>
                 </div>
               </div>
