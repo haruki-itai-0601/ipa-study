@@ -142,7 +142,8 @@ function daysUntil(dateStr?: string | null): number | null {
 }
 
 // 汎用レーダー（フラット青）
-function Radar({ items }: { items: RadarItem[] }) {
+function Radar({ items, examId }: { items: RadarItem[]; examId: string }) {
+  const [active, setActive] = useState<number | null>(null);
   const w = 420, h = 380, cx = 210, cy = 190, rx = 120, ry = 120;
   const n = items.length;
   const axes = items.map((v, i) => {
@@ -153,7 +154,7 @@ function Radar({ items }: { items: RadarItem[] }) {
   const ring = (frac: number) => axes.map((a) => pt(a.cos, a.sin, frac).join(",")).join(" ");
   const dataPoly = axes.map((a) => pt(a.cos, a.sin, Math.max(0.02, a.acc / 100)).join(",")).join(" ");
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="mx-auto w-full" style={{ maxWidth: 420, overflow: "visible" }}>
+    <svg viewBox={`0 0 ${w} ${h}`} className="mx-auto w-full" style={{ maxWidth: 420, overflow: "visible" }} onClick={() => setActive(null)}>
       {[0.25, 0.5, 0.75, 1].map((f) => (
         <polygon key={f} points={ring(f)} fill="none" stroke="#e5e7eb" strokeWidth={1} />
       ))}
@@ -170,10 +171,12 @@ function Radar({ items }: { items: RadarItem[] }) {
         const [lx, ly] = pt(a.cos, a.sin, 1.16);
         const anchor = Math.abs(a.cos) < 0.25 ? "middle" : a.cos > 0 ? "start" : "end";
         const dy = a.sin < -0.3 ? -3 : a.sin > 0.3 ? 15 : 4;
+        const rx0 = anchor === "end" ? lx - 74 : anchor === "start" ? lx - 4 : lx - 39;
         return (
-          <g key={i}>
+          <g key={i} onClick={(e) => { e.stopPropagation(); setActive(active === i ? null : i); }} style={{ cursor: "pointer" }}>
             <title>{`${a.label}：${a.answered > 0 ? `${a.acc}%` : "未演習"}`}</title>
-            <text x={lx} y={ly + dy} textAnchor={anchor} fontSize={13} fontWeight="700" fill="#374151">
+            <rect x={rx0} y={ly + dy - 14} width={78} height={34} rx={4} fill={active === i ? "rgba(29,78,216,0.07)" : "transparent"} />
+            <text x={lx} y={ly + dy} textAnchor={anchor} fontSize={13} fontWeight="700" fill={active === i ? C.brand : "#374151"}>
               {shortLabel(a.label)}
             </text>
             <text x={lx} y={ly + dy + 16} textAnchor={anchor} fontSize={13} fontWeight="700" fill={a.answered > 0 ? accHex(a.acc) : "#9ca3af"}>
@@ -182,6 +185,26 @@ function Radar({ items }: { items: RadarItem[] }) {
           </g>
         );
       })}
+      {active !== null && (() => {
+        const a = axes[active];
+        const [lx, ly] = pt(a.cos, a.sin, 1.16);
+        const dy = a.sin < -0.3 ? -3 : a.sin > 0.3 ? 15 : 4;
+        const bw = 58, bh = 26, gap = 5, popW = bw * 2 + gap;
+        const px = Math.max(2, Math.min(w - popW - 2, lx - popW / 2));
+        const py = Math.max(2, ly + dy - 42);
+        return (
+          <g onClick={(e) => e.stopPropagation()} style={{ cursor: "pointer" }}>
+            <a href={studyHref(examId, a.label)}>
+              <rect x={px} y={py} width={bw} height={bh} rx={7} fill={C.brandSoft} stroke={C.line2} strokeWidth={1} />
+              <text x={px + bw / 2} y={py + bh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="700" fill={C.brandDeep}>学習</text>
+            </a>
+            <a href={`/exam/${examId}/past?mode=category&category=${encodeURIComponent(a.label)}`}>
+              <rect x={px + bw + gap} y={py} width={bw} height={bh} rx={7} fill={C.brand} />
+              <text x={px + bw + gap + bw / 2} y={py + bh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="700" fill="#fff">演習</text>
+            </a>
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -751,7 +774,7 @@ export function DashboardMain() {
                             <span className="text-[14px] font-bold">{s.label}</span>
                             <span className="text-[14px] font-bold" style={{ color: s.answered > 0 ? accHex(s.acc) : C.faint }}>{s.answered > 0 ? `${s.acc}%` : "—"}</span>
                           </div>
-                          <Radar items={s.items} />
+                          <Radar items={s.items} examId={activeExam} />
                         </div>
                       ))}
                     </div>
