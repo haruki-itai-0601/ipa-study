@@ -419,7 +419,7 @@ export function DashboardMain() {
 
         {/* ===== Main ===== */}
         <div className="flex flex-col">
-          <header className="sticky top-0 z-10 flex items-center gap-3.5 px-4 py-3.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
+          <header className="sticky top-0 z-10 flex items-start gap-3.5 px-4 py-3.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
             <div className="flex-1" />
             {/* P: ゲストのログイン・新規登録を右上（トップバー）に配置 */}
             {isGuest && (
@@ -551,7 +551,7 @@ export function DashboardMain() {
                     </div>
                   </div>
                 )}
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-start gap-3.5">
                   <div className="relative h-[80px] w-[80px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
@@ -579,7 +579,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-start gap-3.5">
                   <div className="relative h-[80px] w-[80px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
@@ -599,7 +599,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-start gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[26px]" style={{ background: C.warnSoft }}>🔥</span>
                   <div className="min-w-0">
                     <div className="text-[14px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
@@ -610,7 +610,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-start gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div className="min-w-0">
                     <div className="text-[14px] font-medium" style={{ color: C.muted }}>平均正答率</div>
