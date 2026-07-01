@@ -454,7 +454,7 @@ export function DashboardMain() {
                     ログインすると学習進捗が保存され、どの端末でも続きから学べます（右上からログイン）。
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-[13.5px]" style={{ color: C.muted }}>今日も合格に一歩近づきましょう。直近の学習からAIがおすすめを用意しました。</p>
+                  <p className="mt-0.5 text-[13.5px]" style={{ color: C.muted }}>今日も合格に一歩近づきましょう。</p>
                 )}
               </div>
               {/* K: 試験名チップを右のボックスと同サイズ（2行・同padding） */}
