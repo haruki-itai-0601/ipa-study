@@ -508,7 +508,7 @@ export function DashboardMain() {
 
             {/* KPI */}
             <div className="mb-3.5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[14px] font-medium" style={{ color: C.muted }}>合格可能性スコア</span>
                   <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="flex-none transition-opacity hover:opacity-70" style={{ color: C.faint }}>
@@ -557,28 +557,46 @@ export function DashboardMain() {
                     </div>
                   </div>
                 )}
-                <div className="mt-2 flex items-center gap-3.5">
-                  <div className="relative h-[80px] w-[80px] flex-none">
+                <div className="mt-1.5 flex items-center gap-3">
+                  <div className="relative h-[56px] w-[56px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
                       <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - active.score / 100)} transform="rotate(-90 40 40)" />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <b className="text-[24px] leading-none">{loading ? "–" : active.score}</b>
-                      <span className="text-[10px]" style={{ color: C.muted }}>/ 100</span>
+                      <b className="text-[19px] leading-none">{loading ? "–" : active.score}</b>
+                      <span className="text-[8px]" style={{ color: C.muted }}>/ 100</span>
+                    </div>
+                  </div>
+                  {(() => {
+                    const sb = scoreBand(active.score, active.solved);
+                    return <span className="inline-block rounded-full px-2.5 py-1 text-[12.5px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
+                  })()}
+                </div>
+                <div className="mt-1.5 text-[13.5px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
+              </div>
+
+              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="text-[14px] font-medium" style={{ color: C.muted }}>累計演習数</div>
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="relative h-[58px] w-[58px] flex-none">
+                    <svg viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
+                      <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - Math.min(1, active.solved / active.target))} transform="rotate(-90 40 40)" />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <b className="text-[18px] leading-none">{loading ? "–" : active.solved.toLocaleString()}</b>
+                      <span className="text-[8px]" style={{ color: C.muted }}>/ {active.target}問</span>
                     </div>
                   </div>
                   <div>
-                    <div className="text-[14px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
-                    {(() => {
-                      const sb = scoreBand(active.score, active.solved);
-                      return <span className="mt-2 inline-block rounded-full px-2.5 py-1 text-[13px] font-bold" style={{ background: sb.bg, color: sb.fg }}>{sb.label}</span>;
-                    })()}
+                    <div className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></div>
+                    <div className="mt-1.5 text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="text-[14px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
                 <div className="mt-2 flex items-center gap-3.5">
                   <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.warnSoft }}>🔥</span>
@@ -589,27 +607,7 @@ export function DashboardMain() {
                 </div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="text-[14px] font-medium" style={{ color: C.muted }}>累計演習数</div>
-                <div className="mt-2 flex items-center gap-3.5">
-                  <div className="relative h-[80px] w-[80px] flex-none">
-                    <svg viewBox="0 0 80 80">
-                      <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
-                      <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - Math.min(1, active.solved / active.target))} transform="rotate(-90 40 40)" />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <b className="text-[22px] leading-none">{loading ? "–" : active.solved.toLocaleString()}</b>
-                      <span className="text-[9.5px]" style={{ color: C.muted }}>/ {active.target}問</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></div>
-                    <div className="mt-1.5 text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="text-[14px] font-medium" style={{ color: C.muted }}>平均正答率</div>
                 <div className="mt-2 flex items-center gap-3.5">
                   <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-[22px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
@@ -680,7 +678,7 @@ export function DashboardMain() {
             )}
 
             {/* D: 弱点分析（全幅）= 弱点バー + 系統ごとのレーダー */}
-            <div className="mb-3.5 rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+            <div className="mb-3.5 rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div className="flex items-center justify-between">
                 <h2 className="text-[17px] font-bold">弱点分析 — 分野別正答率</h2>
                 <div className="flex gap-1">
@@ -767,7 +765,7 @@ export function DashboardMain() {
 
             {/* 推移(実データ・タブ) + 履歴(サンプル) */}
             <div className="grid gap-[18px] lg:grid-cols-2">
-              <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-[17px] font-bold">{trend.isAcc ? "正答率の推移" : "解答数の推移"}</h2>
                   <div className="flex gap-1">
@@ -792,7 +790,7 @@ export function DashboardMain() {
                 <div className="mt-2 text-[11px]" style={{ color: C.faint }}>直近8週・{active.exam.shortName}（実データ）</div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-[17px] font-bold">最近の演習</h2>
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: C.warnSoft, color: C.warn }}>サンプル</span>
