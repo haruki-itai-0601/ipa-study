@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   Clock,
   Settings,
-  Search,
   Bell,
   Sparkles,
   ArrowRight,
@@ -421,9 +420,6 @@ export function DashboardMain() {
         {/* ===== Main ===== */}
         <div className="flex flex-col">
           <header className="sticky top-0 z-10 flex items-center gap-3.5 px-4 py-3.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
-            <div className="flex max-w-[420px] flex-1 items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[13px]" style={{ background: C.bg, border: `1px solid ${C.line}`, color: C.faint }}>
-              <Search className="h-4 w-4" /> 問題・分野を検索…
-            </div>
             <div className="flex-1" />
             {/* P: ゲストのログイン・新規登録を右上（トップバー）に配置 */}
             {isGuest && (
