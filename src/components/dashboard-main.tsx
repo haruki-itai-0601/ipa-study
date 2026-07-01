@@ -508,7 +508,7 @@ export function DashboardMain() {
 
             {/* KPI */}
             <div className="mb-3.5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <div className="relative rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="relative rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="absolute right-2.5 top-2.5 transition-opacity hover:opacity-70" style={{ color: C.faint }}>
                   <HelpCircle className="h-[15px] w-[15px]" />
                 </button>
@@ -555,7 +555,7 @@ export function DashboardMain() {
                   </div>
                 )}
                 <div className="flex items-start gap-3.5">
-                  <div className="relative h-[80px] w-[80px] flex-none">
+                  <div className="relative h-[70px] w-[70px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
                       <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - active.score / 100)} transform="rotate(-90 40 40)" />
@@ -576,9 +576,9 @@ export function DashboardMain() {
                 </div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-start gap-3.5">
-                  <div className="relative h-[80px] w-[80px] flex-none">
+                  <div className="relative h-[70px] w-[70px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
                       <circle cx="40" cy="40" r="34" fill="none" stroke={C.brand} strokeWidth="10" strokeLinecap="round" strokeDasharray={2 * Math.PI * 34} strokeDashoffset={2 * Math.PI * 34 * (1 - Math.min(1, active.solved / active.target))} transform="rotate(-90 40 40)" />
@@ -590,14 +590,16 @@ export function DashboardMain() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium" style={{ color: C.muted }}>累計演習数</div>
-                    <div className="mt-1 text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></div>
-                    <div className="mt-1.5 text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</div>
-                    <div className="mt-0.5 text-[10.5px] leading-snug" style={{ color: C.faint }}>※同じ問題は1問として集計（重複除く）</div>
+                    <div className="mt-1 flex items-baseline gap-2.5">
+                      <span className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></span>
+                      <span className="text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</span>
+                    </div>
+                    <div className="mt-1 text-[9px] leading-none" style={{ color: C.faint }}>※同じ問題は1問として集計（重複除く）</div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-start gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[26px]" style={{ background: C.warnSoft }}>🔥</span>
                   <div className="min-w-0">
@@ -608,7 +610,7 @@ export function DashboardMain() {
                 </div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-start gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div className="min-w-0">
@@ -679,7 +681,7 @@ export function DashboardMain() {
             )}
 
             {/* D: 弱点分析（全幅）= 弱点バー + 系統ごとのレーダー */}
-            <div className="mb-3.5 rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+            <div className="mb-3.5 rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div className="flex items-center justify-between">
                 <h2 className="text-[17px] font-bold">弱点分析 — 分野別正答率</h2>
                 <div className="flex gap-1">
@@ -766,7 +768,7 @@ export function DashboardMain() {
 
             {/* 推移(実データ・タブ) + 履歴(サンプル) */}
             <div className="grid gap-[18px] lg:grid-cols-2">
-              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-[17px] font-bold">{trend.isAcc ? "正答率の推移" : "解答数の推移"}</h2>
                   <div className="flex gap-1">
@@ -791,7 +793,7 @@ export function DashboardMain() {
                 <div className="mt-2 text-[11px]" style={{ color: C.faint }}>直近8週・{active.exam.shortName}（実データ）</div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-[17px] font-bold">最近の演習</h2>
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: C.warnSoft, color: C.warn }}>サンプル</span>
