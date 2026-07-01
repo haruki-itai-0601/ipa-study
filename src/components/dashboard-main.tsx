@@ -456,21 +456,21 @@ export function DashboardMain() {
 
         {/* ===== Main ===== */}
         <div className="flex flex-col">
-          <header className="sticky top-0 z-10 flex items-start gap-3.5 px-4 py-3.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
+          <header className="sticky top-0 z-10 flex items-center gap-3.5 px-4 py-2.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
             <div className="flex-1" />
             {/* P: ゲストのログイン・新規登録を右上（トップバー）に配置 */}
             {isGuest && (
-              <Link href="/account" className="inline-flex h-[38px] items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-bold text-white" style={{ background: C.brand }}>
+              <Link href="/account" className="inline-flex h-[34px] items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-bold text-white" style={{ background: C.brand }}>
                 <LogIn className="h-4 w-4" />
                 <span className="hidden sm:inline">ログイン・新規登録</span>
               </Link>
             )}
-            <button className="flex h-[38px] w-[38px] items-center justify-center rounded-[10px]" style={{ border: `1px solid ${C.line}`, background: C.card, color: C.muted }} aria-label="通知">
+            <button className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px]" style={{ border: `1px solid ${C.line}`, background: C.card, color: C.muted }} aria-label="通知">
               <Bell className="h-[18px] w-[18px]" />
             </button>
             {/* J: 右上ユーザーをクリックで /account */}
             <Link href="/account" className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1 transition-colors hover:bg-gray-50">
-              <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-sm font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>
+              <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-sm font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>
                 {isGuest ? "ゲ" : (name || "あ").charAt(0)}
               </span>
               <span className="hidden text-[13px] font-medium sm:inline">{isGuest ? "ゲスト" : `${name}さん`}</span>
