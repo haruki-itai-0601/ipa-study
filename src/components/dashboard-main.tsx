@@ -362,8 +362,8 @@ export function DashboardMain() {
         {/* ===== Sidebar ===== */}
         <aside className="hidden md:flex flex-col sticky top-0 h-screen overflow-y-auto" style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "14px 14px" }}>
           <Link href="/" className="px-2 pb-3 pt-1 leading-tight">
-            <span className="block text-[20px] font-bold">過去問演習ラボ</span>
-            <span className="block text-[11.5px] font-normal" style={{ color: C.faint }}>AIと、最短で合格へ</span>
+            <span className="block text-[23px] font-bold">過去問演習ラボ</span>
+            <span className="block text-[13px] font-normal" style={{ color: C.faint }}>AIと、最短で合格へ</span>
           </Link>
 
           <nav className="mt-0.5 flex flex-col gap-0">
@@ -508,7 +508,10 @@ export function DashboardMain() {
 
             {/* KPI */}
             <div className="mb-3.5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <div className="rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="relative rounded-[14px] px-[18px] py-2.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="absolute right-2.5 top-2.5 transition-opacity hover:opacity-70" style={{ color: C.faint }}>
+                  <HelpCircle className="h-[15px] w-[15px]" />
+                </button>
                 {showScoreHelp && (
                   <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: "rgba(15,27,51,0.4)" }} onClick={() => setShowScoreHelp(false)}>
                     <div onClick={(e) => e.stopPropagation()} className="w-full max-w-[360px] rounded-2xl bg-white p-5 text-left shadow-2xl" style={{ color: C.ink }}>
@@ -563,12 +566,7 @@ export function DashboardMain() {
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[14px] font-medium" style={{ color: C.muted }}>合格可能性スコア</span>
-                      <button onClick={() => setShowScoreHelp(true)} aria-label="合格可能性スコアの算出方法" className="flex-none transition-opacity hover:opacity-70" style={{ color: C.faint }}>
-                        <HelpCircle className="h-[15px] w-[15px]" />
-                      </button>
-                    </div>
+                    <div className="text-[13px] font-medium" style={{ color: C.muted }}>合格可能性スコア</div>
                     <div className="mt-1 text-[13px]" style={{ color: C.muted }}>合格ライン <b style={{ color: C.ink }}>{PASS_LINE}</b></div>
                     {(() => {
                       const sb = scoreBand(active.score, active.solved);
@@ -591,9 +589,10 @@ export function DashboardMain() {
                     </div>
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[14px] font-medium" style={{ color: C.muted }}>累計演習数</div>
+                    <div className="text-[13px] font-medium" style={{ color: C.muted }}>累計演習数</div>
                     <div className="mt-1 text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></div>
                     <div className="mt-1.5 text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</div>
+                    <div className="mt-0.5 text-[10.5px] leading-snug" style={{ color: C.faint }}>※同じ問題は1問として集計（重複除く）</div>
                   </div>
                 </div>
               </div>
@@ -602,7 +601,7 @@ export function DashboardMain() {
                 <div className="flex items-start gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[26px]" style={{ background: C.warnSoft }}>🔥</span>
                   <div className="min-w-0">
-                    <div className="text-[14px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
+                    <div className="text-[13px] font-medium" style={{ color: C.muted }}>連続学習日数</div>
                     <div className="text-[26px] font-bold leading-tight tracking-tight">{streak}<small className="text-sm font-medium" style={{ color: C.muted }}> 日</small></div>
                     <div className="text-[12px]" style={{ color: C.good }}>今週 {week} / 7 日 達成</div>
                   </div>
@@ -613,7 +612,7 @@ export function DashboardMain() {
                 <div className="flex items-start gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div className="min-w-0">
-                    <div className="text-[14px] font-medium" style={{ color: C.muted }}>平均正答率</div>
+                    <div className="text-[13px] font-medium" style={{ color: C.muted }}>平均正答率</div>
                     <div className="text-[26px] font-bold leading-tight tracking-tight">{loading ? "–" : active.acc}<small className="text-sm font-medium" style={{ color: C.muted }}> %</small></div>
                     <div className="text-[12px]" style={{ color: C.muted }}>{active.answered.toLocaleString()}問で算出</div>
                   </div>
@@ -632,7 +631,7 @@ export function DashboardMain() {
                 <Link href={lockTier.href} className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>{lockTier.label}</Link>
               </div>
             ) : isGuest ? (
-              <div className="mb-3.5 flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
+              <div className="mb-3.5 flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "2px solid #9CBEF2" }}>
                 <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                 <div className="flex-1">
                   <div className="text-[15px] font-bold">弱点分析を踏まえたレコメンドで「次の一手」まで提案</div>
@@ -644,7 +643,7 @@ export function DashboardMain() {
               </div>
             ) : (
               /* ログイン会員: 弱点分析ベースのおすすめ（全員・即時/無料） */
-              <div className="mb-3.5 rounded-[14px] px-4 py-3 sm:px-5" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
+              <div className="mb-3.5 rounded-[14px] px-4 py-3 sm:px-5" style={{ background: C.brandSoft, border: "2px solid #9CBEF2" }}>
                 <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
                   <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
                   <div className="min-w-0 flex-1">
@@ -663,7 +662,7 @@ export function DashboardMain() {
                   </div>
                   {active.answered > 0 && active.top ? (
                     <div className="flex w-full flex-none flex-col gap-2 sm:w-auto sm:flex-row">
-                      <Link href={studyHref(activeExam, active.top.category)} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-2.5 text-[15px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "1px solid #CFE0FB" }}>
+                      <Link href={studyHref(activeExam, active.top.category)} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-2.5 text-[15px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "2px solid #9CBEF2" }}>
                         <BookOpen className="h-4 w-4" />「{displayCategory(activeExam, active.top.category)}」を学習
                       </Link>
                       <Link href={`/exam/${activeExam}/past?mode=category&category=${encodeURIComponent(active.top.category)}`} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-2.5 text-[15px] font-bold text-white" style={{ background: C.brand }}>
