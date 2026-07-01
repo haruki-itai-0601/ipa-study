@@ -618,7 +618,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-start gap-3.5">
                   <div className="relative h-[70px] w-[70px] flex-none">
                     <svg viewBox="0 0 80 80">
                       <circle cx="40" cy="40" r="34" fill="none" stroke="#EDF1F6" strokeWidth="10" />
