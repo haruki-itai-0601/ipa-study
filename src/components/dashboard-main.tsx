@@ -189,18 +189,32 @@ function Radar({ items, examId }: { items: RadarItem[]; examId: string }) {
         const a = axes[active];
         const [lx, ly] = pt(a.cos, a.sin, 1.16);
         const dy = a.sin < -0.3 ? -3 : a.sin > 0.3 ? 15 : 4;
-        const bw = 58, bh = 26, gap = 5, popW = bw * 2 + gap;
-        const px = Math.max(2, Math.min(w - popW - 2, lx - popW / 2));
-        const py = Math.max(2, ly + dy - 42);
+        const labelY = ly + dy;
+        const bw = 66, bh = 25, gap = 5, pad = 6;
+        const popW = bw + pad * 2, popH = bh * 2 + gap + pad * 2;
+        const bx = Math.max(2, Math.min(w - popW - 2, lx - popW / 2));
+        const openUp = labelY > 130; // 上半分のラベルは下向きに開く（見切れ防止）
+        const by = openUp ? labelY - 16 - popH : labelY + 22;
+        const bcx = bx + popW / 2;
+        const tailX = Math.max(bx + 15, Math.min(bx + popW - 15, lx));
+        const tailBaseY = openUp ? by + popH : by;
+        const tailTipY = openUp ? tailBaseY + 8 : tailBaseY - 8;
         return (
           <g onClick={(e) => e.stopPropagation()} style={{ cursor: "pointer" }}>
+            {/* 吹き出し本体 */}
+            <rect x={bx} y={by} width={popW} height={popH} rx={11} fill="#fff" stroke={C.line2} strokeWidth={1} />
+            {/* テール（本体の後で塗って境界線を隠し、斜辺だけ線を引く） */}
+            <path d={`M ${tailX - 7} ${tailBaseY} L ${tailX} ${tailTipY} L ${tailX + 7} ${tailBaseY} Z`} fill="#fff" />
+            <path d={`M ${tailX - 7} ${tailBaseY} L ${tailX} ${tailTipY} L ${tailX + 7} ${tailBaseY}`} fill="none" stroke={C.line2} strokeWidth={1} />
+            {/* 学習（上） */}
             <a href={studyHref(examId, a.label)}>
-              <rect x={px} y={py} width={bw} height={bh} rx={7} fill={C.brandSoft} stroke={C.line2} strokeWidth={1} />
-              <text x={px + bw / 2} y={py + bh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="700" fill={C.brandDeep}>学習</text>
+              <rect x={bx + pad} y={by + pad} width={bw} height={bh} rx={7} fill={C.brandSoft} />
+              <text x={bcx} y={by + pad + bh / 2 + 4} textAnchor="middle" fontSize={12.5} fontWeight="700" fill={C.brandDeep}>学習</text>
             </a>
+            {/* 演習（下） */}
             <a href={`/exam/${examId}/past?mode=category&category=${encodeURIComponent(a.label)}`}>
-              <rect x={px + bw + gap} y={py} width={bw} height={bh} rx={7} fill={C.brand} />
-              <text x={px + bw + gap + bw / 2} y={py + bh / 2 + 4} textAnchor="middle" fontSize={12} fontWeight="700" fill="#fff">演習</text>
+              <rect x={bx + pad} y={by + pad + bh + gap} width={bw} height={bh} rx={7} fill={C.brand} />
+              <text x={bcx} y={by + pad + bh + gap + bh / 2 + 4} textAnchor="middle" fontSize={12.5} fontWeight="700" fill="#fff">演習</text>
             </a>
           </g>
         );
