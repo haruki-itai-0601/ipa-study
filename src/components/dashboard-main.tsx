@@ -444,7 +444,7 @@ export function DashboardMain() {
           </nav>
 
           {!isPremium && (
-            <div className="mt-3 rounded-[14px] p-3.5 text-white" style={{ background: C.dark }}>
+            <div className="mt-auto mb-1 rounded-[14px] p-3.5 text-white" style={{ background: C.dark }}>
               <b className="text-[13px]">Pro で午後も最短合格</b>
               <p className="my-1 text-[11.5px]" style={{ color: "#A9B6CC" }}>記述AI採点・詳細弱点分析が使い放題</p>
               <Link href="/premium" className="mt-2.5 block w-full rounded-[9px] py-2.5 text-center text-[13px] font-bold text-white" style={{ background: C.brand }}>
