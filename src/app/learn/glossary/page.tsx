@@ -8,7 +8,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, Loader2, Search, SearchX } from "lucide-react";
 
 const C = {
@@ -70,10 +70,9 @@ function GlossaryContent() {
   useEffect(() => {
     let on = true;
     (async () => {
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("learn_terms").select("term, reading, category, body, exam_id");
+      const data = await fetchLearnTerms<Term>("term, reading, category, body, exam_id");
       if (!on) return;
-      setTerms((data as Term[]) ?? []);
+      setTerms(data);
       setLoading(false);
     })();
     return () => {

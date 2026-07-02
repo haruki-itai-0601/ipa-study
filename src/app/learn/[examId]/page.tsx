@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams } from "@/lib/exams";
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
 
 const C = {
@@ -32,10 +32,8 @@ export default function LearnHubPage() {
     let on = true;
     setLoading(true);
     (async () => {
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("learn_terms").select("category, exam_id");
+      const rows = await fetchLearnTerms<{ category: string; exam_id: string }>("category, exam_id");
       if (!on) return;
-      const rows = (data as { category: string; exam_id: string }[]) ?? [];
       const mine = rows.filter((r) => r.exam_id === examId);
       setStats({ cats: new Set(mine.map((r) => r.category)).size, terms: mine.length, glossary: rows.length });
       setLoading(false);

@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams, displayCategory } from "@/lib/exams";
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, BookOpen, ChevronRight, Loader2 } from "lucide-react";
 
 const C = {
@@ -26,12 +26,11 @@ export default function LearnCoursePage() {
   useEffect(() => {
     let on = true;
     (async () => {
-      const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("learn_terms").select("category").eq("exam_id", examId);
+      const data = await fetchLearnTerms<{ category: string }>("category", { examId });
       if (!on) return;
       // 分野ごとに用語数を集計（sort_orderの最小で並べたいが、ここでは件数の多い順→名前順）
       const counts = new Map<string, number>();
-      for (const r of (data as { category: string }[]) ?? []) {
+      for (const r of data) {
         counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
       }
       setCats(Array.from(counts.entries()).map(([category, n]) => ({ category, n })).sort((a, b) => b.n - a.n));
