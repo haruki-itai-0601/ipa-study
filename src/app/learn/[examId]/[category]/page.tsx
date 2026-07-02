@@ -1,10 +1,10 @@
 "use client";
 
-// 学習する：分野の「パス型学習」ページ（Brilliant風の縦の道筋）。
+// 学習する：分野の「パス型学習」ページ（BrilliantのQuantum Computingコース路線図を踏襲）。
 // /learn/[examId]/[category]?step=N
-// - ステップ＝小分類（同じ小分類は全体でまとめてから最大8語ずつに分割。IDは小分類#連番で一意）
-// - 道は長短・振れ幅に変化をつけた曲線（リアルな道感）。学習パネルは右側（モバイルは上）に表示し、
-//   完了するたびに「今ここ」マーカーが道の上を滑って進む（CSSトランジション）。
+// - 左＝学習パネル／右＝道（Brilliantと同配置）。モバイルはパネルが上。
+// - ノード＝2段のアイソメトリック台座。道＝細い回路風ルート（水平→斜め→水平）で、
+//   到達済み＝ブランド青・未到達＝薄グレー。小分類の切れ目にLEVELバッジ。背景に薄い配線飾り。
 // - 進捗は localStorage（learnPathV1:exam:category）で管理し、上から順に解放する。
 
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -21,12 +21,12 @@ const C = {
 };
 
 type Term = { id: string; section: string; term: string; reading: string; body: string; sort_order: number };
-type Step = { id: string; title: string; terms: Term[] };
+type Step = { id: string; title: string; section: string; terms: Term[] };
 
 const CHUNK = 8; // 1ステップの最大用語数
 
 // 同じ小分類を全体でまとめて（初出順）、大きい小分類は約8語ずつに分割する。
-// ※連続グループ化だと同名小分類が飛び飛びに複数グループになりIDが重複＝誤解放バグの原因になる。
+// ※連続グループ化だと同名小分類が飛び飛びで別グループになりIDが重複＝誤解放バグの原因になる。
 function buildSteps(terms: Term[]): Step[] {
   const order: string[] = [];
   const bySection = new Map<string, Term[]>();
@@ -45,7 +45,7 @@ function buildSteps(terms: Term[]): Step[] {
     for (let i = 0; i < n; i++) {
       const chunk = list.slice(i * size, (i + 1) * size);
       if (chunk.length === 0) continue;
-      steps.push({ id: `${section}#${i}`, title: n > 1 ? `${section} ${i + 1}` : section, terms: chunk });
+      steps.push({ id: `${section}#${i}`, title: n > 1 ? `${section} ${i + 1}` : section, section, terms: chunk });
     }
   }
   return steps;
@@ -55,47 +55,66 @@ function storageKey(examId: string, category: string) {
   return `learnPathV1:${examId}:${category}`;
 }
 
-// 道の蛇行パターン（BrilliantのScientific Thinkingの道を左右反転してほぼそのまま使用。
-// なだらかな蛇行＝同じ側に2〜3ノード続いてから反対側へ渡る。決め打ち値でリロードしても同じ道）
-const XP = [-0.9, -0.55, -0.1, 0.5, 0.95, 0.6, 0.15, -0.45, -0.95, -0.6, -0.12, 0.55, 0.92, 0.5, 0.05, -0.5];
-const YG = [1, 1.12, 0.94, 1.06, 1.18, 0.92, 1.08, 1, 1.14, 0.96];
+// 道の蛇行（Brilliantの路線図と同じく、同じ側に続いてから反対へ渡るループパターン。決め打ち）
+const XP = [-0.72, 0.05, 0.78, 0.12, -0.65, 0.18];
+const YG = [1, 1.04, 0.96, 1.08, 0.94, 1.02];
 
-// 立体キューブノード（アイソメトリック）。(x, y) が視覚中心になるよう配置する。
-function IsoCube({
-  x, y, size, top, left, right, selected, dimmed,
+// 2段のアイソメトリック台座（Brilliantのレッスンノード風）。(x, y) が下段上面の中心。
+function IsoPlatform({
+  x, y, palette, selected, dimmed,
 }: {
-  x: number; y: number; size: number;
-  top: string; left: string; right: string;
+  x: number; y: number;
+  palette: { baseTop: string; baseSide: string; topTop: string; topSide: string };
   selected?: boolean; dimmed?: boolean;
 }) {
-  const s = size;
-  const h = s * 0.94;
+  const W = 66; // 下段の幅
+  const T = 12; // 下段の厚み
+  const w = 42; // 上段の幅
+  const t = 9; // 上段の厚み
+  const H = W / 2; // 下段上面ひし形の高さ
+  const h = w / 2; // 上段上面ひし形の高さ
+  const cx = W / 2;
+  const baseCy = 26; // 下段上面中心（svg内）
+  const topCy = baseCy - 8; // 上段上面中心（少し持ち上げ）
   return (
     <svg
-      width={s}
-      height={h}
+      width={W}
+      height={baseCy + H / 2 + T + 2}
       className="absolute"
       style={{
-        left: x - s / 2,
-        top: y - h / 2,
-        filter: selected ? "drop-shadow(0 6px 12px rgba(29,78,216,0.4))" : "drop-shadow(0 3px 5px rgba(21,32,46,0.18))",
-        opacity: dimmed ? 0.9 : 1,
+        left: x - cx,
+        top: y - baseCy,
+        filter: selected
+          ? "drop-shadow(0 6px 14px rgba(29,78,216,0.45))"
+          : "drop-shadow(0 3px 5px rgba(21,32,46,0.2))",
+        opacity: dimmed ? 0.92 : 1,
       }}
       aria-hidden="true"
     >
-      {/* 上面 → 左面 → 右面 */}
-      <polygon points={`${s / 2},0 ${s},${s * 0.25} ${s / 2},${s * 0.5} 0,${s * 0.25}`} fill={top} stroke={selected ? "#fff" : "rgba(255,255,255,0.35)"} strokeWidth={selected ? 2.5 : 1} strokeLinejoin="round" style={{ transition: "fill .4s ease" }} />
-      <polygon points={`0,${s * 0.25} ${s / 2},${s * 0.5} ${s / 2},${h} 0,${s * 0.69}`} fill={left} stroke={selected ? "#fff" : "transparent"} strokeWidth={selected ? 2.5 : 0} strokeLinejoin="round" style={{ transition: "fill .4s ease" }} />
-      <polygon points={`${s / 2},${s * 0.5} ${s},${s * 0.25} ${s},${s * 0.69} ${s / 2},${h}`} fill={right} stroke={selected ? "#fff" : "transparent"} strokeWidth={selected ? 2.5 : 0} strokeLinejoin="round" style={{ transition: "fill .4s ease" }} />
+      {/* 下段（側面→上面） */}
+      <polygon points={`0,${baseCy} ${cx},${baseCy + H / 2} ${cx},${baseCy + H / 2 + T} 0,${baseCy + T}`} fill={palette.baseSide} style={{ transition: "fill .4s ease" }} />
+      <polygon points={`${cx},${baseCy + H / 2} ${W},${baseCy} ${W},${baseCy + T} ${cx},${baseCy + H / 2 + T}`} fill={palette.baseSide} style={{ transition: "fill .4s ease", filter: "brightness(0.88)" }} />
+      <polygon points={`${cx},${baseCy - H / 2} ${W},${baseCy} ${cx},${baseCy + H / 2} 0,${baseCy}`} fill={palette.baseTop} style={{ transition: "fill .4s ease" }} />
+      {/* 上段（側面→上面） */}
+      <polygon points={`${cx - w / 2},${topCy} ${cx},${topCy + h / 2} ${cx},${topCy + h / 2 + t} ${cx - w / 2},${topCy + t}`} fill={palette.topSide} style={{ transition: "fill .4s ease" }} />
+      <polygon points={`${cx},${topCy + h / 2} ${cx + w / 2},${topCy} ${cx + w / 2},${topCy + t} ${cx},${topCy + h / 2 + t}`} fill={palette.topSide} style={{ transition: "fill .4s ease", filter: "brightness(0.88)" }} />
+      <polygon
+        points={`${cx},${topCy - h / 2} ${cx + w / 2},${topCy} ${cx},${topCy + h / 2} ${cx - w / 2},${topCy}`}
+        fill={palette.topTop}
+        stroke={selected ? "#fff" : "transparent"}
+        strokeWidth={selected ? 2 : 0}
+        strokeLinejoin="round"
+        style={{ transition: "fill .4s ease" }}
+      />
     </svg>
   );
 }
 
-// キューブの配色（上面/左面/右面）
-const CUBE = {
-  done: { top: "#3D6BF0", left: "#12318F", right: "#1D4ED8" },
-  locked: { top: "#E6EBF3", left: "#C3CCDA", right: "#D6DEE9" },
-  goal: { top: "#2FA576", left: "#0A6B4A", right: "#0F8A5F" },
+// 台座の配色（下段上面/下段側面/上段上面/上段側面）
+const PLAT = {
+  done: { baseTop: "#1D4ED8", baseSide: "#12318F", topTop: "#5B84F5", topSide: "#2F5CD9" },
+  locked: { baseTop: "#565D68", baseSide: "#3E434C", topTop: "#8B93A0", topSide: "#6A7280" },
+  goal: { baseTop: "#0F8A5F", baseSide: "#0A6B4A", topTop: "#3DB98A", topSide: "#178F66" },
 };
 
 function LearnPathContent() {
@@ -111,7 +130,7 @@ function LearnPathContent() {
   const [cats, setCats] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [done, setDone] = useState<string[]>([]);
-  const [pathWidth, setPathWidth] = useState(420);
+  const [pathWidth, setPathWidth] = useState(460);
 
   useEffect(() => {
     let on = true;
@@ -192,19 +211,18 @@ function LearnPathContent() {
   }
   const selected = stepIdx !== null ? steps[stepIdx] : null;
 
-  // モバイルではノード選択時にパネルへスクロール
   useEffect(() => {
     if (stepParam && typeof window !== "undefined" && window.innerWidth < 768) {
       document.getElementById("learn-step-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [stepParam]);
 
-  // ===== 道の座標（揺らぎつき） =====
-  const AMP = Math.min(92, Math.max(46, pathWidth / 2 - 128));
-  const BASE_GAP = 100;
+  // ===== 道の座標 =====
+  const AMP = Math.min(150, Math.max(58, pathWidth / 2 - 92));
+  const BASE_GAP = 138; // ラベルをノード下に置くため広め
   const ys = useMemo(() => {
     const arr: number[] = [];
-    let y = 52;
+    let y = 112;
     for (let i = 0; i <= steps.length; i++) {
       arr.push(y);
       y += BASE_GAP * YG[i % YG.length];
@@ -214,19 +232,34 @@ function LearnPathContent() {
   const xAt = (i: number) => pathWidth / 2 + XP[i % XP.length] * AMP;
   const nodeXY = (i: number) => ({ x: xAt(i), y: ys[i] });
   const goalXY = { x: xAt(steps.length), y: ys[steps.length] };
-  const pathHeight = goalXY.y + 72;
+  const pathHeight = goalXY.y + 96;
   const avatarPos = allDone ? goalXY : currentIdx >= 0 ? nodeXY(currentIdx) : null;
 
-  // 道はBrilliant風＝45°の斜め＋縦の直線でつなぐ回路的なルート（縦→斜め→縦の対称形）。
-  // 二層で描き、下層を+5pxずらして「ポコッと」立体に見せる。
+  // 道＝水平→斜め→水平の回路風ルート（Brilliantの路線図と同じ挙動。
+  // 横移動が小さい区間は一度反対側へ張り出してから斜めで渡る）
   const roadD = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    const dx = b.x - a.x;
     const dy = b.y - a.y;
-    const adx = Math.abs(dx);
-    if (dy <= adx + 8) return `M ${a.x} ${a.y} L ${b.x} ${b.y}`; // 高低差が小さければ直線
-    const v = (dy - adx) / 2;
-    return `M ${a.x} ${a.y} L ${a.x} ${a.y + v} L ${b.x} ${a.y + v + adx} L ${b.x} ${b.y}`;
+    const dx = b.x - a.x;
+    const run = Math.min(dy * 2, Math.max(140, pathWidth * 0.58)); // 斜め区間の水平距離（傾き≒0.5）
+    const dir = dx >= 0 ? 1 : -1;
+    const h1 = (dx - dir * run) / 2;
+    const x1 = a.x + h1;
+    const x2 = x1 + dir * run;
+    return `M ${a.x} ${a.y} L ${x1} ${a.y} L ${x2} ${b.y} L ${b.x} ${b.y}`;
   };
+
+  // LEVELバッジ（小分類の切れ目）
+  const badges = useMemo(() => {
+    const list: { i: number; level: number }[] = [];
+    let prev = "";
+    steps.forEach((s, i) => {
+      if (s.section !== prev) {
+        list.push({ i, level: list.length + 1 });
+        prev = s.section;
+      }
+    });
+    return list;
+  }, [steps]);
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
@@ -298,10 +331,10 @@ function LearnPathContent() {
               </div>
             )}
 
-            {/* 道（左）＋学習パネル（右） */}
-            <div className="mt-4 flex flex-col gap-5 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:items-start md:gap-6">
-              {/* 学習パネル（モバイルでは上） */}
-              <div id="learn-step-panel" className="order-1 md:sticky md:top-[84px] md:order-2 md:max-h-[calc(100vh-108px)] md:overflow-y-auto">
+            {/* 学習パネル（左）＋道（右）＝Brilliantと同配置。モバイルはパネルが上 */}
+            <div className="mt-4 flex flex-col gap-5 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:items-start md:gap-6">
+              {/* 学習パネル */}
+              <div id="learn-step-panel" className="md:sticky md:top-[84px] md:max-h-[calc(100vh-108px)] md:overflow-y-auto">
                 {selected ? (
                   <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                     <div className="flex items-baseline justify-between gap-2">
@@ -363,56 +396,73 @@ function LearnPathContent() {
               </div>
 
               {/* 道 */}
-              <div className="order-2 md:order-1">
+              <div>
                 <div id="learn-path-area" className="relative w-full" style={{ height: pathHeight }}>
                   <svg width={pathWidth} height={pathHeight} className="absolute inset-0" aria-hidden="true">
+                    {/* 背景の配線飾り（Brilliantの薄い回路模様） */}
+                    <g fill="none" stroke="#E9EDF5" strokeWidth={2}>
+                      {Array.from({ length: Math.max(1, Math.ceil(pathHeight / 560)) }, (_, k) => (
+                        <g key={k}>
+                          <path d={`M ${pathWidth - 8} ${k * 560 + 60} h -44 l -24 12 h -38`} />
+                          <circle cx={pathWidth - 116} cy={k * 560 + 72} r={3.5} fill="#E9EDF5" stroke="none" />
+                          <path d={`M 8 ${k * 560 + 330} h 40 l 24 -12 h 36`} />
+                          <circle cx={110} cy={k * 560 + 318} r={3.5} fill="#E9EDF5" stroke="none" />
+                        </g>
+                      ))}
+                    </g>
+                    {/* 道 */}
                     {steps.map((s, i) => {
                       const a = nodeXY(i);
                       const b = i + 1 < steps.length ? nodeXY(i + 1) : goalXY;
                       const solid = isDone(s.id);
-                      const dash = solid ? undefined : "0.5 17";
-                      const d = roadD(a, b);
                       return (
-                        <g key={s.id}>
-                          <path
-                            d={d}
-                            transform="translate(0,5)"
-                            fill="none"
-                            strokeWidth={11}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeDasharray={dash}
-                            style={{ stroke: solid ? "#12318F" : "#C6D0DE", transition: "stroke .5s ease" }}
-                          />
-                          <path
-                            d={d}
-                            fill="none"
-                            strokeWidth={11}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeDasharray={dash}
-                            style={{ stroke: solid ? C.brand : "#E2E8F1", transition: "stroke .5s ease" }}
-                          />
-                        </g>
+                        <path
+                          key={s.id}
+                          d={roadD(a, b)}
+                          fill="none"
+                          strokeWidth={solid ? 6 : 5}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ stroke: solid ? C.brand : "#E1E6EF", transition: "stroke .5s ease" }}
+                        />
                       );
                     })}
                   </svg>
 
-                  {/* 進むマーカー（ハロー＋今ここ）＝位置がCSSトランジションで滑る */}
+                  {/* 進むマーカー（光＋今ここ）＝位置がCSSトランジションで滑る */}
                   {avatarPos && !allDone && (
                     <>
                       <span
                         className="absolute rounded-full"
-                        style={{ left: avatarPos.x - 37, top: avatarPos.y - 37, width: 74, height: 74, background: C.brandSoft, transition: "left .7s ease, top .7s ease" }}
+                        style={{ left: avatarPos.x - 40, top: avatarPos.y - 40, width: 80, height: 80, background: C.brand, opacity: 0.13, filter: "blur(10px)", transition: "left .7s ease, top .7s ease" }}
                       />
                       <span
                         className="absolute whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
-                        style={{ left: avatarPos.x - 26, top: avatarPos.y - 54, background: C.brand, transition: "left .7s ease, top .7s ease" }}
+                        style={{ left: avatarPos.x - 26, top: avatarPos.y - 62, background: C.brand, transition: "left .7s ease, top .7s ease" }}
                       >
                         今ここ
                       </span>
                     </>
                   )}
+
+                  {/* LEVELバッジ（小分類の切れ目） */}
+                  {badges.map((bd) => {
+                    if (bd.i === currentIdx) return null; // 今ここピルと重なるため現在ノードのバッジは出さない
+                    const here = nodeXY(bd.i);
+                    const pos = { x: here.x, y: here.y - 66 };
+                    const reached = unlocked(bd.i);
+                    return (
+                      <span key={bd.i} className="absolute" style={{ left: pos.x - 30, top: pos.y - 30, width: 60 }}>
+                        <span className="block text-center text-[9px] font-bold tracking-widest" style={{ color: reached ? C.brand : "#AAB4C3" }}>LEVEL</span>
+                        <span
+                          className="mx-auto mt-0.5 flex h-[30px] w-[30px] rotate-45 items-center justify-center rounded-[7px]"
+                          style={{ background: reached ? C.brand : "#D9DFE9", border: "2.5px solid #fff", boxShadow: "0 2px 6px rgba(21,32,46,0.15)", transition: "background .4s ease" }}
+                        >
+                          <span className="-rotate-45 text-[12.5px] font-bold" style={{ color: reached ? "#fff" : "#8E99A9" }}>{bd.level}</span>
+                        </span>
+                      </span>
+                    );
+                  })}
 
                   {steps.map((s, i) => {
                     const { x, y } = nodeXY(i);
@@ -420,33 +470,27 @@ function LearnPathContent() {
                     const isCurrent = i === currentIdx;
                     const isSelected = i === stepIdx;
                     const canOpen = completed || unlocked(i);
-                    const labelLeft = x >= pathWidth / 2;
-                    const cube = completed || isCurrent ? CUBE.done : CUBE.locked;
                     const node = (
                       <>
-                        <IsoCube x={x} y={y} size={58} top={cube.top} left={cube.left} right={cube.right} selected={isSelected} dimmed={!canOpen} />
-                        <span className="absolute flex items-center justify-center" style={{ left: x - 11, top: y - 24, width: 22, height: 22 }}>
+                        <IsoPlatform x={x} y={y} palette={completed || isCurrent ? PLAT.done : PLAT.locked} selected={isSelected} dimmed={!canOpen} />
+                        <span className="absolute flex items-center justify-center" style={{ left: x - 10, top: y - 22, width: 20, height: 20 }}>
                           {completed ? (
-                            <Check className="h-5 w-5 text-white" />
+                            <Check className="h-4.5 w-4.5 text-white" style={{ width: 18, height: 18 }} />
                           ) : isCurrent ? (
-                            <Play className="h-5 w-5 text-white" />
+                            <Play className="text-white" style={{ width: 17, height: 17 }} />
                           ) : (
-                            <Lock className="h-4 w-4" style={{ color: "#8E9AAC" }} />
+                            <Lock style={{ width: 15, height: 15, color: "#D4DAE3" }} />
                           )}
                         </span>
-                        <span
-                          className="absolute"
-                          style={{
-                            top: y - 18,
-                            ...(labelLeft ? { right: pathWidth - x + 38, textAlign: "right" as const } : { left: x + 38 }),
-                            maxWidth: (labelLeft ? x : pathWidth - x) - 46,
-                          }}
-                        >
-                          <span className="block truncate text-[14px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted }}>
-                            {s.title}
-                          </span>
-                          <span className="block text-[11.5px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400 }}>
-                            {completed ? `完了 ・ ${s.terms.length}語` : isCurrent ? "いま学べる →" : `未開放 ・ ${s.terms.length}語`}
+                        {/* ラベル＝ノードの真下・中央（Brilliant式）。道が透けないよう背景プレート付き */}
+                        <span className="absolute flex justify-center" style={{ left: x - 90, top: y + 30, width: 180 }}>
+                          <span className="rounded-lg px-1.5 py-0.5 text-center" style={{ background: "rgba(245,247,250,0.94)" }}>
+                            <span className="block text-[13.5px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted }}>
+                              {s.title}
+                            </span>
+                            <span className="block text-[11px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400 }}>
+                              {completed ? `完了 ・ ${s.terms.length}語` : isCurrent ? "いま学べる →" : `未開放 ・ ${s.terms.length}語`}
+                            </span>
                           </span>
                         </span>
                       </>
@@ -461,29 +505,17 @@ function LearnPathContent() {
                   })}
 
                   {/* ゴール */}
-                  <IsoCube
-                    x={goalXY.x}
-                    y={goalXY.y}
-                    size={62}
-                    top={allDone ? CUBE.goal.top : CUBE.locked.top}
-                    left={allDone ? CUBE.goal.left : CUBE.locked.left}
-                    right={allDone ? CUBE.goal.right : CUBE.locked.right}
-                  />
-                  <span className="absolute flex items-center justify-center" style={{ left: goalXY.x - 11, top: goalXY.y - 25, width: 22, height: 22 }}>
-                    <Trophy className="h-5 w-5" style={{ color: allDone ? "#fff" : "#8E9AAC" }} />
+                  <IsoPlatform x={goalXY.x} y={goalXY.y} palette={allDone ? PLAT.goal : PLAT.locked} />
+                  <span className="absolute flex items-center justify-center" style={{ left: goalXY.x - 10, top: goalXY.y - 22, width: 20, height: 20 }}>
+                    <Trophy style={{ width: 16, height: 16, color: allDone ? "#fff" : "#D4DAE3" }} />
                   </span>
-                  <span
-                    className="absolute"
-                    style={{
-                      top: goalXY.y - 18,
-                      ...(goalXY.x >= pathWidth / 2 ? { right: pathWidth - goalXY.x + 38, textAlign: "right" as const } : { left: goalXY.x + 38 }),
-                      maxWidth: (goalXY.x >= pathWidth / 2 ? goalXY.x : pathWidth - goalXY.x) - 46,
-                    }}
-                  >
-                    <span className="block text-[14px] font-bold leading-tight" style={{ color: allDone ? C.good : C.muted }}>
-                      {catLabel} 総まとめ
+                  <span className="absolute flex justify-center" style={{ left: goalXY.x - 90, top: goalXY.y + 30, width: 180 }}>
+                    <span className="rounded-lg px-1.5 py-0.5 text-center" style={{ background: "rgba(245,247,250,0.94)" }}>
+                      <span className="block text-[13.5px] font-bold leading-tight" style={{ color: allDone ? C.good : C.muted }}>
+                        {catLabel} 総まとめ
+                      </span>
+                      <span className="block text-[11px]" style={{ color: C.faint }}>{allDone ? "達成！" : "ゴール"}</span>
                     </span>
-                    <span className="block text-[11.5px]" style={{ color: C.faint }}>{allDone ? "達成！" : "ゴール"}</span>
                   </span>
                 </div>
 
