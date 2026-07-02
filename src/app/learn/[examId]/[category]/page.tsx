@@ -1,10 +1,11 @@
 "use client";
 
-// 学習する：分野の「パス型学習」ページ（Brilliant「100 Days of Puzzles」の路線図をまんま踏襲）。
+// 学習する：分野の「パス型学習」ページ（Brilliantの路線図を踏襲）。
 // /learn/[examId]/[category]?step=N
 // - 左＝学習パネル／右＝道。モバイルはパネルが上。
 // - 道＝チェーン構造（LEVELひし形バッジもノードとして道の上に直列に並ぶ）。
-//   ノード間は「斜め（傾き0.5）→縦」の短い直結。細い線で、到達済み＝青／未到達＝薄グレー。
+//   線はすべて±45°の斜めのみ。全体は下りつつ、横移動が大きい区間は一度「登って」から下り、
+//   小さい区間は外側へ振ってから45°で戻る＝上下にうねる山道になる。到達済み＝青／未到達＝薄グレー。
 // - ノード＝2段のアイソメトリック台座。ラベルはノード真下・中央。
 // - 進捗は localStorage（learnPathV1:exam:category）で管理し、上から順に解放する。
 
@@ -14,6 +15,7 @@ import Link from "next/link";
 import { basicExams, displayCategory, orderLearnCategories } from "@/lib/exams";
 import { createSupabaseBrowserClient, fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, ArrowRight, Check, Lightbulb, Loader2, Lock, Pencil, Play, Trophy } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -55,8 +57,9 @@ function storageKey(examId: string, category: string) {
   return `learnPathV1:${examId}:${category}`;
 }
 
-// 道の蛇行（100 Days of Puzzlesと同じ、中心まわりのなだらかな階段状サーペンタイン。ループする）
-const XP = [0, 0.5, 1, 0.5, 0, -0.5, -1, -0.5];
+// 道の蛇行（左右に大きくバウンドするサーペンタイン。ループする）
+// 横の飛距離に大小をつけることで、45°ルーティングが自然に「山」と「谷」を作る。
+const XP = [0, -1, 0.6, 1, -0.4, -1, 0.2, 1];
 
 // チェーン上のアイテム（LEVELバッジも道の上に直列に並ぶ）
 type ChainItem =
@@ -238,21 +241,21 @@ function LearnPathContent() {
   }, [steps]);
 
   // チェーン各アイテムの座標（バッジは間隔を詰める）
-  const AMP = Math.min(120, Math.max(56, pathWidth / 2 - 104));
+  const AMP = Math.min(200, Math.max(60, pathWidth / 2 - 90));
   const positions = useMemo(() => {
     const arr: { x: number; y: number }[] = [];
-    let y = 58;
+    let y = 64;
     chain.forEach((it, k) => {
       arr.push({ x: 0 /* 後で幅確定 */, y });
       const next = chain[k + 1];
       if (!next) return;
-      const gap = it.type === "badge" || next.type === "badge" ? 86 : 126;
+      const gap = it.type === "badge" || next.type === "badge" ? 110 : 170;
       y += gap;
     });
     return arr;
   }, [chain]);
   const posOf = (k: number) => ({ x: pathWidth / 2 + XP[k % XP.length] * AMP, y: positions[k]?.y ?? 0 });
-  const pathHeight = (positions[positions.length - 1]?.y ?? 0) + 96;
+  const pathHeight = (positions[positions.length - 1]?.y ?? 0) + 110;
 
   // 各チェーンアイテムの「到達判定」（この位置まで青い線が来ているか）
   const ordinalOf = (it: ChainItem) => (it.type === "goal" ? steps.length : it.stepIdx);
@@ -269,14 +272,56 @@ function LearnPathContent() {
       ? posOf(currentChainIdx)
       : null;
 
-  // ノード間の接続＝「斜め（傾き0.5）→縦」の短い直結（参照サイトと同じ）
-  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+  // ノード間の接続＝すべて±45°の斜め線のみで構成（Brilliantの路線図と同じ）。
+  // |dx| > dy: 一度「登って」から下る山（クレスト）。
+  // |dx| < dy: ターゲットの外側へ振ってから45°で戻る谷（画面に収まらない場合は手前側に折る）。
+  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }, k: number) => {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
-    if (dx === 0) return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
-    const diagDy = Math.min(Math.abs(dx) * 0.5, dy);
-    return `M ${a.x} ${a.y} L ${b.x} ${a.y + diagDy} L ${b.x} ${b.y}`;
+    const adx = Math.abs(dx);
+    const pts: { x: number; y: number }[] = [a];
+    if (Math.abs(adx - dy) < 1) {
+      // ちょうど45°: そのまま直行
+    } else if (adx > dy) {
+      const rise = (adx - dy) / 2;
+      const s = Math.sign(dx);
+      pts.push({ x: a.x + s * rise, y: a.y - rise });
+    } else {
+      const s = dx === 0 ? (k % 2 === 0 ? 1 : -1) : Math.sign(dx);
+      const long = (dy + adx) / 2;
+      const overX = a.x + s * long;
+      if (overX > 24 && overX < pathWidth - 24) {
+        pts.push({ x: overX, y: a.y + long });
+      } else {
+        const short = (dy - adx) / 2;
+        pts.push({ x: a.x - s * short, y: a.y + short });
+      }
+    }
+    pts.push(b);
+    return pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
   };
+
+  // ノードから出ていく最初の線の向き（ラベルを線と反対側に逃がすために使う）
+  const exitDir = (k: number): { sx: number; down: boolean } | null => {
+    if (k >= chain.length - 1) return null;
+    const a = posOf(k);
+    const b = posOf(k + 1);
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const adx = Math.abs(dx);
+    if (adx > dy + 1) return { sx: Math.sign(dx), down: false }; // クレスト＝登りで出る
+    const s = dx === 0 ? (k % 2 === 0 ? 1 : -1) : Math.sign(dx);
+    const overX = a.x + s * ((dy + adx) / 2);
+    const fits = overX > 24 && overX < pathWidth - 24;
+    return { sx: fits ? s : -s, down: true };
+  };
+  // 下りで出る線はラベル位置（ノード直下）を横切るので、ラベルを反対側へ40pxずらす
+  const labelShift = (k: number) => {
+    const ex = exitDir(k);
+    return ex && ex.down ? -ex.sx * 40 : 0;
+  };
+  // 線がラベルをかすめても読めるように、背景色の縁取り
+  const HALO = `0 1px 0 ${C.bg}, 0 -1px 0 ${C.bg}, 1px 0 0 ${C.bg}, -1px 0 0 ${C.bg}, 1px 1px 0 ${C.bg}, -1px -1px 0 ${C.bg}, 1px -1px 0 ${C.bg}, -1px 1px 0 ${C.bg}`;
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
@@ -292,6 +337,7 @@ function LearnPathContent() {
           <span className="ml-auto whitespace-nowrap text-[13px] font-bold" style={{ color: C.brandDeep }}>
             {doneCount} / {steps.length} 完了
           </span>
+          <BackToDashboard />
         </div>
       </header>
 
@@ -433,9 +479,9 @@ function LearnPathContent() {
                       return (
                         <path
                           key={k}
-                          d={roadD(a, b)}
+                          d={roadD(a, b, k)}
                           fill="none"
-                          strokeWidth={solid ? 4.5 : 3.5}
+                          strokeWidth={solid ? 6 : 4.5}
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           style={{ stroke: solid ? C.brand : "#DFE5EE", transition: "stroke .5s ease" }}
@@ -476,7 +522,7 @@ function LearnPathContent() {
                       const on = reached(k);
                       return (
                         <span key={`b${k}`} className="absolute" style={{ left: x - 34, top: y - 26, width: 68 }}>
-                          <span className="block text-center text-[9px] font-bold tracking-widest" style={{ color: on ? C.brand : "#AAB4C3" }}>LEVEL</span>
+                          <span className="block text-center text-[9px] font-bold tracking-widest" style={{ color: on ? C.brand : "#AAB4C3", textShadow: HALO }}>LEVEL</span>
                           <span
                             className="mx-auto mt-0.5 flex h-[30px] w-[30px] rotate-45 items-center justify-center rounded-[7px]"
                             style={{ background: on ? C.brand : "#D9DFE9", border: "2.5px solid #fff", boxShadow: "0 2px 6px rgba(21,32,46,0.15)", transition: "background .4s ease" }}
@@ -494,10 +540,10 @@ function LearnPathContent() {
                             <Trophy style={{ width: 16, height: 16, color: allDone ? "#fff" : "#D4DAE3" }} />
                           </span>
                           <span className="absolute text-center" style={{ left: x - 80, top: y + 30, width: 160 }}>
-                            <span className="block text-[13px] font-bold leading-tight" style={{ color: allDone ? C.good : C.muted }}>
+                            <span className="block text-[13px] font-bold leading-tight" style={{ color: allDone ? C.good : C.muted, textShadow: HALO }}>
                               {catLabel} 総まとめ
                             </span>
-                            <span className="block text-[11px]" style={{ color: C.faint }}>{allDone ? "達成！" : "ゴール"}</span>
+                            <span className="block text-[11px]" style={{ color: C.faint, textShadow: HALO }}>{allDone ? "達成！" : "ゴール"}</span>
                           </span>
                         </span>
                       );
@@ -519,11 +565,11 @@ function LearnPathContent() {
                             <Lock style={{ width: 14, height: 14, color: "#D4DAE3" }} />
                           )}
                         </span>
-                        <span className="absolute text-center" style={{ left: x - 80, top: y + 30, width: 160 }}>
-                          <span className="block text-[13px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted }}>
+                        <span className="absolute text-center" style={{ left: x - 80 + labelShift(k), top: y + 30, width: 160 }}>
+                          <span className="block text-[13px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted, textShadow: HALO }}>
                             {s.title}
                           </span>
-                          <span className="block text-[11px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400 }}>
+                          <span className="block text-[11px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400, textShadow: HALO }}>
                             {completed ? `完了 ・ ${s.terms.length}語` : isCurrent ? "いま学べる →" : `未開放 ・ ${s.terms.length}語`}
                           </span>
                         </span>
