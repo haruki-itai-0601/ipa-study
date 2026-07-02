@@ -444,18 +444,27 @@ function LearnPathContent() {
                     })}
                   </svg>
 
-                  {/* 進むマーカー（光＋今ここ） */}
+                  {/* 進むマーカー（光＋ぷかぷか浮遊するクリスタル）＝現在地。完了すると次ノードへ滑る */}
                   {avatarPos && !allDone && (
                     <>
+                      <style>{`@keyframes learnBob{from{transform:translateY(0)}to{transform:translateY(-8px)}}`}</style>
                       <span
                         className="absolute rounded-full"
                         style={{ left: avatarPos.x - 40, top: avatarPos.y - 40, width: 80, height: 80, background: C.brand, opacity: 0.12, filter: "blur(10px)", transition: "left .7s ease, top .7s ease" }}
                       />
                       <span
-                        className="absolute whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
-                        style={{ left: avatarPos.x - 26, top: avatarPos.y - 58, background: C.brand, transition: "left .7s ease, top .7s ease" }}
+                        className="absolute"
+                        style={{ left: avatarPos.x - 14, top: avatarPos.y - 72, transition: "left .7s ease, top .7s ease" }}
                       >
-                        今ここ
+                        <span className="block" style={{ animation: "learnBob 1.5s ease-in-out infinite alternate" }}>
+                          <svg width={28} height={36} viewBox="0 0 28 36" aria-hidden="true" style={{ filter: "drop-shadow(0 4px 8px rgba(29,78,216,0.45))" }}>
+                            <polygon points="14,0 1,12 14,14" fill="#7DA0F8" />
+                            <polygon points="14,0 27,12 14,14" fill="#4A74EF" />
+                            <polygon points="1,12 14,36 14,14" fill="#2F5CD9" />
+                            <polygon points="27,12 14,36 14,14" fill="#12318F" />
+                            <polygon points="14,3 8,9 13,10" fill="rgba(255,255,255,0.55)" />
+                          </svg>
+                        </span>
                       </span>
                     </>
                   )}
