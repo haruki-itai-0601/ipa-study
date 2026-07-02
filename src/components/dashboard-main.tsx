@@ -425,7 +425,7 @@ export function DashboardMain() {
 
             {/* ② 学習と復習する（用語・概念。午前/午後の区別なし） */}
             <div className="mt-1.5 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[16.5px] font-bold" style={{ color: C.ink }}>
-              <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習と復習する
+              <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習・復習する
             </div>
             {LEARN_NAV.map(renderNavItem)}
 
