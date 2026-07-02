@@ -1,10 +1,11 @@
 "use client";
 
-// 学習する：分野の「パス型学習」ページ（BrilliantのQuantum Computingコース路線図を踏襲）。
+// 学習する：分野の「パス型学習」ページ（Brilliant「100 Days of Puzzles」の路線図をまんま踏襲）。
 // /learn/[examId]/[category]?step=N
-// - 左＝学習パネル／右＝道（Brilliantと同配置）。モバイルはパネルが上。
-// - ノード＝2段のアイソメトリック台座。道＝細い回路風ルート（水平→斜め→水平）で、
-//   到達済み＝ブランド青・未到達＝薄グレー。小分類の切れ目にLEVELバッジ。背景に薄い配線飾り。
+// - 左＝学習パネル／右＝道。モバイルはパネルが上。
+// - 道＝チェーン構造（LEVELひし形バッジもノードとして道の上に直列に並ぶ）。
+//   ノード間は「斜め（傾き0.5）→縦」の短い直結。細い線で、到達済み＝青／未到達＝薄グレー。
+// - ノード＝2段のアイソメトリック台座。ラベルはノード真下・中央。
 // - 進捗は localStorage（learnPathV1:exam:category）で管理し、上から順に解放する。
 
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -26,7 +27,6 @@ type Step = { id: string; title: string; section: string; terms: Term[] };
 const CHUNK = 8; // 1ステップの最大用語数
 
 // 同じ小分類を全体でまとめて（初出順）、大きい小分類は約8語ずつに分割する。
-// ※連続グループ化だと同名小分類が飛び飛びで別グループになりIDが重複＝誤解放バグの原因になる。
 function buildSteps(terms: Term[]): Step[] {
   const order: string[] = [];
   const bySection = new Map<string, Term[]>();
@@ -55,9 +55,14 @@ function storageKey(examId: string, category: string) {
   return `learnPathV1:${examId}:${category}`;
 }
 
-// 道の蛇行（Brilliantの路線図と同じく、同じ側に続いてから反対へ渡るループパターン。決め打ち）
-const XP = [-0.72, 0.05, 0.78, 0.12, -0.65, 0.18];
-const YG = [1, 1.04, 0.96, 1.08, 0.94, 1.02];
+// 道の蛇行（100 Days of Puzzlesと同じ、中心まわりのなだらかな階段状サーペンタイン。ループする）
+const XP = [0, 0.5, 1, 0.5, 0, -0.5, -1, -0.5];
+
+// チェーン上のアイテム（LEVELバッジも道の上に直列に並ぶ）
+type ChainItem =
+  | { type: "badge"; level: number; stepIdx: number } // stepIdx = このバッジの直後のステップ
+  | { type: "step"; stepIdx: number }
+  | { type: "goal" };
 
 // 2段のアイソメトリック台座（Brilliantのレッスンノード風）。(x, y) が下段上面の中心。
 function IsoPlatform({
@@ -67,15 +72,15 @@ function IsoPlatform({
   palette: { baseTop: string; baseSide: string; topTop: string; topSide: string };
   selected?: boolean; dimmed?: boolean;
 }) {
-  const W = 66; // 下段の幅
-  const T = 12; // 下段の厚み
-  const w = 42; // 上段の幅
-  const t = 9; // 上段の厚み
-  const H = W / 2; // 下段上面ひし形の高さ
-  const h = w / 2; // 上段上面ひし形の高さ
+  const W = 62;
+  const T = 11;
+  const w = 40;
+  const t = 8;
+  const H = W / 2;
+  const h = w / 2;
   const cx = W / 2;
-  const baseCy = 26; // 下段上面中心（svg内）
-  const topCy = baseCy - 8; // 上段上面中心（少し持ち上げ）
+  const baseCy = 25;
+  const topCy = baseCy - 7;
   return (
     <svg
       width={W}
@@ -91,11 +96,9 @@ function IsoPlatform({
       }}
       aria-hidden="true"
     >
-      {/* 下段（側面→上面） */}
       <polygon points={`0,${baseCy} ${cx},${baseCy + H / 2} ${cx},${baseCy + H / 2 + T} 0,${baseCy + T}`} fill={palette.baseSide} style={{ transition: "fill .4s ease" }} />
       <polygon points={`${cx},${baseCy + H / 2} ${W},${baseCy} ${W},${baseCy + T} ${cx},${baseCy + H / 2 + T}`} fill={palette.baseSide} style={{ transition: "fill .4s ease", filter: "brightness(0.88)" }} />
       <polygon points={`${cx},${baseCy - H / 2} ${W},${baseCy} ${cx},${baseCy + H / 2} 0,${baseCy}`} fill={palette.baseTop} style={{ transition: "fill .4s ease" }} />
-      {/* 上段（側面→上面） */}
       <polygon points={`${cx - w / 2},${topCy} ${cx},${topCy + h / 2} ${cx},${topCy + h / 2 + t} ${cx - w / 2},${topCy + t}`} fill={palette.topSide} style={{ transition: "fill .4s ease" }} />
       <polygon points={`${cx},${topCy + h / 2} ${cx + w / 2},${topCy} ${cx + w / 2},${topCy + t} ${cx},${topCy + h / 2 + t}`} fill={palette.topSide} style={{ transition: "fill .4s ease", filter: "brightness(0.88)" }} />
       <polygon
@@ -110,7 +113,6 @@ function IsoPlatform({
   );
 }
 
-// 台座の配色（下段上面/下段側面/上段上面/上段側面）
 const PLAT = {
   done: { baseTop: "#1D4ED8", baseSide: "#12318F", topTop: "#5B84F5", topSide: "#2F5CD9" },
   locked: { baseTop: "#565D68", baseSide: "#3E434C", topTop: "#8B93A0", topSide: "#6A7280" },
@@ -188,6 +190,7 @@ function LearnPathContent() {
   const isDone = (id: string) => done.includes(id);
   const currentIdx = steps.findIndex((s) => !isDone(s.id)); // -1 = 全完了
   const allDone = steps.length > 0 && currentIdx === -1;
+  const cur = currentIdx === -1 ? steps.length : currentIdx; // 進捗の到達位置（step基準）
   const doneCount = steps.filter((s) => isDone(s.id)).length;
   const unlocked = (i: number) => i === 0 || isDone(steps[i - 1]?.id);
 
@@ -217,49 +220,63 @@ function LearnPathContent() {
     }
   }, [stepParam]);
 
-  // ===== 道の座標 =====
-  const AMP = Math.min(150, Math.max(58, pathWidth / 2 - 92));
-  const BASE_GAP = 138; // ラベルをノード下に置くため広め
-  const ys = useMemo(() => {
-    const arr: number[] = [];
-    let y = 112;
-    for (let i = 0; i <= steps.length; i++) {
-      arr.push(y);
-      y += BASE_GAP * YG[i % YG.length];
-    }
-    return arr;
-  }, [steps.length]);
-  const xAt = (i: number) => pathWidth / 2 + XP[i % XP.length] * AMP;
-  const nodeXY = (i: number) => ({ x: xAt(i), y: ys[i] });
-  const goalXY = { x: xAt(steps.length), y: ys[steps.length] };
-  const pathHeight = goalXY.y + 96;
-  const avatarPos = allDone ? goalXY : currentIdx >= 0 ? nodeXY(currentIdx) : null;
-
-  // 道＝水平→斜め→水平の回路風ルート（Brilliantの路線図と同じ挙動。
-  // 横移動が小さい区間は一度反対側へ張り出してから斜めで渡る）
-  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    const dy = b.y - a.y;
-    const dx = b.x - a.x;
-    const run = Math.min(dy * 2, Math.max(140, pathWidth * 0.58)); // 斜め区間の水平距離（傾き≒0.5）
-    const dir = dx >= 0 ? 1 : -1;
-    const h1 = (dx - dir * run) / 2;
-    const x1 = a.x + h1;
-    const x2 = x1 + dir * run;
-    return `M ${a.x} ${a.y} L ${x1} ${a.y} L ${x2} ${b.y} L ${b.x} ${b.y}`;
-  };
-
-  // LEVELバッジ（小分類の切れ目）
-  const badges = useMemo(() => {
-    const list: { i: number; level: number }[] = [];
-    let prev = "";
+  // ===== チェーン（バッジ＋ステップ＋ゴールを直列に） =====
+  const chain = useMemo(() => {
+    const items: ChainItem[] = [];
+    let prevSection = "";
+    let level = 0;
     steps.forEach((s, i) => {
-      if (s.section !== prev) {
-        list.push({ i, level: list.length + 1 });
-        prev = s.section;
+      if (s.section !== prevSection) {
+        level += 1;
+        items.push({ type: "badge", level, stepIdx: i });
+        prevSection = s.section;
       }
+      items.push({ type: "step", stepIdx: i });
     });
-    return list;
+    items.push({ type: "goal" });
+    return items;
   }, [steps]);
+
+  // チェーン各アイテムの座標（バッジは間隔を詰める）
+  const AMP = Math.min(120, Math.max(56, pathWidth / 2 - 104));
+  const positions = useMemo(() => {
+    const arr: { x: number; y: number }[] = [];
+    let y = 58;
+    chain.forEach((it, k) => {
+      arr.push({ x: 0 /* 後で幅確定 */, y });
+      const next = chain[k + 1];
+      if (!next) return;
+      const gap = it.type === "badge" || next.type === "badge" ? 86 : 126;
+      y += gap;
+    });
+    return arr;
+  }, [chain]);
+  const posOf = (k: number) => ({ x: pathWidth / 2 + XP[k % XP.length] * AMP, y: positions[k]?.y ?? 0 });
+  const pathHeight = (positions[positions.length - 1]?.y ?? 0) + 96;
+
+  // 各チェーンアイテムの「到達判定」（この位置まで青い線が来ているか）
+  const ordinalOf = (it: ChainItem) => (it.type === "goal" ? steps.length : it.stepIdx);
+  const reached = (k: number) => ordinalOf(chain[k]) <= cur;
+
+  // 今ここ（現在ステップのチェーン位置）
+  const currentChainIdx = useMemo(
+    () => chain.findIndex((it) => it.type === "step" && it.stepIdx === currentIdx),
+    [chain, currentIdx]
+  );
+  const avatarPos = allDone
+    ? posOf(chain.length - 1)
+    : currentChainIdx >= 0
+      ? posOf(currentChainIdx)
+      : null;
+
+  // ノード間の接続＝「斜め（傾き0.5）→縦」の短い直結（参照サイトと同じ）
+  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    if (dx === 0) return `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
+    const diagDy = Math.min(Math.abs(dx) * 0.5, dy);
+    return `M ${a.x} ${a.y} L ${b.x} ${a.y + diagDy} L ${b.x} ${b.y}`;
+  };
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
@@ -290,7 +307,6 @@ function LearnPathContent() {
           </div>
         ) : (
           <>
-            {/* 分野タブ＋進捗（全幅） */}
             {cats.length > 1 && (
               <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
                 {cats.map((c) => {
@@ -331,9 +347,8 @@ function LearnPathContent() {
               </div>
             )}
 
-            {/* 学習パネル（左）＋道（右）＝Brilliantと同配置。モバイルはパネルが上 */}
+            {/* 学習パネル（左）＋道（右） */}
             <div className="mt-4 flex flex-col gap-5 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:items-start md:gap-6">
-              {/* 学習パネル */}
               <div id="learn-step-panel" className="md:sticky md:top-[84px] md:max-h-[calc(100vh-108px)] md:overflow-y-auto">
                 {selected ? (
                   <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
@@ -399,124 +414,120 @@ function LearnPathContent() {
               <div>
                 <div id="learn-path-area" className="relative w-full" style={{ height: pathHeight }}>
                   <svg width={pathWidth} height={pathHeight} className="absolute inset-0" aria-hidden="true">
-                    {/* 背景の配線飾り（Brilliantの薄い回路模様） */}
-                    <g fill="none" stroke="#E9EDF5" strokeWidth={2}>
-                      {Array.from({ length: Math.max(1, Math.ceil(pathHeight / 560)) }, (_, k) => (
+                    {/* 背景の配線飾り */}
+                    <g fill="none" stroke="#EAEEF5" strokeWidth={2}>
+                      {Array.from({ length: Math.max(1, Math.ceil(pathHeight / 620)) }, (_, k) => (
                         <g key={k}>
-                          <path d={`M ${pathWidth - 8} ${k * 560 + 60} h -44 l -24 12 h -38`} />
-                          <circle cx={pathWidth - 116} cy={k * 560 + 72} r={3.5} fill="#E9EDF5" stroke="none" />
-                          <path d={`M 8 ${k * 560 + 330} h 40 l 24 -12 h 36`} />
-                          <circle cx={110} cy={k * 560 + 318} r={3.5} fill="#E9EDF5" stroke="none" />
+                          <path d={`M ${pathWidth - 6} ${k * 620 + 90} h -40 l -22 11 h -34`} />
+                          <circle cx={pathWidth - 106} cy={k * 620 + 101} r={3.5} fill="#EAEEF5" stroke="none" />
+                          <path d={`M 6 ${k * 620 + 380} h 36 l 22 -11 h 32`} />
+                          <circle cx={100} cy={k * 620 + 369} r={3.5} fill="#EAEEF5" stroke="none" />
                         </g>
                       ))}
                     </g>
-                    {/* 道 */}
-                    {steps.map((s, i) => {
-                      const a = nodeXY(i);
-                      const b = i + 1 < steps.length ? nodeXY(i + 1) : goalXY;
-                      const solid = isDone(s.id);
+                    {/* 道（チェーンを短い区間で直結） */}
+                    {chain.slice(0, -1).map((it, k) => {
+                      const a = posOf(k);
+                      const b = posOf(k + 1);
+                      const solid = reached(k + 1);
                       return (
                         <path
-                          key={s.id}
+                          key={k}
                           d={roadD(a, b)}
                           fill="none"
-                          strokeWidth={solid ? 6 : 5}
+                          strokeWidth={solid ? 4.5 : 3.5}
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          style={{ stroke: solid ? C.brand : "#E1E6EF", transition: "stroke .5s ease" }}
+                          style={{ stroke: solid ? C.brand : "#DFE5EE", transition: "stroke .5s ease" }}
                         />
                       );
                     })}
                   </svg>
 
-                  {/* 進むマーカー（光＋今ここ）＝位置がCSSトランジションで滑る */}
+                  {/* 進むマーカー（光＋今ここ） */}
                   {avatarPos && !allDone && (
                     <>
                       <span
                         className="absolute rounded-full"
-                        style={{ left: avatarPos.x - 40, top: avatarPos.y - 40, width: 80, height: 80, background: C.brand, opacity: 0.13, filter: "blur(10px)", transition: "left .7s ease, top .7s ease" }}
+                        style={{ left: avatarPos.x - 40, top: avatarPos.y - 40, width: 80, height: 80, background: C.brand, opacity: 0.12, filter: "blur(10px)", transition: "left .7s ease, top .7s ease" }}
                       />
                       <span
                         className="absolute whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-bold text-white"
-                        style={{ left: avatarPos.x - 26, top: avatarPos.y - 62, background: C.brand, transition: "left .7s ease, top .7s ease" }}
+                        style={{ left: avatarPos.x - 26, top: avatarPos.y - 58, background: C.brand, transition: "left .7s ease, top .7s ease" }}
                       >
                         今ここ
                       </span>
                     </>
                   )}
 
-                  {/* LEVELバッジ（小分類の切れ目） */}
-                  {badges.map((bd) => {
-                    if (bd.i === currentIdx) return null; // 今ここピルと重なるため現在ノードのバッジは出さない
-                    const here = nodeXY(bd.i);
-                    const pos = { x: here.x, y: here.y - 66 };
-                    const reached = unlocked(bd.i);
-                    return (
-                      <span key={bd.i} className="absolute" style={{ left: pos.x - 30, top: pos.y - 30, width: 60 }}>
-                        <span className="block text-center text-[9px] font-bold tracking-widest" style={{ color: reached ? C.brand : "#AAB4C3" }}>LEVEL</span>
-                        <span
-                          className="mx-auto mt-0.5 flex h-[30px] w-[30px] rotate-45 items-center justify-center rounded-[7px]"
-                          style={{ background: reached ? C.brand : "#D9DFE9", border: "2.5px solid #fff", boxShadow: "0 2px 6px rgba(21,32,46,0.15)", transition: "background .4s ease" }}
-                        >
-                          <span className="-rotate-45 text-[12.5px] font-bold" style={{ color: reached ? "#fff" : "#8E99A9" }}>{bd.level}</span>
+                  {/* チェーンのノード描画 */}
+                  {chain.map((it, k) => {
+                    const { x, y } = posOf(k);
+                    if (it.type === "badge") {
+                      const on = reached(k);
+                      return (
+                        <span key={`b${k}`} className="absolute" style={{ left: x - 34, top: y - 26, width: 68 }}>
+                          <span className="block text-center text-[9px] font-bold tracking-widest" style={{ color: on ? C.brand : "#AAB4C3" }}>LEVEL</span>
+                          <span
+                            className="mx-auto mt-0.5 flex h-[30px] w-[30px] rotate-45 items-center justify-center rounded-[7px]"
+                            style={{ background: on ? C.brand : "#D9DFE9", border: "2.5px solid #fff", boxShadow: "0 2px 6px rgba(21,32,46,0.15)", transition: "background .4s ease" }}
+                          >
+                            <span className="-rotate-45 text-[12.5px] font-bold" style={{ color: on ? "#fff" : "#8E99A9" }}>{it.level}</span>
+                          </span>
                         </span>
-                      </span>
-                    );
-                  })}
-
-                  {steps.map((s, i) => {
-                    const { x, y } = nodeXY(i);
+                      );
+                    }
+                    if (it.type === "goal") {
+                      return (
+                        <span key="goal">
+                          <IsoPlatform x={x} y={y} palette={allDone ? PLAT.goal : PLAT.locked} />
+                          <span className="absolute flex items-center justify-center" style={{ left: x - 10, top: y - 21, width: 20, height: 20 }}>
+                            <Trophy style={{ width: 16, height: 16, color: allDone ? "#fff" : "#D4DAE3" }} />
+                          </span>
+                          <span className="absolute text-center" style={{ left: x - 80, top: y + 30, width: 160 }}>
+                            <span className="block text-[13px] font-bold leading-tight" style={{ color: allDone ? C.good : C.muted }}>
+                              {catLabel} 総まとめ
+                            </span>
+                            <span className="block text-[11px]" style={{ color: C.faint }}>{allDone ? "達成！" : "ゴール"}</span>
+                          </span>
+                        </span>
+                      );
+                    }
+                    const s = steps[it.stepIdx];
                     const completed = isDone(s.id);
-                    const isCurrent = i === currentIdx;
-                    const isSelected = i === stepIdx;
-                    const canOpen = completed || unlocked(i);
+                    const isCurrent = it.stepIdx === currentIdx;
+                    const isSelected = it.stepIdx === stepIdx;
+                    const canOpen = completed || unlocked(it.stepIdx);
                     const node = (
                       <>
                         <IsoPlatform x={x} y={y} palette={completed || isCurrent ? PLAT.done : PLAT.locked} selected={isSelected} dimmed={!canOpen} />
-                        <span className="absolute flex items-center justify-center" style={{ left: x - 10, top: y - 22, width: 20, height: 20 }}>
+                        <span className="absolute flex items-center justify-center" style={{ left: x - 10, top: y - 21, width: 20, height: 20 }}>
                           {completed ? (
-                            <Check className="h-4.5 w-4.5 text-white" style={{ width: 18, height: 18 }} />
+                            <Check className="text-white" style={{ width: 17, height: 17 }} />
                           ) : isCurrent ? (
-                            <Play className="text-white" style={{ width: 17, height: 17 }} />
+                            <Play className="text-white" style={{ width: 16, height: 16 }} />
                           ) : (
-                            <Lock style={{ width: 15, height: 15, color: "#D4DAE3" }} />
+                            <Lock style={{ width: 14, height: 14, color: "#D4DAE3" }} />
                           )}
                         </span>
-                        {/* ラベル＝ノードの真下・中央（Brilliant式）。道が透けないよう背景プレート付き */}
-                        <span className="absolute flex justify-center" style={{ left: x - 90, top: y + 30, width: 180 }}>
-                          <span className="rounded-lg px-1.5 py-0.5 text-center" style={{ background: "rgba(245,247,250,0.94)" }}>
-                            <span className="block text-[13.5px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted }}>
-                              {s.title}
-                            </span>
-                            <span className="block text-[11px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400 }}>
-                              {completed ? `完了 ・ ${s.terms.length}語` : isCurrent ? "いま学べる →" : `未開放 ・ ${s.terms.length}語`}
-                            </span>
+                        <span className="absolute text-center" style={{ left: x - 80, top: y + 30, width: 160 }}>
+                          <span className="block text-[13px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted }}>
+                            {s.title}
+                          </span>
+                          <span className="block text-[11px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400 }}>
+                            {completed ? `完了 ・ ${s.terms.length}語` : isCurrent ? "いま学べる →" : `未開放 ・ ${s.terms.length}語`}
                           </span>
                         </span>
                       </>
                     );
                     return canOpen ? (
-                      <Link key={s.id} href={`${basePath}?step=${i + 1}`} replace scroll={false} className="block transition-opacity hover:opacity-85">
+                      <Link key={s.id} href={`${basePath}?step=${it.stepIdx + 1}`} replace scroll={false} className="block transition-opacity hover:opacity-85">
                         {node}
                       </Link>
                     ) : (
                       <div key={s.id}>{node}</div>
                     );
                   })}
-
-                  {/* ゴール */}
-                  <IsoPlatform x={goalXY.x} y={goalXY.y} palette={allDone ? PLAT.goal : PLAT.locked} />
-                  <span className="absolute flex items-center justify-center" style={{ left: goalXY.x - 10, top: goalXY.y - 22, width: 20, height: 20 }}>
-                    <Trophy style={{ width: 16, height: 16, color: allDone ? "#fff" : "#D4DAE3" }} />
-                  </span>
-                  <span className="absolute flex justify-center" style={{ left: goalXY.x - 90, top: goalXY.y + 30, width: 180 }}>
-                    <span className="rounded-lg px-1.5 py-0.5 text-center" style={{ background: "rgba(245,247,250,0.94)" }}>
-                      <span className="block text-[13.5px] font-bold leading-tight" style={{ color: allDone ? C.good : C.muted }}>
-                        {catLabel} 総まとめ
-                      </span>
-                      <span className="block text-[11px]" style={{ color: C.faint }}>{allDone ? "達成！" : "ゴール"}</span>
-                    </span>
-                  </span>
                 </div>
 
                 <div className="mt-4 space-y-3">
