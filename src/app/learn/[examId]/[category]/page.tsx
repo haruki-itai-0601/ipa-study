@@ -55,10 +55,10 @@ function storageKey(examId: string, category: string) {
   return `learnPathV1:${examId}:${category}`;
 }
 
-// 道の蛇行パターン（BrilliantのScientific Thinkingの道を左右反転＋微調整した決め打ち値。
-// リロードしても同じ道になる）
-const XP = [0.95, 0.35, -0.7, -1, -0.2, 0.6, 1, 0.15, -0.85, -0.42, 0.5, 0.98, -0.05, -0.78, 0.3, -0.6];
-const YG = [1, 1.28, 0.88, 1.16, 1.46, 0.92, 1.2, 1.04, 1.34, 0.84, 1.1, 1.42, 0.96, 1.24];
+// 道の蛇行パターン（BrilliantのScientific Thinkingの道を左右反転してほぼそのまま使用。
+// なだらかな蛇行＝同じ側に2〜3ノード続いてから反対側へ渡る。決め打ち値でリロードしても同じ道）
+const XP = [-0.9, -0.55, -0.1, 0.5, 0.95, 0.6, 0.15, -0.45, -0.95, -0.6, -0.12, 0.55, 0.92, 0.5, 0.05, -0.5];
+const YG = [1, 1.12, 0.94, 1.06, 1.18, 0.92, 1.08, 1, 1.14, 0.96];
 
 // 立体キューブノード（アイソメトリック）。(x, y) が視覚中心になるよう配置する。
 function IsoCube({
@@ -217,7 +217,16 @@ function LearnPathContent() {
   const pathHeight = goalXY.y + 72;
   const avatarPos = allDone ? goalXY : currentIdx >= 0 ? nodeXY(currentIdx) : null;
 
-  // 道は直線の斜め区間（Brilliant風）を二層で描き、下層をずらして「ポコッと」立体に見せる。
+  // 道はBrilliant風＝45°の斜め＋縦の直線でつなぐ回路的なルート（縦→斜め→縦の対称形）。
+  // 二層で描き、下層を+5pxずらして「ポコッと」立体に見せる。
+  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const adx = Math.abs(dx);
+    if (dy <= adx + 8) return `M ${a.x} ${a.y} L ${b.x} ${b.y}`; // 高低差が小さければ直線
+    const v = (dy - adx) / 2;
+    return `M ${a.x} ${a.y} L ${a.x} ${a.y + v} L ${b.x} ${a.y + v + adx} L ${b.x} ${b.y}`;
+  };
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
@@ -362,19 +371,25 @@ function LearnPathContent() {
                       const b = i + 1 < steps.length ? nodeXY(i + 1) : goalXY;
                       const solid = isDone(s.id);
                       const dash = solid ? undefined : "0.5 17";
+                      const d = roadD(a, b);
                       return (
                         <g key={s.id}>
-                          <line
-                            x1={a.x} y1={a.y + 5} x2={b.x} y2={b.y + 5}
+                          <path
+                            d={d}
+                            transform="translate(0,5)"
+                            fill="none"
                             strokeWidth={11}
                             strokeLinecap="round"
+                            strokeLinejoin="round"
                             strokeDasharray={dash}
                             style={{ stroke: solid ? "#12318F" : "#C6D0DE", transition: "stroke .5s ease" }}
                           />
-                          <line
-                            x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                          <path
+                            d={d}
+                            fill="none"
                             strokeWidth={11}
                             strokeLinecap="round"
+                            strokeLinejoin="round"
                             strokeDasharray={dash}
                             style={{ stroke: solid ? C.brand : "#E2E8F1", transition: "stroke .5s ease" }}
                           />
