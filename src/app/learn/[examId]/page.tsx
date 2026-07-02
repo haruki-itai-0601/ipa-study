@@ -60,20 +60,20 @@ export default function LearnHubPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-7 md:px-6">
+      <main className="mx-auto max-w-6xl px-4 py-9 md:px-6">
         <div className="text-center">
-          <h1 className="text-[21px] font-bold">3つのモードから選んで始めましょう</h1>
-          <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>
+          <h1 className="text-[26px] font-bold">3つのモードから選んで始めましょう</h1>
+          <p className="mt-1.5 text-[15px]" style={{ color: C.muted }}>
             道筋に沿って学ぶ・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
-          <div className="mt-4 inline-flex gap-1.5 rounded-full p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+          <div className="mt-5 inline-flex gap-1.5 rounded-full p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             {basicExams.map((e) => {
               const active = e.id === examId;
               return (
                 <Link
                   key={e.id}
                   href={`/learn/${e.id}`}
-                  className="whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors"
+                  className="whitespace-nowrap rounded-full px-5 py-2 text-[15px] font-bold transition-colors"
                   style={active ? { background: C.brand, color: "#fff" } : { color: "#33415A" }}
                 >
                   {shortJa(e.name)}
@@ -83,11 +83,11 @@ export default function LearnHubPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-5 md:grid-cols-3">
           {/* ① 順を追って学ぶ */}
           <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-            <div className="flex h-[92px] items-center justify-center" style={{ background: C.brandSoft }}>
-              <svg viewBox="0 0 120 60" width="118" height="58" aria-hidden="true">
+            <div className="flex h-[120px] items-center justify-center" style={{ background: C.brandSoft }}>
+              <svg viewBox="0 0 120 60" width="150" height="74" aria-hidden="true">
                 <path d="M18,46 L58,16 L100,40" fill="none" stroke={C.brand} strokeWidth="4" strokeLinecap="round" strokeDasharray="1 8" />
                 <circle cx="18" cy="46" r="10" fill={C.brand} />
                 <path d="M14,46 l3,3 l6,-6" stroke="#fff" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
@@ -96,24 +96,24 @@ export default function LearnHubPage() {
                 <circle cx="100" cy="40" r="9" fill="#DDE3EC" />
               </svg>
             </div>
-            <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
-              <div className="text-[15.5px] font-bold">順を追って学ぶ</div>
-              <div className="mt-1.5 text-[11.5px]" style={{ color: C.muted }}>
+            <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
+              <div className="text-[19px] font-bold">順を追って学ぶ</div>
+              <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
                 {loading ? "読み込み中…" : hasContent ? `収録 ${stats!.cats}分野・${stats!.terms}語` : "コンテンツ準備中"}
               </div>
-              <p className="mb-3 mt-2 flex-1 text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
+              <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
                 分野ごとの用語・概念を、道筋に沿って上から順にたどって学べます。
               </p>
               {hasContent ? (
                 <Link
                   href={`/learn/${examId}/course`}
-                  className="block w-full rounded-[10px] py-2.5 text-center text-[13px] font-bold text-white transition-opacity hover:opacity-90"
+                  className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
                   style={{ background: C.brand }}
                 >
                   分野を選んで始める
                 </Link>
               ) : (
-                <span className="block w-full rounded-[10px] py-2.5 text-center text-[13px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+                <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
                   準備中
                 </span>
               )}
@@ -122,25 +122,25 @@ export default function LearnHubPage() {
 
           {/* ② 間違いの復習 */}
           <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-            <div className="flex h-[92px] items-center justify-center gap-3" style={{ background: C.warnSoft }}>
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white">
-                <RotateCcw className="h-5 w-5" style={{ color: C.warn }} />
+            <div className="flex h-[120px] items-center justify-center gap-3.5" style={{ background: C.warnSoft }}>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white">
+                <RotateCcw className="h-6 w-6" style={{ color: C.warn }} />
               </span>
-              <span className="flex gap-1">
+              <span className="flex gap-1.5">
                 {[0, 1, 2, 3, 4].map((i) => (
-                  <span key={i} className="h-2 w-3.5 rounded" style={{ background: i < 3 ? C.warn : "#F0CDBA" }} />
+                  <span key={i} className="h-2.5 w-5 rounded" style={{ background: i < 3 ? C.warn : "#F0CDBA" }} />
                 ))}
               </span>
             </div>
-            <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
-              <div className="text-[15.5px] font-bold">間違いの復習</div>
-              <div className="mt-1.5">
-                <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#EDF1F6", color: C.muted }}>準備中</span>
+            <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
+              <div className="text-[19px] font-bold">間違いの復習</div>
+              <div className="mt-2">
+                <span className="inline-block rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ background: "#EDF1F6", color: C.muted }}>準備中</span>
               </div>
-              <p className="mb-3 mt-2 flex-1 text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
+              <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
                 演習で間違えた問題だけを1問ずつ見直して、弱点をつぶします。
               </p>
-              <span className="block w-full rounded-[10px] py-2.5 text-center text-[13px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+              <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
                 近日公開
               </span>
             </div>
@@ -148,32 +148,32 @@ export default function LearnHubPage() {
 
           {/* ③ 用語集 */}
           <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-            <div className="flex h-[92px] items-center justify-center gap-2" style={{ background: C.goodSoft }}>
+            <div className="flex h-[120px] items-center justify-center gap-2.5" style={{ background: C.goodSoft }}>
               {["あ", "か", "さ"].map((k) => (
-                <span key={k} className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-white text-[13px] font-bold" style={{ color: "#0F6E56" }}>
+                <span key={k} className="flex h-[38px] w-[38px] items-center justify-center rounded-[10px] bg-white text-[16px] font-bold" style={{ color: "#0F6E56" }}>
                   {k}
                 </span>
               ))}
-              <span className="flex h-[34px] w-[34px] items-center justify-center rounded-full" style={{ background: C.good }}>
-                <Search className="h-4 w-4 text-white" />
+              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full" style={{ background: C.good }}>
+                <Search className="h-5 w-5 text-white" />
               </span>
             </div>
-            <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
-              <div className="text-[15.5px] font-bold">用語集</div>
-              <div className="mt-1.5">
-                <span className="inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#EDF1F6", color: C.muted }}>準備中</span>
+            <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
+              <div className="text-[19px] font-bold">用語集</div>
+              <div className="mt-2">
+                <span className="inline-block rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ background: "#EDF1F6", color: C.muted }}>準備中</span>
               </div>
-              <p className="mb-3 mt-2 flex-1 text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
+              <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
                 全用語を1ページに。五十音・検索・分野の絞り込みですぐ引けます。
               </p>
-              <span className="block w-full rounded-[10px] py-2.5 text-center text-[13px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+              <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
                 近日公開
               </span>
             </div>
           </div>
         </div>
 
-        <p className="mt-5 text-center text-[11px]" style={{ color: C.faint }}>
+        <p className="mt-6 text-center text-[12.5px]" style={{ color: C.faint }}>
           「間違いの復習」と「用語集」は順次公開予定です。
         </p>
       </main>
