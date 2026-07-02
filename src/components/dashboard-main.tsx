@@ -23,6 +23,7 @@ import {
   CalendarDays,
   PenLine,
   BookOpen,
+  BookA,
   HelpCircle,
 } from "lucide-react";
 
@@ -422,9 +423,9 @@ export function DashboardMain() {
               );
             })}
 
-            {/* ② 学習する（用語・概念。午前/午後の区別なし） */}
+            {/* ② 学習と復習する（用語・概念。午前/午後の区別なし） */}
             <div className="mt-1.5 flex items-center gap-2 px-3 pb-0.5 pt-1 text-[16.5px] font-bold" style={{ color: C.ink }}>
-              <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習する
+              <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習と復習する
             </div>
             {LEARN_NAV.map(renderNavItem)}
 
@@ -437,6 +438,9 @@ export function DashboardMain() {
             <div className="my-1 h-px" style={{ background: C.line }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
               <Clock className="h-5 w-5" /> 学習履歴
+            </Link>
+            <Link href={`/learn/glossary?exam=${activeExam}`} className={navItem} style={{ color: C.ink }}>
+              <BookA className="h-5 w-5" /> 用語集
             </Link>
             <Link href="/account" className={navItem} style={{ color: C.ink }}>
               <Settings className="h-5 w-5" /> {isGuest ? "ログイン・設定" : "設定"}
@@ -652,7 +656,7 @@ export function DashboardMain() {
               </div>
 
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <div className="flex items-center gap-3.5">
+                <div className="flex h-full items-center gap-3.5">
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium" style={{ color: C.muted }}>平均正答率</div>
