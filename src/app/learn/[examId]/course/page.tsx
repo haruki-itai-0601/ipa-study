@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { basicExams, displayCategory } from "@/lib/exams";
+import { basicExams, displayCategory, learnCategoryGroups } from "@/lib/exams";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, BookOpen, ChevronRight, Loader2 } from "lucide-react";
 
@@ -33,7 +33,7 @@ export default function LearnCoursePage() {
       for (const r of data) {
         counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
       }
-      setCats(Array.from(counts.entries()).map(([category, n]) => ({ category, n })).sort((a, b) => b.n - a.n));
+      setCats(Array.from(counts.entries()).map(([category, n]) => ({ category, n })));
       setLoading(false);
     })();
     return () => {
@@ -81,24 +81,49 @@ export default function LearnCoursePage() {
             <Link href={`/learn/${examId}`} className="mt-3 inline-block text-[12.5px] font-bold" style={{ color: C.brand }}>学習するに戻る →</Link>
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {cats.map((c) => (
-              <Link
-                key={c.category}
-                href={`/learn/${examId}/${encodeURIComponent(c.category)}`}
-                className="flex items-center gap-3 rounded-2xl p-4 transition-all hover:-translate-y-0.5"
-                style={{ background: C.card, border: `1px solid ${C.line}` }}
-              >
-                <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl" style={{ background: C.brandSoft, color: C.brandDeep }}>
-                  <BookOpen className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold">{displayCategory(examId, c.category)}</div>
-                  <div className="text-[12px]" style={{ color: C.muted }}>用語・概念 {c.n}件</div>
-                </div>
-                <ChevronRight className="h-6 w-6 flex-none" style={{ color: C.faint }} />
-              </Link>
-            ))}
+          <div className="space-y-6">
+            {(() => {
+              // IPAの3大区分（ストラテジ系/マネジメント系/テクノロジ系）でグループ表示。
+              const byName = new Map(cats.map((c) => [c.category, c.n]));
+              const groups = (learnCategoryGroups[examId] ?? [{ group: "", categories: cats.map((c) => c.category) }])
+                .map((g) => ({ group: g.group, items: g.categories.filter((c) => byName.has(c)) }))
+                .filter((g) => g.items.length > 0);
+              const listed = new Set(groups.flatMap((g) => g.items));
+              const rest = cats.map((c) => c.category).filter((c) => !listed.has(c));
+              if (rest.length > 0) groups.push({ group: "その他", items: rest });
+              return groups.map((g) => (
+                <section key={g.group || "all"}>
+                  {g.group && (
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="inline-block h-4 w-1 rounded-full" style={{ background: C.brand }} />
+                      <span className="text-[14.5px] font-bold">{g.group}</span>
+                      <span className="text-[11.5px]" style={{ color: C.faint }}>
+                        {g.items.reduce((s, c) => s + (byName.get(c) ?? 0), 0)}語
+                      </span>
+                    </div>
+                  )}
+                  <div className="space-y-2.5">
+                    {g.items.map((category) => (
+                      <Link
+                        key={category}
+                        href={`/learn/${examId}/${encodeURIComponent(category)}`}
+                        className="flex items-center gap-3 rounded-2xl p-4 transition-all hover:-translate-y-0.5"
+                        style={{ background: C.card, border: `1px solid ${C.line}` }}
+                      >
+                        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl" style={{ background: C.brandSoft, color: C.brandDeep }}>
+                          <BookOpen className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold">{displayCategory(examId, category)}</div>
+                          <div className="text-[12px]" style={{ color: C.muted }}>用語・概念 {byName.get(category)}件</div>
+                        </div>
+                        <ChevronRight className="h-6 w-6 flex-none" style={{ color: C.faint }} />
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ));
+            })()}
             <p className="pt-2 text-center text-[11px]" style={{ color: C.faint }}>
               他の分野も順次追加していきます。
             </p>

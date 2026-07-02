@@ -295,6 +295,37 @@ export function displayCategory(examId: string, category: string): string {
   return category;
 }
 
+// 学習する（learn_terms）の分野を、IPAの3大区分（ストラテジ系/マネジメント系/テクノロジ系）で
+// グループ化して表示するための定義。配列順＝表示順（各試験のシラバス大分類の並びに合わせる）。
+// ※ITパスポートは開発技術（システム開発）がマネジメント系、FE/APはテクノロジ系（IPAの区分どおり）。
+export const learnCategoryGroups: Record<string, { group: string; categories: string[] }[]> = {
+  ip: [
+    { group: "ストラテジ系", categories: ["企業活動", "法務", "経営戦略", "システム戦略・企画"] },
+    { group: "マネジメント系", categories: ["システム開発", "プロジェクトマネジメント", "サービスマネジメント・監査"] },
+    { group: "テクノロジ系", categories: ["基礎理論・アルゴリズム", "コンピュータシステム", "情報デザイン・メディア", "データベース", "ネットワーク", "セキュリティ"] },
+  ],
+  fe: [
+    { group: "テクノロジ系", categories: ["基礎理論", "アルゴリズムとプログラミング", "コンピュータ構成・ハードウェア", "ソフトウェア・OS", "データベース", "ネットワーク", "セキュリティ", "システム開発"] },
+    { group: "マネジメント系", categories: ["マネジメント"] },
+    { group: "ストラテジ系", categories: ["ストラテジ・経営"] },
+  ],
+  ap: [
+    { group: "テクノロジ系", categories: ["基礎理論", "アルゴリズムとプログラミング", "コンピュータ構成要素", "システム構成要素", "ソフトウェア", "ハードウェア", "ユーザーインタフェース", "情報メディア", "データベース", "ネットワーク", "セキュリティ", "システム開発技術", "ソフトウェア開発管理技術"] },
+    { group: "マネジメント系", categories: ["プロジェクトマネジメント", "サービスマネジメント", "システム監査"] },
+    { group: "ストラテジ系", categories: ["システム戦略", "システム企画", "経営戦略マネジメント", "技術戦略マネジメント", "ビジネスインダストリ", "企業活動", "法務"] },
+  ],
+};
+
+// 分野一覧を3大区分の順に並べ替える（定義にない分野は末尾へ）。
+export function orderLearnCategories(examId: string, cats: string[]): string[] {
+  const groups = learnCategoryGroups[examId];
+  if (!groups) return cats;
+  const order = groups.flatMap((g) => g.categories);
+  const known = order.filter((c) => cats.includes(c));
+  const unknown = cats.filter((c) => !order.includes(c));
+  return [...known, ...unknown];
+}
+
 // 問題ごとの正式な出典表記を生成する。
 // 例(午前Ⅱ): 出典：IPA プロジェクトマネージャ試験 令和6年度 秋期 午前Ⅱ 問1
 // 例(午前Ⅰ): 出典：IPA 高度情報処理技術者試験 午前Ⅰ（全区分共通） 令和6年度 春期 問1
