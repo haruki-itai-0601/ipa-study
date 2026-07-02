@@ -1,12 +1,12 @@
 "use client";
 
-// 学習する：分野の「パス型学習」ページ（Brilliantの路線図を踏襲）。
+// 学習する：分野の「パス型学習」ページ（Brilliant「100 Days of Puzzles」の路線図を踏襲）。
 // /learn/[examId]/[category]?step=N
 // - 左＝学習パネル／右＝道。モバイルはパネルが上。
-// - 道＝チェーン構造（LEVELひし形バッジもノードとして道の上に直列に並ぶ）。
-//   線はすべて±45°の斜めのみ。全体は下りつつ、横移動が大きい区間は一度「登って」から下り、
-//   小さい区間は外側へ振ってから45°で戻る＝上下にうねる山道になる。到達済み＝青／未到達＝薄グレー。
-// - ノード＝2段のアイソメトリック台座。ラベルはノード真下・中央。
+// - 道＝左右に折り返しながら下る「1本のジグザグ山道」。ノード（LEVELバッジ含む）はその道の上に載せる。
+//   レグ（片方向の下り）内はxが単調なので線どうしは絶対に交差しない。角は丸める。
+//   LEVELバッジの直後だけ一度「登って」から下る峠を挟み、上下のうねりを作る。到達済み＝青／未到達＝薄グレー。
+// - ノード＝2段のアイソメトリック台座。ラベルはノード真下（出線と反対側に少しずらす）。
 // - 進捗は localStorage（learnPathV1:exam:category）で管理し、上から順に解放する。
 
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -56,10 +56,6 @@ function buildSteps(terms: Term[]): Step[] {
 function storageKey(examId: string, category: string) {
   return `learnPathV1:${examId}:${category}`;
 }
-
-// 道の蛇行（左右に大きくバウンドするサーペンタイン。ループする）
-// 横の飛距離に大小をつけることで、45°ルーティングが自然に「山」と「谷」を作る。
-const XP = [0, -1, 0.6, 1, -0.4, -1, 0.2, 1];
 
 // チェーン上のアイテム（LEVELバッジも道の上に直列に並ぶ）
 type ChainItem =
@@ -240,22 +236,73 @@ function LearnPathContent() {
     return items;
   }, [steps]);
 
-  // チェーン各アイテムの座標（バッジは間隔を詰める）
-  const AMP = Math.min(200, Math.max(60, pathWidth / 2 - 90));
-  const positions = useMemo(() => {
-    const arr: { x: number; y: number }[] = [];
-    let y = 64;
-    chain.forEach((it, k) => {
-      arr.push({ x: 0 /* 後で幅確定 */, y });
-      const next = chain[k + 1];
-      if (!next) return;
-      const gap = it.type === "badge" || next.type === "badge" ? 110 : 170;
-      y += gap;
-    });
-    return arr;
-  }, [chain]);
-  const posOf = (k: number) => ({ x: pathWidth / 2 + XP[k % XP.length] * AMP, y: positions[k]?.y ?? 0 });
-  const pathHeight = (positions[positions.length - 1]?.y ?? 0) + 110;
+  // ===== 道のレイアウト（1本のジグザグ山道にノードを載せる） =====
+  const SLOPE = 0.6; // 道の傾き（本家のiso風）
+  const layout = useMemo(() => {
+    const m = 44; // ノードを置ける範囲の外側マージン
+    const usable = Math.max(160, pathWidth - m * 2);
+    const narrow = pathWidth < 480;
+    // レグ（片方向の下り区間）ごとのノード位置＝進行方向順の割合。狭い画面は1レグ1ノード。
+    const LEGS: number[][] = narrow
+      ? [[0.42], [0.55], [0.6], [0.38]]
+      : [[0.36, 0.74], [0.56, 0.16], [0.28, 0.66], [0.5, 0.1]];
+    const xAt = (f: number) => m + f * usable;
+
+    const nodes: { x: number; y: number }[] = [];
+    const exitSign: number[] = [];
+    const links: { x: number; y: number }[][] = [];
+
+    let leg = 0; // 偶数=右向き、奇数=左向き
+    let slot = 1; // レグ内で次に使うノード枠
+    let cx = xAt(LEGS[0][0]);
+    let cy = 64;
+    nodes.push({ x: cx, y: cy });
+
+    for (let k = 1; k < chain.length; k++) {
+      const pts: { x: number; y: number }[] = [{ x: cx, y: cy }];
+      exitSign.push(leg % 2 === 0 ? 1 : -1);
+      const wantRise = chain[k - 1].type === "badge"; // バッジ直後は峠（登り→下り）
+      let viaCorner = false;
+      if (slot >= LEGS[leg % LEGS.length].length) {
+        viaCorner = true; // このレグは使い切り→外で折り返して次レグへ
+        leg += 1;
+        slot = 0;
+      }
+      const targetX = xAt(LEGS[leg % LEGS.length][slot]);
+      slot += 1;
+
+      // 現在地から toX まで坂を下る（rise時は 下り→登り→下り の峠。x単調なので交差しない）
+      const descend = (toX: number, rise: boolean) => {
+        const s = Math.sign(toX - cx) || 1;
+        const h = Math.abs(toX - cx);
+        if (rise && h >= 150) {
+          const hr = 64;
+          const h1 = Math.max(44, (h - hr) * 0.45);
+          pts.push({ x: cx + s * h1, y: cy + h1 * SLOPE });
+          pts.push({ x: cx + s * (h1 + hr), y: cy + (h1 - hr) * SLOPE });
+          cy += (h - 2 * hr) * SLOPE;
+        } else {
+          cy += h * SLOPE;
+        }
+        cx = toX;
+        pts.push({ x: cx, y: cy });
+      };
+
+      if (viaCorner) {
+        descend(exitSign[k - 1] === 1 ? pathWidth - 22 : 22, false); // 折り返し点まで
+        descend(targetX, wantRise);
+      } else {
+        descend(targetX, wantRise);
+      }
+      nodes.push({ x: cx, y: cy });
+      links.push(pts);
+    }
+    exitSign.push(0); // 最後のノード（ゴール）に出線はない
+    return { nodes, links, exitSign, height: cy + 120 };
+  }, [chain, pathWidth]);
+
+  const posOf = (k: number) => layout.nodes[k] ?? { x: pathWidth / 2, y: 64 };
+  const pathHeight = layout.height;
 
   // 各チェーンアイテムの「到達判定」（この位置まで青い線が来ているか）
   const ordinalOf = (it: ChainItem) => (it.type === "goal" ? steps.length : it.stepIdx);
@@ -272,54 +319,28 @@ function LearnPathContent() {
       ? posOf(currentChainIdx)
       : null;
 
-  // ノード間の接続＝すべて±45°の斜め線のみで構成（Brilliantの路線図と同じ）。
-  // |dx| > dy: 一度「登って」から下る山（クレスト）。
-  // |dx| < dy: ターゲットの外側へ振ってから45°で戻る谷（画面に収まらない場合は手前側に折る）。
-  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }, k: number) => {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const adx = Math.abs(dx);
-    const pts: { x: number; y: number }[] = [a];
-    if (Math.abs(adx - dy) < 1) {
-      // ちょうど45°: そのまま直行
-    } else if (adx > dy) {
-      const rise = (adx - dy) / 2;
-      const s = Math.sign(dx);
-      pts.push({ x: a.x + s * rise, y: a.y - rise });
-    } else {
-      const s = dx === 0 ? (k % 2 === 0 ? 1 : -1) : Math.sign(dx);
-      const long = (dy + adx) / 2;
-      const overX = a.x + s * long;
-      if (overX > 24 && overX < pathWidth - 24) {
-        pts.push({ x: overX, y: a.y + long });
-      } else {
-        const short = (dy - adx) / 2;
-        pts.push({ x: a.x - s * short, y: a.y + short });
-      }
+  // 角を丸めたパス文字列（折り返しや峠のコーナーに半径を付ける）
+  const r2 = (n: number) => Math.round(n * 10) / 10;
+  const roundedD = (pts: { x: number; y: number }[]) => {
+    if (pts.length < 2) return "";
+    let d = `M ${r2(pts[0].x)} ${r2(pts[0].y)}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const p = pts[i];
+      const a = pts[i - 1];
+      const b = pts[i + 1];
+      const d1 = Math.hypot(p.x - a.x, p.y - a.y) || 1;
+      const d2 = Math.hypot(b.x - p.x, b.y - p.y) || 1;
+      const l1 = Math.min(13, d1 / 2);
+      const l2 = Math.min(13, d2 / 2);
+      d += ` L ${r2(p.x - ((p.x - a.x) / d1) * l1)} ${r2(p.y - ((p.y - a.y) / d1) * l1)}`;
+      d += ` Q ${r2(p.x)} ${r2(p.y)} ${r2(p.x + ((b.x - p.x) / d2) * l2)} ${r2(p.y + ((b.y - p.y) / d2) * l2)}`;
     }
-    pts.push(b);
-    return pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    d += ` L ${r2(pts[pts.length - 1].x)} ${r2(pts[pts.length - 1].y)}`;
+    return d;
   };
 
-  // ノードから出ていく最初の線の向き（ラベルを線と反対側に逃がすために使う）
-  const exitDir = (k: number): { sx: number; down: boolean } | null => {
-    if (k >= chain.length - 1) return null;
-    const a = posOf(k);
-    const b = posOf(k + 1);
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const adx = Math.abs(dx);
-    if (adx > dy + 1) return { sx: Math.sign(dx), down: false }; // クレスト＝登りで出る
-    const s = dx === 0 ? (k % 2 === 0 ? 1 : -1) : Math.sign(dx);
-    const overX = a.x + s * ((dy + adx) / 2);
-    const fits = overX > 24 && overX < pathWidth - 24;
-    return { sx: fits ? s : -s, down: true };
-  };
-  // 下りで出る線はラベル位置（ノード直下）を横切るので、ラベルを反対側へ40pxずらす
-  const labelShift = (k: number) => {
-    const ex = exitDir(k);
-    return ex && ex.down ? -ex.sx * 40 : 0;
-  };
+  // 出線（坂の下り）はノード直下を通るので、ラベルを反対側へ40pxずらす
+  const labelShift = (k: number) => -(layout.exitSign[k] || 0) * 40;
   // 線がラベルをかすめても読めるように、背景色の縁取り
   const HALO = `0 1px 0 ${C.bg}, 0 -1px 0 ${C.bg}, 1px 0 0 ${C.bg}, -1px 0 0 ${C.bg}, 1px 1px 0 ${C.bg}, -1px -1px 0 ${C.bg}, 1px -1px 0 ${C.bg}, -1px 1px 0 ${C.bg}`;
 
@@ -471,15 +492,20 @@ function LearnPathContent() {
                         </g>
                       ))}
                     </g>
-                    {/* 道（チェーンを短い区間で直結） */}
-                    {chain.slice(0, -1).map((it, k) => {
-                      const a = posOf(k);
-                      const b = posOf(k + 1);
+                    {/* 道（1本のジグザグ山道。上から道が「やってくる」導入線つき） */}
+                    <path
+                      d={`M ${r2(posOf(0).x - 96)} ${r2(posOf(0).y - 96 * SLOPE)} L ${r2(posOf(0).x)} ${r2(posOf(0).y)}`}
+                      fill="none"
+                      strokeWidth={6}
+                      strokeLinecap="round"
+                      style={{ stroke: C.brand }}
+                    />
+                    {layout.links.map((pts, k) => {
                       const solid = reached(k + 1);
                       return (
                         <path
                           key={k}
-                          d={roadD(a, b, k)}
+                          d={roundedD(pts)}
                           fill="none"
                           strokeWidth={solid ? 6 : 4.5}
                           strokeLinecap="round"
