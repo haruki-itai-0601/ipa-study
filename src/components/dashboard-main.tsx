@@ -656,8 +656,10 @@ export function DashboardMain() {
                   <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-xl text-[24px]" style={{ background: C.goodSoft, color: C.good }}>◎</span>
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium" style={{ color: C.muted }}>平均正答率</div>
-                    <div className="text-[26px] font-bold leading-tight tracking-tight">{loading ? "–" : active.acc}<small className="text-sm font-medium" style={{ color: C.muted }}> %</small></div>
-                    <div className="text-[12px]" style={{ color: C.muted }}>{active.answered.toLocaleString()}問で算出</div>
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <div className="text-[26px] font-bold leading-tight tracking-tight">{loading ? "–" : active.acc}<small className="text-sm font-medium" style={{ color: C.muted }}> %</small></div>
+                      <div className="text-[12px]" style={{ color: C.muted }}>回答済の問題から算出</div>
+                    </div>
                   </div>
                 </div>
               </div>
