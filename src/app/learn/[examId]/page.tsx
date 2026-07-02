@@ -25,7 +25,7 @@ export default function LearnHubPage() {
   const examId = params.examId as string;
   const exam = basicExams.find((e) => e.id === examId);
 
-  const [stats, setStats] = useState<{ cats: number; terms: number } | null>(null);
+  const [stats, setStats] = useState<{ cats: number; terms: number; glossary: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,10 +33,11 @@ export default function LearnHubPage() {
     setLoading(true);
     (async () => {
       const supabase = createSupabaseBrowserClient();
-      const { data } = await supabase.from("learn_terms").select("category").eq("exam_id", examId);
+      const { data } = await supabase.from("learn_terms").select("category, exam_id");
       if (!on) return;
-      const rows = (data as { category: string }[]) ?? [];
-      setStats({ cats: new Set(rows.map((r) => r.category)).size, terms: rows.length });
+      const rows = (data as { category: string; exam_id: string }[]) ?? [];
+      const mine = rows.filter((r) => r.exam_id === examId);
+      setStats({ cats: new Set(mine.map((r) => r.category)).size, terms: mine.length, glossary: rows.length });
       setLoading(false);
     })();
     return () => {
@@ -160,21 +161,25 @@ export default function LearnHubPage() {
             </div>
             <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
               <div className="text-[19px] font-bold">用語集</div>
-              <div className="mt-2">
-                <span className="inline-block rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ background: "#EDF1F6", color: C.muted }}>準備中</span>
+              <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
+                {loading ? "読み込み中…" : `収録 ${stats?.glossary ?? 0}語（3試験共通）`}
               </div>
               <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
-                全用語を1ページに。五十音・検索・分野の絞り込みですぐ引けます。
+                全用語を1ページに。五十音・検索・試験レベル・分野の絞り込みですぐ引けます。
               </p>
-              <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
-                近日公開
-              </span>
+              <Link
+                href={`/learn/glossary?exam=${examId}`}
+                className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: C.good }}
+              >
+                用語集を開く
+              </Link>
             </div>
           </div>
         </div>
 
         <p className="mt-6 text-center text-[12.5px]" style={{ color: C.faint }}>
-          「間違いの復習」と「用語集」は順次公開予定です。
+          「間違いの復習」は順次公開予定です。
         </p>
       </main>
     </div>
