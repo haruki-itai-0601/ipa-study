@@ -55,9 +55,48 @@ function storageKey(examId: string, category: string) {
   return `learnPathV1:${examId}:${category}`;
 }
 
-// 道の「揺らぎ」パターン（決め打ち＝リロードしても同じ道になる）
-const XP = [-1, -0.3, 0.72, 1, 0.18, -0.62, -1, -0.1, 0.88, 0.4, -0.52, -0.95, 0.05, 0.8, -0.35, 0.6];
-const YG = [1, 1.32, 0.86, 1.18, 1.5, 0.9, 1.22, 1.02, 1.38, 0.82, 1.12, 1.45, 0.95, 1.25];
+// 道の蛇行パターン（BrilliantのScientific Thinkingの道を左右反転＋微調整した決め打ち値。
+// リロードしても同じ道になる）
+const XP = [0.95, 0.35, -0.7, -1, -0.2, 0.6, 1, 0.15, -0.85, -0.42, 0.5, 0.98, -0.05, -0.78, 0.3, -0.6];
+const YG = [1, 1.28, 0.88, 1.16, 1.46, 0.92, 1.2, 1.04, 1.34, 0.84, 1.1, 1.42, 0.96, 1.24];
+
+// 立体キューブノード（アイソメトリック）。(x, y) が視覚中心になるよう配置する。
+function IsoCube({
+  x, y, size, top, left, right, selected, dimmed,
+}: {
+  x: number; y: number; size: number;
+  top: string; left: string; right: string;
+  selected?: boolean; dimmed?: boolean;
+}) {
+  const s = size;
+  const h = s * 0.94;
+  return (
+    <svg
+      width={s}
+      height={h}
+      className="absolute"
+      style={{
+        left: x - s / 2,
+        top: y - h / 2,
+        filter: selected ? "drop-shadow(0 6px 12px rgba(29,78,216,0.4))" : "drop-shadow(0 3px 5px rgba(21,32,46,0.18))",
+        opacity: dimmed ? 0.9 : 1,
+      }}
+      aria-hidden="true"
+    >
+      {/* 上面 → 左面 → 右面 */}
+      <polygon points={`${s / 2},0 ${s},${s * 0.25} ${s / 2},${s * 0.5} 0,${s * 0.25}`} fill={top} stroke={selected ? "#fff" : "rgba(255,255,255,0.35)"} strokeWidth={selected ? 2.5 : 1} strokeLinejoin="round" style={{ transition: "fill .4s ease" }} />
+      <polygon points={`0,${s * 0.25} ${s / 2},${s * 0.5} ${s / 2},${h} 0,${s * 0.69}`} fill={left} stroke={selected ? "#fff" : "transparent"} strokeWidth={selected ? 2.5 : 0} strokeLinejoin="round" style={{ transition: "fill .4s ease" }} />
+      <polygon points={`${s / 2},${s * 0.5} ${s},${s * 0.25} ${s},${s * 0.69} ${s / 2},${h}`} fill={right} stroke={selected ? "#fff" : "transparent"} strokeWidth={selected ? 2.5 : 0} strokeLinejoin="round" style={{ transition: "fill .4s ease" }} />
+    </svg>
+  );
+}
+
+// キューブの配色（上面/左面/右面）
+const CUBE = {
+  done: { top: "#3D6BF0", left: "#12318F", right: "#1D4ED8" },
+  locked: { top: "#E6EBF3", left: "#C3CCDA", right: "#D6DEE9" },
+  goal: { top: "#2FA576", left: "#0A6B4A", right: "#0F8A5F" },
+};
 
 function LearnPathContent() {
   const params = useParams();
@@ -178,11 +217,7 @@ function LearnPathContent() {
   const pathHeight = goalXY.y + 72;
   const avatarPos = allDone ? goalXY : currentIdx >= 0 ? nodeXY(currentIdx) : null;
 
-  // S字カーブの道（縦方向に接線をもつ3次ベジェ）
-  const roadD = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    const dy = (b.y - a.y) * 0.55;
-    return `M ${a.x} ${a.y} C ${a.x} ${a.y + dy}, ${b.x} ${b.y - dy}, ${b.x} ${b.y}`;
-  };
+  // 道は直線の斜め区間（Brilliant風）を二層で描き、下層をずらして「ポコッと」立体に見せる。
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
@@ -326,16 +361,24 @@ function LearnPathContent() {
                       const a = nodeXY(i);
                       const b = i + 1 < steps.length ? nodeXY(i + 1) : goalXY;
                       const solid = isDone(s.id);
+                      const dash = solid ? undefined : "0.5 17";
                       return (
-                        <path
-                          key={s.id}
-                          d={roadD(a, b)}
-                          fill="none"
-                          strokeWidth={10}
-                          strokeLinecap="round"
-                          strokeDasharray={solid ? undefined : "0.5 16"}
-                          style={{ stroke: solid ? C.brand : C.line2, transition: "stroke .5s ease" }}
-                        />
+                        <g key={s.id}>
+                          <line
+                            x1={a.x} y1={a.y + 5} x2={b.x} y2={b.y + 5}
+                            strokeWidth={11}
+                            strokeLinecap="round"
+                            strokeDasharray={dash}
+                            style={{ stroke: solid ? "#12318F" : "#C6D0DE", transition: "stroke .5s ease" }}
+                          />
+                          <line
+                            x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                            strokeWidth={11}
+                            strokeLinecap="round"
+                            strokeDasharray={dash}
+                            style={{ stroke: solid ? C.brand : "#E2E8F1", transition: "stroke .5s ease" }}
+                          />
+                        </g>
                       );
                     })}
                   </svg>
@@ -363,24 +406,17 @@ function LearnPathContent() {
                     const isSelected = i === stepIdx;
                     const canOpen = completed || unlocked(i);
                     const labelLeft = x >= pathWidth / 2;
+                    const cube = completed || isCurrent ? CUBE.done : CUBE.locked;
                     const node = (
                       <>
-                        <span
-                          className="absolute flex items-center justify-center rounded-full"
-                          style={{
-                            left: x - 26, top: y - 26, width: 52, height: 52,
-                            background: completed || isCurrent ? C.brand : "#EDF1F6",
-                            border: isSelected ? "3px solid #fff" : undefined,
-                            boxShadow: isSelected ? "0 4px 14px rgba(29,78,216,0.4)" : undefined,
-                            transition: "background .4s ease",
-                          }}
-                        >
+                        <IsoCube x={x} y={y} size={58} top={cube.top} left={cube.left} right={cube.right} selected={isSelected} dimmed={!canOpen} />
+                        <span className="absolute flex items-center justify-center" style={{ left: x - 11, top: y - 24, width: 22, height: 22 }}>
                           {completed ? (
-                            <Check className="h-6 w-6 text-white" />
+                            <Check className="h-5 w-5 text-white" />
                           ) : isCurrent ? (
-                            <Play className="h-6 w-6 text-white" />
+                            <Play className="h-5 w-5 text-white" />
                           ) : (
-                            <Lock className="h-5 w-5" style={{ color: C.faint }} />
+                            <Lock className="h-4 w-4" style={{ color: "#8E9AAC" }} />
                           )}
                         </span>
                         <span
@@ -410,16 +446,16 @@ function LearnPathContent() {
                   })}
 
                   {/* ゴール */}
-                  <span
-                    className="absolute flex items-center justify-center rounded-full"
-                    style={{
-                      left: goalXY.x - 26, top: goalXY.y - 26, width: 52, height: 52,
-                      background: allDone ? C.good : "#EDF1F6",
-                      border: allDone ? undefined : `2px dashed ${C.line2}`,
-                      transition: "background .4s ease",
-                    }}
-                  >
-                    <Trophy className="h-6 w-6" style={{ color: allDone ? "#fff" : C.faint }} />
+                  <IsoCube
+                    x={goalXY.x}
+                    y={goalXY.y}
+                    size={62}
+                    top={allDone ? CUBE.goal.top : CUBE.locked.top}
+                    left={allDone ? CUBE.goal.left : CUBE.locked.left}
+                    right={allDone ? CUBE.goal.right : CUBE.locked.right}
+                  />
+                  <span className="absolute flex items-center justify-center" style={{ left: goalXY.x - 11, top: goalXY.y - 25, width: 22, height: 22 }}>
+                    <Trophy className="h-5 w-5" style={{ color: allDone ? "#fff" : "#8E9AAC" }} />
                   </span>
                   <span
                     className="absolute"
