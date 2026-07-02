@@ -9,6 +9,7 @@ import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryGroups } from "@/lib/exams";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, BookOpen, ChevronRight, Loader2 } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -54,6 +55,7 @@ export default function LearnCoursePage() {
             <div className="text-[13px]" style={{ color: C.muted }}>{exam ? exam.name : "学習する"}</div>
             <div className="truncate text-[17px] font-bold">順を追って学ぶ</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

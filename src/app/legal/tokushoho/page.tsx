@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Brain, ChevronLeft } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
   title: "特定商取引法に基づく表記｜過去問演習ラボ",
@@ -79,6 +80,7 @@ export default function TokushohoPage() {
               特定商取引法に基づく表記
             </span>
           </div>
+          <BackToDashboard />
         </div>
       </header>
 

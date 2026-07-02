@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { ArrowLeft, ChevronRight, FileText, Loader2 } from "lucide-react";
 import FeBRunner, { type FeBQ } from "@/components/fe-b-runner";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 const SOURCE_LABEL: Record<string, string> = {
   sample: "サンプル問題（全20問）",
@@ -60,6 +61,7 @@ export default function KamokuBPage() {
               <div className="text-sm text-gray-500">基本情報 科目B</div>
               <div className="font-bold text-gray-900">{SOURCE_LABEL[activeSource] ?? activeSource}</div>
             </div>
+            <BackToDashboard className="ml-auto" />
           </div>
         </header>
         <FeBRunner questions={qs} sourceLabel={SOURCE_LABEL[activeSource]} />
@@ -79,6 +81,7 @@ export default function KamokuBPage() {
             <div className="text-sm text-gray-500">基本情報技術者試験</div>
             <div className="font-bold text-gray-900">科目B（プログラミング・情報セキュリティ）</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

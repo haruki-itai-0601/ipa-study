@@ -11,6 +11,7 @@ import Link from "next/link";
 import { basicExams } from "@/lib/exams";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -56,6 +57,7 @@ export default function LearnHubPage() {
             <div className="text-[13px]" style={{ color: C.muted }}>学習する</div>
             <div className="truncate text-[17px] font-bold">{exam ? exam.name : "学習する"}</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

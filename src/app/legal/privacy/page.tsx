@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Brain, ChevronLeft } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
   title: "プライバシーポリシー｜過去問演習ラボ",
@@ -100,6 +101,7 @@ export default function PrivacyPage() {
             </div>
             <span className="font-bold text-gray-900">プライバシーポリシー</span>
           </div>
+          <BackToDashboard />
         </div>
       </header>
 

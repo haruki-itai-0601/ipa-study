@@ -2,6 +2,7 @@ import { exams } from "@/lib/exams";
 import { ArrowLeft, ChevronRight, Trophy } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata: Metadata = {
   title: "5問チャレンジ｜過去問演習ラボ",
@@ -20,6 +21,7 @@ export default function ChallengeIndex() {
             <div className="text-sm text-gray-500">過去問演習ラボ</div>
             <div className="font-bold text-gray-900">5問チャレンジ</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Brain, ChevronLeft } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
   title: "利用規約｜過去問演習ラボ",
@@ -23,6 +24,7 @@ export default function TermsPage() {
             </div>
             <span className="font-bold text-gray-900">利用規約</span>
           </div>
+          <BackToDashboard />
         </div>
       </header>
 

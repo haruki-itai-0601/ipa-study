@@ -5,6 +5,7 @@ import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine,
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 // 試験ごとの検索向けメタデータ（タイトル・説明）。
 // 各ページを「ITパスポート専門」「応用情報専門」として検索エンジンに認識させるための要。
@@ -137,6 +138,7 @@ export default async function ExamPage({
               <div className="font-bold text-gray-900 text-lg">{exam.name}</div>
             </div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

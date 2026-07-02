@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import SingleQuestion, { type SingleQ } from "@/components/single-question";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 type Question = SingleQ;
 
@@ -90,6 +91,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
             <div className="text-sm text-gray-500">今日の1問</div>
             <div className="font-bold text-gray-900">{exam?.name ?? "過去問"}</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

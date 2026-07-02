@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle, XCircle, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 interface Question {
   id: string;
@@ -169,7 +170,7 @@ export default function AIExamPage() {
     <div className="min-h-screen">
       {/* ヘッダー */}
       <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">
           <div className="flex items-center gap-3">
             <Link href={`/exam/${examId}`} className="text-gray-400 hover:text-gray-600">
               <ArrowLeft className="w-6 h-6" />
@@ -179,9 +180,10 @@ export default function AIExamPage() {
               <div className="font-bold text-gray-900">AI予想問題演習</div>
             </div>
           </div>
-          <div className="text-base font-semibold text-gray-500">
+          <div className="ml-auto text-base font-semibold text-gray-500 whitespace-nowrap">
             {currentIndex + 1} / {questions.length}
           </div>
+          <BackToDashboard />
         </div>
         {/* 進捗バー */}
         <div className="h-1.5 bg-gray-100">

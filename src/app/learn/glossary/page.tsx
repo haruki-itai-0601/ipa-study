@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, Loader2, Search, SearchX } from "lucide-react";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -132,6 +133,7 @@ function GlossaryContent() {
             <div className="text-[13px]" style={{ color: C.muted }}>学習する</div>
             <div className="truncate text-[17px] font-bold">用語集</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

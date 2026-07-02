@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { am1Exam, advancedExams } from "@/lib/exams";
 import { Brain, ChevronRight, ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
   title: "高度情報処理技術者試験｜過去問演習ラボ",
@@ -27,6 +28,7 @@ export default function AdvancedPage() {
             </div>
             <span className="font-bold text-gray-900">高度情報処理技術者試験</span>
           </div>
+          <BackToDashboard />
         </div>
       </header>
 

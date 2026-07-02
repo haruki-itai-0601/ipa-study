@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ChallengeRunner, { type ChQ } from "@/components/challenge-runner";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const dynamic = "force-dynamic"; // 毎回ちがう5問にする
 
@@ -57,6 +58,7 @@ export default async function ChallengePage({ params }: { params: Promise<{ exam
             <div className="text-sm text-gray-500">5問チャレンジ</div>
             <div className="font-bold text-gray-900">{exam.name}</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
       <ChallengeRunner examId={examId} questions={questions} />

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft, Sparkles } from "lucide-react";
 import { PremiumClient } from "@/components/premium-client";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
   title: "プレミアム会員のご案内｜過去問演習ラボ",
@@ -26,6 +27,7 @@ export default function PremiumPage() {
             </div>
             <span className="font-bold text-gray-900">プレミアム会員</span>
           </div>
+          <BackToDashboard />
         </div>
       </header>
 

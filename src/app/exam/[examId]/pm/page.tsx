@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 type PmQ = {
   id: string;
@@ -183,6 +184,7 @@ export default function PmExamPage() {
               {view === "viewer" && current ? current.title || "午後問題" : "午後問題（記述式）"}
             </div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 

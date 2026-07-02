@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import QuizRunner, { type Question } from "@/components/quiz-runner";
+import { BackToDashboard } from "@/components/back-to-dashboard";
 
 type Mode = "year" | "random" | "category" | "wrong" | "exam";
 
@@ -339,6 +340,7 @@ export default function PastExamPage() {
             <div className="text-sm text-gray-500">{exam.name}</div>
             <div className="font-bold text-gray-900">過去問演習</div>
           </div>
+          <BackToDashboard className="ml-auto" />
         </div>
       </header>
 
