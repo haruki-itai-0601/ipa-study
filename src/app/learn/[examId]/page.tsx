@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams } from "@/lib/exams";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
+import { fetchWrongPool } from "@/lib/review";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 
@@ -28,6 +29,7 @@ export default function LearnHubPage() {
 
   const [stats, setStats] = useState<{ cats: number; terms: number; glossary: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [wrong, setWrong] = useState<{ loggedIn: boolean; count: number } | null>(null);
 
   useEffect(() => {
     let on = true;
@@ -38,6 +40,11 @@ export default function LearnHubPage() {
       const mine = rows.filter((r) => r.exam_id === examId);
       setStats({ cats: new Set(mine.map((r) => r.category)).size, terms: mine.length, glossary: rows.length });
       setLoading(false);
+    })();
+    (async () => {
+      const pool = await fetchWrongPool(examId);
+      if (!on) return;
+      setWrong({ loggedIn: pool.loggedIn, count: pool.ids.length });
     })();
     return () => {
       on = false;
@@ -135,15 +142,19 @@ export default function LearnHubPage() {
             </div>
             <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
               <div className="text-[19px] font-bold">間違いの復習</div>
-              <div className="mt-2">
-                <span className="inline-block rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ background: "#EDF1F6", color: C.muted }}>準備中</span>
+              <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
+                {wrong === null ? "読み込み中…" : wrong.loggedIn ? `復習対象 ${wrong.count}問` : "会員登録で間違いが貯まります"}
               </div>
               <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
-                演習で間違えた問題だけを1問ずつ見直して、弱点をつぶします。
+                演習で間違えた問題だけを1問ずつやり直して、克服するまで繰り返せます。
               </p>
-              <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
-                近日公開
-              </span>
+              <Link
+                href={`/learn/${examId}/review`}
+                className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: C.warn }}
+              >
+                間違いをやり直す
+              </Link>
             </div>
           </div>
 
@@ -179,7 +190,7 @@ export default function LearnHubPage() {
         </div>
 
         <p className="mt-6 text-center text-[12.5px]" style={{ color: C.faint }}>
-          「間違いの復習」は順次公開予定です。
+          「間違いの復習」の対象は、演習の解答記録から自動で作られます。
         </p>
       </main>
     </div>

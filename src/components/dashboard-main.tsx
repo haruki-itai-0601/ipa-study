@@ -25,6 +25,7 @@ import {
   BookOpen,
   BookA,
   HelpCircle,
+  RotateCcw,
 } from "lucide-react";
 
 // ===== フラット青パレット =====
@@ -438,6 +439,9 @@ export function DashboardMain() {
             <div className="my-1 h-px" style={{ background: C.line }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
               <Clock className="h-5 w-5" /> 学習履歴
+            </Link>
+            <Link href={`/learn/${activeExam}/review`} className={navItem} style={{ color: C.ink }}>
+              <RotateCcw className="h-5 w-5" /> 間違いの復習
             </Link>
             <Link href={`/learn/glossary?exam=${activeExam}`} className={navItem} style={{ color: C.ink }}>
               <BookA className="h-5 w-5" /> 用語集
