@@ -402,7 +402,11 @@ export function DashboardMain() {
         <aside className="hidden md:flex flex-col sticky top-0 h-screen overflow-y-auto" style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "14px 14px" }}>
           <Link href="/" className="px-2 pb-3 pt-1 leading-tight">
             <span className="block text-[23px] font-bold">過去問演習ラボ</span>
-            <span className="block text-[13px] font-normal" style={{ color: C.faint }}>AIと、最短で合格へ</span>
+            <span className="mt-0.5 block text-[16px] font-normal leading-snug" style={{ color: C.muted }}>
+              AIとともに
+              <br />
+              最短合格の道をハックする
+            </span>
           </Link>
 
           <nav className="mt-0.5 flex flex-col gap-0">
