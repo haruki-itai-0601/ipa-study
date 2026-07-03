@@ -316,6 +316,31 @@ export const learnCategoryGroups: Record<string, { group: string; categories: st
   ],
 };
 
+// 学習する（learn_terms）の分野名 → questionsテーブルの分野名（IPA中分類）の対応。
+// IP/FEは学習側が複数の中分類を統合した分野名のため、演習に接続するときはここで展開する。
+// 未定義の分野名は同名の中分類として扱う（APは全分野が中分類そのままなので定義不要）。
+const learnToQuestionCategories: Record<string, Record<string, string[]>> = {
+  ip: {
+    経営戦略: ["経営戦略マネジメント", "技術戦略マネジメント", "ビジネスインダストリ"],
+    "システム戦略・企画": ["システム戦略", "システム企画"],
+    システム開発: ["システム開発技術", "ソフトウェア開発管理技術"],
+    "サービスマネジメント・監査": ["サービスマネジメント", "システム監査"],
+    "基礎理論・アルゴリズム": ["基礎理論", "アルゴリズムとプログラミング"],
+    コンピュータシステム: ["コンピュータ構成要素", "システム構成要素", "ソフトウェア", "ハードウェア"],
+    "情報デザイン・メディア": ["ユーザーインタフェース", "情報メディア"],
+  },
+  fe: {
+    "コンピュータ構成・ハードウェア": ["コンピュータ構成要素", "システム構成要素", "ハードウェア"],
+    "ソフトウェア・OS": ["ソフトウェア", "ユーザーインタフェース", "情報メディア"],
+    システム開発: ["システム開発技術", "ソフトウェア開発管理技術"],
+    マネジメント: ["プロジェクトマネジメント", "サービスマネジメント", "システム監査"],
+    "ストラテジ・経営": ["システム戦略", "システム企画", "経営戦略マネジメント", "技術戦略マネジメント", "ビジネスインダストリ", "企業活動", "法務"],
+  },
+};
+export function questionCategoriesFor(examId: string, category: string): string[] {
+  return learnToQuestionCategories[examId]?.[category] ?? [category];
+}
+
 // 分野一覧を3大区分の順に並べ替える（定義にない分野は末尾へ）。
 export function orderLearnCategories(examId: string, cats: string[]): string[] {
   const groups = learnCategoryGroups[examId];

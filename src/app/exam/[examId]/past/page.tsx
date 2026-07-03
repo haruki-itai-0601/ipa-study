@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getExam, sectionLabel, displayCategory } from "@/lib/exams";
+import { getExam, sectionLabel, displayCategory, questionCategoriesFor } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchAllRows, fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -184,6 +184,7 @@ export default function PastExamPage() {
   };
 
   // 分野別: 選んだカテゴリからシャッフルしてN問
+  // カテゴリは「学習する」の統合分野名でも良い（questionCategoriesForで中分類に展開）
   const startCategory = async (category: string) => {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
@@ -193,7 +194,7 @@ export default function PastExamPage() {
         .select("*")
         .eq("exam_id", examId)
         .eq("type", "past")
-        .eq("category", category)
+        .in("category", questionCategoriesFor(examId, category))
         .order("id")
         .range(from, to)
     );
@@ -219,7 +220,7 @@ export default function PastExamPage() {
         .select("*")
         .eq("exam_id", examId)
         .eq("type", "past")
-        .eq("category", category)
+        .in("category", questionCategoriesFor(examId, category))
         .order("id")
         .range(from, to)
     );

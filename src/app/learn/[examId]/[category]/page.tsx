@@ -12,10 +12,12 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { basicExams, displayCategory, orderLearnCategories } from "@/lib/exams";
+import { basicExams, displayCategory, orderLearnCategories, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient, fetchLearnTerms } from "@/lib/supabase-browser";
-import { ArrowLeft, ArrowRight, Check, Lightbulb, Loader2, Lock, Pencil, Play, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle, Lightbulb, Loader2, Lock, Pencil, Play, Trophy, XCircle } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { type Question } from "@/components/quiz-runner";
+import ZoomableImage from "@/components/zoomable-image";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -27,6 +29,10 @@ type Term = { id: string; section: string; term: string; reading: string; body: 
 type Step = { id: string; title: string; section: string; terms: Term[] };
 
 const CHUNK = 8; // 1ステップの最大用語数
+const CHECK_N = 3; // チェック問題の出題数（プールが少なければその数だけ）
+const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
+const passNeed = (n: number) => Math.ceil((n * 2) / 3); // 合格ライン（3問なら2問）
+const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
 
 // 同じ小分類を全体でまとめて（初出順）、大きい小分類は約8語ずつに分割する。
 function buildSteps(terms: Term[]): Step[] {
@@ -133,6 +139,15 @@ function LearnPathContent() {
   const [done, setDone] = useState<string[]>([]);
   const [pathWidth, setPathWidth] = useState(460);
 
+  // チェック問題（小分類ごとの関連過去問プール＝learn_section_questionsから取得）
+  const [pools, setPools] = useState<Map<string, string[]>>(new Map());
+  const [panelPhase, setPanelPhase] = useState<"learn" | "check">("learn");
+  const [checkQs, setCheckQs] = useState<Question[]>([]);
+  const [checkIdx, setCheckIdx] = useState(0);
+  const [checkSel, setCheckSel] = useState<string | null>(null);
+  const [checkResults, setCheckResults] = useState<boolean[]>([]);
+  const [checkLoading, setCheckLoading] = useState(false);
+
   useEffect(() => {
     let on = true;
     setLoading(true);
@@ -173,6 +188,30 @@ function LearnPathContent() {
     } catch {
       setDone([]);
     }
+  }, [examId, category]);
+
+  // チェック問題プール（小分類 → 関連過去問ID・関連度順）を取得
+  useEffect(() => {
+    let on = true;
+    (async () => {
+      const supabase = createSupabaseBrowserClient();
+      const { data } = await supabase
+        .from("learn_section_questions")
+        .select("section, question_id, score")
+        .eq("exam_id", examId)
+        .eq("category", category)
+        .order("score", { ascending: false });
+      if (!on) return;
+      const map = new Map<string, string[]>();
+      for (const r of (data ?? []) as { section: string; question_id: string }[]) {
+        if (!map.has(r.section)) map.set(r.section, []);
+        map.get(r.section)!.push(r.question_id);
+      }
+      setPools(map);
+    })();
+    return () => {
+      on = false;
+    };
   }, [examId, category]);
 
   useEffect(() => {
@@ -218,6 +257,74 @@ function LearnPathContent() {
       document.getElementById("learn-step-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [stepParam]);
+
+  // ===== チェック問題（学ぶ→即解く。合格で次のステップが開く） =====
+  // 選択ステップが変わったら学習フェーズに戻す
+  useEffect(() => {
+    setPanelPhase("learn");
+    setCheckQs([]);
+    setCheckIdx(0);
+    setCheckSel(null);
+    setCheckResults([]);
+  }, [stepIdx]);
+
+  async function startCheck(step: Step, idx: number) {
+    // 合格でcurrentIdxが進んでも結果画面が飛ばないよう、URLをこのステップに固定する
+    router.replace(`${basePath}?step=${idx + 1}`, { scroll: false });
+    const pool = pools.get(step.section) ?? [];
+    const pick = shuffle(pool).slice(0, CHECK_N);
+    setPanelPhase("check");
+    setCheckLoading(true);
+    setCheckIdx(0);
+    setCheckSel(null);
+    setCheckResults([]);
+    const supabase = createSupabaseBrowserClient();
+    const { data } = await supabase.from("questions").select("*").in("id", pick);
+    const byId = new Map(((data ?? []) as Question[]).map((q) => [q.id, q]));
+    setCheckQs(pick.map((id) => byId.get(id)).filter(Boolean) as Question[]);
+    setCheckLoading(false);
+  }
+
+  async function answerCheck(key: string) {
+    const q = checkQs[checkIdx];
+    if (!q || checkSel) return;
+    setCheckSel(key);
+    const correct = key === q.correct_answer;
+    setCheckResults((prev) => [...prev, correct]);
+    // 解答は演習と同じく記録する（間違えれば「間違いの復習」にも貯まる）
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("user_progress").insert({
+          user_id: user.id,
+          question_id: q.id,
+          exam_id: examId,
+          year: q.year,
+          is_correct: correct,
+        });
+      }
+    } catch {}
+  }
+
+  const checkFinished = panelPhase === "check" && checkQs.length > 0 && checkResults.length === checkQs.length && checkSel === null;
+  const checkCorrectCount = checkResults.filter(Boolean).length;
+  const checkPassed = checkFinished && checkCorrectCount >= passNeed(checkQs.length);
+
+  function nextCheck() {
+    if (checkIdx + 1 < checkQs.length) {
+      setCheckIdx((i) => i + 1);
+    }
+    setCheckSel(null); // 最終問のときは checkSel を外して結果画面へ
+  }
+
+  // 合格したらステップを完了にする（道のクリスタルが次へ進む）
+  useEffect(() => {
+    if (checkPassed && selected && !isDone(selected.id)) markDone(selected.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkPassed]);
 
   // ===== チェーン（バッジ＋ステップ＋ゴールを直列に） =====
   const chain = useMemo(() => {
@@ -417,7 +524,149 @@ function LearnPathContent() {
             {/* 学習パネル（左）＋道（右） */}
             <div className="mt-4 flex flex-col gap-5 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:items-start md:gap-6">
               <div id="learn-step-panel" className="md:sticky md:top-[84px] md:max-h-[calc(100vh-108px)] md:overflow-y-auto">
-                {selected ? (
+                {selected && panelPhase === "check" ? (
+                  /* ===== チェック問題フェーズ（学んだ内容を過去問で確認） ===== */
+                  <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h2 className="text-[16.5px] font-bold">チェック問題</h2>
+                      <span className="min-w-0 truncate text-[12px] font-bold" style={{ color: C.muted }}>{selected.title}</span>
+                    </div>
+                    <div className="mt-2.5 flex gap-1.5">
+                      {checkQs.map((cq, i) => (
+                        <span
+                          key={cq.id}
+                          className="h-[8px] flex-1 rounded-full"
+                          style={{
+                            background: i < checkResults.length ? (checkResults[i] ? "#4ADE80" : "#F87171") : i === checkIdx ? C.brand : "#E3E8F0",
+                            transition: "background .3s ease",
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    {checkLoading ? (
+                      <div className="flex items-center justify-center gap-2 py-14" style={{ color: C.faint }}>
+                        <Loader2 className="h-5 w-5 animate-spin" /> 問題を準備中…
+                      </div>
+                    ) : checkFinished ? (
+                      <div className="py-4 text-center">
+                        {checkPassed ? (
+                          <>
+                            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "#ECF6F0" }}>
+                              <Trophy className="h-7 w-7" style={{ color: C.good }} />
+                            </span>
+                            <p className="mt-3 text-[17px] font-bold" style={{ color: "#0F6E56" }}>クリア！ {checkCorrectCount} / {checkQs.length} 正解</p>
+                            <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>このステップを完了しました。道が先へ進みます。</p>
+                            {stepIdx! + 1 < steps.length ? (
+                              <button
+                                onClick={() => router.replace(`${basePath}?step=${stepIdx! + 2}`, { scroll: false })}
+                                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-[15px] font-bold text-white"
+                                style={{ background: C.brand }}
+                              >
+                                次のステップへ <ArrowRight className="h-5 w-5" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => router.replace(basePath, { scroll: false })}
+                                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-[15px] font-bold text-white"
+                                style={{ background: C.good }}
+                              >
+                                <Trophy className="h-5 w-5" /> ゴール！道を見る
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "#FBEDE6" }}>
+                              <XCircle className="h-7 w-7" style={{ color: "#C2410C" }} />
+                            </span>
+                            <p className="mt-3 text-[17px] font-bold" style={{ color: "#B45309" }}>あと一歩！ {checkCorrectCount} / {checkQs.length} 正解</p>
+                            <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>{passNeed(checkQs.length)}問正解でクリアです。用語を見直してから再挑戦しましょう。</p>
+                            <button
+                              onClick={() => setPanelPhase("learn")}
+                              className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-bold"
+                              style={{ background: "#EDF1F6", color: C.ink }}
+                            >
+                              用語を見直す
+                            </button>
+                            <button
+                              onClick={() => startCheck(selected, stepIdx!)}
+                              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-bold text-white"
+                              style={{ background: C.brand }}
+                            >
+                              もう一度挑戦する
+                            </button>
+                            <p className="mt-2 text-[11px]" style={{ color: C.faint }}>問題は挑戦のたびに入れ替わります。</p>
+                          </>
+                        )}
+                      </div>
+                    ) : checkQs[checkIdx] ? (
+                      (() => {
+                        const q = checkQs[checkIdx];
+                        const answered = checkSel !== null;
+                        const correct = checkSel === q.correct_answer;
+                        return (
+                          <div className="mt-3">
+                            <div className="rounded-xl p-3.5" style={{ background: C.bg, border: `1px solid ${C.line}` }}>
+                              {q.image_url ? (
+                                <ZoomableImage src={q.image_url} alt={`問題 ${q.q_number ?? ""}`} className="h-auto w-full rounded-md" />
+                              ) : (
+                                <p className="text-[14px] leading-relaxed">{q.question}</p>
+                              )}
+                            </div>
+                            <p className="mt-1.5 text-[10.5px]" style={{ color: C.faint }}>{questionSource(examId, q.year, q.q_number)}</p>
+                            <div className="mt-2.5 space-y-2">
+                              {(["a", "b", "c", "d"] as const).map((key) => {
+                                const value = { a: q.option_a, b: q.option_b, c: q.option_c, d: q.option_d }[key];
+                                const st = !answered
+                                  ? { border: `2px solid ${C.line}`, background: "#fff" }
+                                  : key === q.correct_answer
+                                    ? { border: "2px solid #4ADE80", background: "#F0FDF4" }
+                                    : key === checkSel
+                                      ? { border: "2px solid #F87171", background: "#FEF2F2" }
+                                      : { border: `2px solid ${C.line}`, background: "#fff", opacity: 0.6 };
+                                return (
+                                  <button key={key} onClick={() => answerCheck(key)} disabled={answered} className="w-full rounded-xl p-3 text-left transition-all" style={st}>
+                                    <div className="flex items-start gap-2.5">
+                                      <span
+                                        className="w-5 flex-shrink-0 text-[13.5px] font-bold"
+                                        style={{ color: answered && key === q.correct_answer ? "#16A34A" : answered && key === checkSel ? "#DC2626" : C.faint }}
+                                      >
+                                        {optionLabels[key]}
+                                      </span>
+                                      {!q.image_url && <span className="text-[13.5px] leading-relaxed" style={{ color: "#2b3648" }}>{value}</span>}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {answered && (
+                              <>
+                                <div className="mt-3 rounded-xl p-3.5" style={{ background: correct ? "#F0FDF4" : "#FEF2F2", border: `1px solid ${correct ? "#BBF7D0" : "#FECACA"}` }}>
+                                  <div className="flex items-center gap-1.5 text-[13.5px] font-bold" style={{ color: correct ? "#15803D" : "#B91C1C" }}>
+                                    {correct ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                                    {correct ? "正解！" : `不正解（正解は ${optionLabels[q.correct_answer]}）`}
+                                  </div>
+                                  <p className="mt-1.5 text-[12.5px] leading-relaxed" style={{ color: "#3a4658" }}>{q.explanation}</p>
+                                </div>
+                                <button
+                                  onClick={nextCheck}
+                                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-bold text-white"
+                                  style={{ background: C.brand }}
+                                >
+                                  {checkIdx + 1 < checkQs.length ? "次の問題へ" : "結果を見る"} <ArrowRight className="h-4 w-4" />
+                                </button>
+                              </>
+                            )}
+                            <p className="mt-2 text-center text-[11px]" style={{ color: C.faint }}>
+                              問{checkIdx + 1} / {checkQs.length} ・ {passNeed(checkQs.length)}問正解でクリア
+                            </p>
+                          </div>
+                        );
+                      })()
+                    ) : null}
+                  </div>
+                ) : selected ? (
                   <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                     <div className="flex items-baseline justify-between gap-2">
                       <h2 className="text-[16.5px] font-bold">{selected.title}</h2>
@@ -452,6 +701,20 @@ function LearnPathContent() {
                             次のステップへ <ArrowRight className="h-5 w-5" />
                           </button>
                         ) : null
+                      ) : (pools.get(selected.section) ?? []).length > 0 ? (
+                        <>
+                          <button
+                            onClick={() => startCheck(selected, stepIdx!)}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-[15px] font-bold text-white"
+                            style={{ background: C.brand }}
+                          >
+                            <Pencil className="h-5 w-5" />
+                            チェック問題に挑戦（{Math.min(CHECK_N, (pools.get(selected.section) ?? []).length)}問）
+                          </button>
+                          <p className="mt-2 text-center text-[11.5px]" style={{ color: C.muted }}>
+                            本物の過去問から出題。{passNeed(Math.min(CHECK_N, (pools.get(selected.section) ?? []).length))}問正解でこのステップをクリアです。
+                          </p>
+                        </>
                       ) : (
                         <button
                           onClick={() => {
