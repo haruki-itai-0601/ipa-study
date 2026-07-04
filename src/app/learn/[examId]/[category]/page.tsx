@@ -500,7 +500,7 @@ function LearnPathContent() {
             <ArrowLeft className="h-6 w-6" />
           </Link>
           <div className="min-w-0">
-            <div className="text-[13px]" style={{ color: C.muted }}>{exam ? `${exam.name}・順を追って学ぶ` : "順を追って学ぶ"}</div>
+            <div className="text-[13px]" style={{ color: C.muted }}>{exam ? `${exam.name}・ステップで学習` : "ステップで学習"}</div>
             <div className="truncate text-[17px] font-bold">{catLabel}</div>
           </div>
           <span className="ml-auto whitespace-nowrap text-[13px] font-bold" style={{ color: C.brandDeep }}>
@@ -542,7 +542,7 @@ function LearnPathContent() {
 
             <div className="rounded-2xl px-4 py-3.5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div className="flex items-center justify-between">
-                <span className="text-[13px]" style={{ color: C.muted }}>順を追って学ぶ</span>
+                <span className="text-[13px]" style={{ color: C.muted }}>ステップで学習（学習 → 過去問演習）</span>
                 <span className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{doneCount} / {steps.length} 完了</span>
               </div>
               <div className="mt-2 h-[10px] overflow-hidden rounded-full" style={{ background: "#E3E8F0" }}>

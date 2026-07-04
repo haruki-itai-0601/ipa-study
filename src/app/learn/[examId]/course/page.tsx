@@ -1,6 +1,6 @@
 "use client";
 
-// 学習する > 順を追って学ぶ：試験ごとの「分野一覧」。learn_terms にある分野をカードで並べ、各分野の用語ページへ。
+// 学習する > ステップで学習（学習→過去問演習）：試験ごとの「分野一覧」。learn_terms にある分野をカードで並べ、各分野の用語ページへ。
 // /learn/[examId]/course
 
 import { useEffect, useMemo, useState } from "react";
@@ -53,7 +53,7 @@ export default function LearnCoursePage() {
           </Link>
           <div className="min-w-0">
             <div className="text-[13px]" style={{ color: C.muted }}>{exam ? exam.name : "学習する"}</div>
-            <div className="truncate text-[17px] font-bold">順を追って学ぶ</div>
+            <div className="truncate text-[17px] font-bold">ステップで学習（学習 → 過去問演習）</div>
           </div>
           <BackToDashboard className="ml-auto" />
         </div>

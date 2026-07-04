@@ -1,7 +1,7 @@
 "use client";
 
 // 学習する：モード選択ハブ（Canva Design School風）。
-// 試験タブ＋3モードカード（順を追って学ぶ／間違いの復習／用語集）。
+// 試験タブ＋3モードカード（ステップで学習／間違いの復習／用語集）。
 // コンテンツは中央寄せにして両サイドに余白を残す（将来の広告枠）。
 // /learn/[examId]
 
@@ -72,7 +72,7 @@ export default function LearnHubPage() {
         <div className="text-center">
           <h1 className="text-[26px] font-bold">3つのモードから選んで始めましょう</h1>
           <p className="mt-1.5 text-[15px]" style={{ color: C.muted }}>
-            道筋に沿って学ぶ・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
+            ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
           <div className="mt-5 inline-flex gap-1.5 rounded-full p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             {basicExams.map((e) => {
@@ -92,7 +92,7 @@ export default function LearnHubPage() {
         </div>
 
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {/* ① 順を追って学ぶ */}
+          {/* ① ステップで学習（学習→過去問演習） */}
           <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             <div className="flex h-[120px] items-center justify-center" style={{ background: C.brandSoft }}>
               <svg viewBox="0 0 120 60" width="150" height="74" aria-hidden="true">
@@ -105,12 +105,14 @@ export default function LearnHubPage() {
               </svg>
             </div>
             <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
-              <div className="text-[19px] font-bold">順を追って学ぶ</div>
+              <div className="text-[19px] font-bold">
+                ステップで学習<span className="text-[14px]">（学習 → 過去問演習）</span>
+              </div>
               <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
                 {loading ? "読み込み中…" : hasContent ? `収録 ${stats!.cats}分野・${stats!.terms}語` : "コンテンツ準備中"}
               </div>
               <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
-                分野ごとの用語・概念を、道筋に沿って上から順にたどって学べます。
+                用語を学んだら、その場で本物の過去問に挑戦。学習→演習の繰り返しで、テストに合格すると次のステップが開きます。
               </p>
               {hasContent ? (
                 <Link
