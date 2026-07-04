@@ -14,7 +14,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams, displayCategory, orderLearnCategories, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient, fetchLearnTerms } from "@/lib/supabase-browser";
-import { ArrowLeft, ArrowRight, Check, CheckCircle, ClipboardCheck, Lightbulb, Loader2, Lock, Pencil, Play, Trophy, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle, ClipboardCheck, Lightbulb, Loader2, Lock, Pencil, Play, RotateCcw, Trophy, XCircle } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 import { type Question } from "@/components/quiz-runner";
 import ZoomableImage from "@/components/zoomable-image";
@@ -256,6 +256,17 @@ function LearnPathContent() {
   }
 
   const basePath = `/learn/${examId}/${encodeURIComponent(category)}`;
+
+  // この分野のパス進捗だけをリセット（解答の記録・弱点分析には影響しない）
+  function resetProgress() {
+    if (!window.confirm(`「${catLabel}」の学習の進捗をリセットして、最初からやり直しますか？\n（演習の解答記録や弱点分析は消えません）`)) return;
+    try {
+      localStorage.removeItem(storageKey(examId, category));
+    } catch {}
+    setDone([]);
+    setPanelPhase("learn");
+    router.replace(basePath, { scroll: false });
+  }
 
   // 選択中ステップ（?step=N。未指定なら「今ここ」を自動選択）
   const stepParam = searchParams.get("step");
@@ -527,14 +538,21 @@ function LearnPathContent() {
             </div>
 
             {allDone && (
-              <div className="mt-3 flex items-center gap-3 rounded-2xl px-4 py-3.5" style={{ background: "#ECF6F0", border: "1px solid #BFE4CE" }}>
+              <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3.5" style={{ background: "#ECF6F0", border: "1px solid #BFE4CE" }}>
                 <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-white" style={{ background: C.good }}>
                   <Trophy className="h-5 w-5" />
                 </span>
-                <div>
+                <div className="min-w-0">
                   <div className="text-[14.5px] font-bold" style={{ color: "#0F6E56" }}>お疲れ様でした！「{catLabel}」を学びきりました</div>
                   <div className="text-[12px]" style={{ color: "#3E7D62" }}>仕上げに、この分野の問題を解いて定着を確認しましょう。</div>
                 </div>
+                <button
+                  onClick={resetProgress}
+                  className="ml-auto inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-lg bg-white px-3 py-2 text-[12.5px] font-bold"
+                  style={{ border: "1px solid #BFE4CE", color: "#0F6E56" }}
+                >
+                  <RotateCcw className="h-4 w-4" /> 最初から学び直す
+                </button>
               </div>
             )}
 
@@ -960,6 +978,15 @@ function LearnPathContent() {
                     「{catLabel}」の問題を解いて確認する
                     <ArrowRight className="h-5 w-5" />
                   </Link>
+                  {doneCount > 0 && (
+                    <button
+                      onClick={resetProgress}
+                      className="mx-auto flex items-center gap-1.5 pb-1 text-[12px] font-bold transition-colors hover:text-gray-600"
+                      style={{ color: C.faint }}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> この分野の学習状態をリセットして最初からやり直す
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
