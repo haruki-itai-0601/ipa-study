@@ -783,7 +783,8 @@ function LearnPathContent() {
                           </button>
                           <p className="mt-2 text-center text-[11.5px]" style={{ color: C.muted }}>
                             学んだ用語ごとに1問ずつ、本物の過去問で確認します。
-                            {needFor(false, stepQuestions(selected).length)}問正解でクリアです。
+                            <br />
+                            （過去問に出題例のない用語は出題されません）
                           </p>
                         </>
                       ) : (
