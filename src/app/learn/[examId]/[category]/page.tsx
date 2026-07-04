@@ -14,7 +14,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams, displayCategory, orderLearnCategories, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient, fetchLearnTerms } from "@/lib/supabase-browser";
-import { ArrowLeft, ArrowRight, Check, CheckCircle, Lightbulb, Loader2, Lock, Pencil, Play, Trophy, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle, ClipboardCheck, Lightbulb, Loader2, Lock, Pencil, Play, Trophy, XCircle } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 import { type Question } from "@/components/quiz-runner";
 import ZoomableImage from "@/components/zoomable-image";
@@ -26,13 +26,16 @@ const C = {
 };
 
 type Term = { id: string; section: string; term: string; reading: string; body: string; sort_order: number };
-type Step = { id: string; title: string; section: string; terms: Term[] };
+type Step = { id: string; title: string; section: string; terms: Term[]; level: number; isLast: boolean };
 
 const CHUNK = 8; // 1ステップの最大用語数
 const CHECK_N = 3; // チェック問題の出題数（プールが少なければその数だけ）
+const TEST_N = 5; // レベル末テストの出題数
 const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
-const passNeed = (n: number) => Math.ceil((n * 2) / 3); // 合格ライン（3問なら2問）
+// 合格ライン: 通常チェック=2/3、レベル末テスト=本番試験の合格基準と同じ60%
+const needFor = (isTest: boolean, n: number) => Math.ceil(n * (isTest ? 0.6 : 2 / 3));
 const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
+const PINK = { deep: "#BE185D", main: "#DB2777", soft: "#FCE7F3", border: "#F9A8D4" };
 
 // 同じ小分類を全体でまとめて（初出順）、大きい小分類は約8語ずつに分割する。
 function buildSteps(terms: Term[]): Step[] {
@@ -46,16 +49,23 @@ function buildSteps(terms: Term[]): Step[] {
     bySection.get(t.section)!.push(t);
   }
   const steps: Step[] = [];
-  for (const section of order) {
+  order.forEach((section, si) => {
     const list = bySection.get(section)!;
     const n = Math.ceil(list.length / CHUNK);
     const size = Math.ceil(list.length / n);
     for (let i = 0; i < n; i++) {
       const chunk = list.slice(i * size, (i + 1) * size);
       if (chunk.length === 0) continue;
-      steps.push({ id: `${section}#${i}`, title: n > 1 ? `${section} ${i + 1}` : section, section, terms: chunk });
+      steps.push({
+        id: `${section}#${i}`,
+        title: n > 1 ? `${section} ${i + 1}` : section,
+        section,
+        terms: chunk,
+        level: si + 1, // チェーンのLEVELバッジと同じ採番（小分類の初出順）
+        isLast: i === n - 1, // レベル（小分類）内の最後のステップ＝レベル末テスト候補
+      });
     }
-  }
+  });
   return steps;
 }
 
@@ -122,6 +132,9 @@ const PLAT = {
   done: { baseTop: "#1D4ED8", baseSide: "#12318F", topTop: "#5B84F5", topSide: "#2F5CD9" },
   locked: { baseTop: "#565D68", baseSide: "#3E434C", topTop: "#8B93A0", topSide: "#6A7280" },
   goal: { baseTop: "#0F8A5F", baseSide: "#0A6B4A", topTop: "#3DB98A", topSide: "#178F66" },
+  // レベル末テストのノード（ピンク）。未開放でもピンク系＝テストの場所が上から見てわかる
+  test: { baseTop: "#DB2777", baseSide: "#9D174D", topTop: "#F472B6", topSide: "#EC4899" },
+  testLocked: { baseTop: "#E7A5C6", baseSide: "#C77FA4", topTop: "#F6C9DF", topSide: "#EDAFCD" },
 };
 
 function LearnPathContent() {
@@ -268,11 +281,14 @@ function LearnPathContent() {
     setCheckResults([]);
   }, [stepIdx]);
 
+  // レベル末テストかどうか（レベル内最後のステップ＆関連過去問プールあり）
+  const isTestStep = (s: Step) => s.isLast && (pools.get(s.section) ?? []).length > 0;
+
   async function startCheck(step: Step, idx: number) {
     // 合格でcurrentIdxが進んでも結果画面が飛ばないよう、URLをこのステップに固定する
     router.replace(`${basePath}?step=${idx + 1}`, { scroll: false });
     const pool = pools.get(step.section) ?? [];
-    const pick = shuffle(pool).slice(0, CHECK_N);
+    const pick = shuffle(pool).slice(0, isTestStep(step) ? TEST_N : CHECK_N);
     setPanelPhase("check");
     setCheckLoading(true);
     setCheckIdx(0);
@@ -311,7 +327,8 @@ function LearnPathContent() {
 
   const checkFinished = panelPhase === "check" && checkQs.length > 0 && checkResults.length === checkQs.length && checkSel === null;
   const checkCorrectCount = checkResults.filter(Boolean).length;
-  const checkPassed = checkFinished && checkCorrectCount >= passNeed(checkQs.length);
+  const selIsTest = selected ? isTestStep(selected) : false;
+  const checkPassed = checkFinished && checkCorrectCount >= needFor(selIsTest, checkQs.length);
 
   function nextCheck() {
     if (checkIdx + 1 < checkQs.length) {
@@ -528,7 +545,9 @@ function LearnPathContent() {
                   /* ===== チェック問題フェーズ（学んだ内容を過去問で確認） ===== */
                   <div className="rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                     <div className="flex items-baseline justify-between gap-2">
-                      <h2 className="text-[16.5px] font-bold">チェック問題</h2>
+                      <h2 className="text-[16.5px] font-bold" style={selIsTest ? { color: PINK.deep } : undefined}>
+                        {selIsTest ? `レベル${selected.level}のテスト` : "チェック問題"}
+                      </h2>
                       <span className="min-w-0 truncate text-[12px] font-bold" style={{ color: C.muted }}>{selected.title}</span>
                     </div>
                     <div className="mt-2.5 flex gap-1.5">
@@ -537,7 +556,7 @@ function LearnPathContent() {
                           key={cq.id}
                           className="h-[8px] flex-1 rounded-full"
                           style={{
-                            background: i < checkResults.length ? (checkResults[i] ? "#4ADE80" : "#F87171") : i === checkIdx ? C.brand : "#E3E8F0",
+                            background: i < checkResults.length ? (checkResults[i] ? "#4ADE80" : "#F87171") : i === checkIdx ? (selIsTest ? PINK.main : C.brand) : "#E3E8F0",
                             transition: "background .3s ease",
                           }}
                         />
@@ -581,7 +600,7 @@ function LearnPathContent() {
                               <XCircle className="h-7 w-7" style={{ color: "#C2410C" }} />
                             </span>
                             <p className="mt-3 text-[17px] font-bold" style={{ color: "#B45309" }}>あと一歩！ {checkCorrectCount} / {checkQs.length} 正解</p>
-                            <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>{passNeed(checkQs.length)}問正解でクリアです。用語を見直してから再挑戦しましょう。</p>
+                            <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>{needFor(selIsTest, checkQs.length)}問正解でクリアです。用語を見直してから再挑戦しましょう。</p>
                             <button
                               onClick={() => setPanelPhase("learn")}
                               className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-bold"
@@ -592,7 +611,7 @@ function LearnPathContent() {
                             <button
                               onClick={() => startCheck(selected, stepIdx!)}
                               className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-bold text-white"
-                              style={{ background: C.brand }}
+                              style={{ background: selIsTest ? PINK.main : C.brand }}
                             >
                               もう一度挑戦する
                             </button>
@@ -652,14 +671,14 @@ function LearnPathContent() {
                                 <button
                                   onClick={nextCheck}
                                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14.5px] font-bold text-white"
-                                  style={{ background: C.brand }}
+                                  style={{ background: selIsTest ? PINK.main : C.brand }}
                                 >
                                   {checkIdx + 1 < checkQs.length ? "次の問題へ" : "結果を見る"} <ArrowRight className="h-4 w-4" />
                                 </button>
                               </>
                             )}
                             <p className="mt-2 text-center text-[11px]" style={{ color: C.faint }}>
-                              問{checkIdx + 1} / {checkQs.length} ・ {passNeed(checkQs.length)}問正解でクリア
+                              問{checkIdx + 1} / {checkQs.length} ・ {needFor(selIsTest, checkQs.length)}問正解でクリア
                             </p>
                           </div>
                         );
@@ -675,8 +694,13 @@ function LearnPathContent() {
                       </span>
                     </div>
                     {isDone(selected.id) && (
-                      <span className="mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#ECF6F0", color: C.good }}>
+                      <span className="mt-1 mr-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: "#ECF6F0", color: C.good }}>
                         <Check className="h-3.5 w-3.5" /> 完了済み（復習）
+                      </span>
+                    )}
+                    {isTestStep(selected) && (
+                      <span className="mt-1 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold" style={{ background: PINK.soft, color: PINK.deep }}>
+                        <ClipboardCheck className="h-3.5 w-3.5" /> レベル{selected.level}のテストあり
                       </span>
                     )}
                     <div className="mt-3 space-y-2.5">
@@ -701,6 +725,21 @@ function LearnPathContent() {
                             次のステップへ <ArrowRight className="h-5 w-5" />
                           </button>
                         ) : null
+                      ) : isTestStep(selected) ? (
+                        <>
+                          <button
+                            onClick={() => startCheck(selected, stepIdx!)}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-[15px] font-bold text-white"
+                            style={{ background: PINK.main }}
+                          >
+                            <ClipboardCheck className="h-5 w-5" />
+                            レベル{selected.level}のテストに挑戦（{Math.min(TEST_N, (pools.get(selected.section) ?? []).length)}問）
+                          </button>
+                          <p className="mt-2 text-center text-[11.5px]" style={{ color: C.muted }}>
+                            レベル{selected.level}の総仕上げ。本番の合格基準と同じ60%＝
+                            {needFor(true, Math.min(TEST_N, (pools.get(selected.section) ?? []).length))}問の正解でクリアです。
+                          </p>
+                        </>
                       ) : (pools.get(selected.section) ?? []).length > 0 ? (
                         <>
                           <button
@@ -712,7 +751,7 @@ function LearnPathContent() {
                             チェック問題に挑戦（{Math.min(CHECK_N, (pools.get(selected.section) ?? []).length)}問）
                           </button>
                           <p className="mt-2 text-center text-[11.5px]" style={{ color: C.muted }}>
-                            本物の過去問から出題。{passNeed(Math.min(CHECK_N, (pools.get(selected.section) ?? []).length))}問正解でこのステップをクリアです。
+                            本物の過去問から出題。{needFor(false, Math.min(CHECK_N, (pools.get(selected.section) ?? []).length))}問正解でこのステップをクリアです。
                           </p>
                         </>
                       ) : (
@@ -842,24 +881,57 @@ function LearnPathContent() {
                     const isCurrent = it.stepIdx === currentIdx;
                     const isSelected = it.stepIdx === stepIdx;
                     const canOpen = completed || unlocked(it.stepIdx);
+                    const test = isTestStep(s);
+                    const hasCheck = !test && (pools.get(s.section) ?? []).length > 0;
+                    const palette = test
+                      ? completed || isCurrent
+                        ? PLAT.test
+                        : PLAT.testLocked
+                      : completed || isCurrent
+                        ? PLAT.done
+                        : PLAT.locked;
                     const node = (
                       <>
-                        <IsoPlatform x={x} y={y} palette={completed || isCurrent ? PLAT.done : PLAT.locked} selected={isSelected} dimmed={!canOpen} />
+                        <IsoPlatform x={x} y={y} palette={palette} selected={isSelected} dimmed={!canOpen} />
                         <span className="absolute flex items-center justify-center" style={{ left: x - 10, top: y - 21, width: 20, height: 20 }}>
                           {completed ? (
                             <Check className="text-white" style={{ width: 17, height: 17 }} />
+                          ) : test ? (
+                            <ClipboardCheck style={{ width: 15, height: 15, color: "#fff" }} />
                           ) : isCurrent ? (
                             <Play className="text-white" style={{ width: 16, height: 16 }} />
                           ) : (
                             <Lock style={{ width: 14, height: 14, color: "#D4DAE3" }} />
                           )}
                         </span>
+                        {hasCheck && !completed && (
+                          <span
+                            className="absolute flex items-center justify-center rounded-full"
+                            style={{ left: x + 16, top: y - 31, width: 19, height: 19, background: PINK.soft, border: `1.5px solid ${PINK.border}` }}
+                            title="チェック問題あり"
+                          >
+                            <Pencil style={{ width: 10, height: 10, color: PINK.deep }} />
+                          </span>
+                        )}
                         <span className="absolute text-center" style={{ left: x - 80 + labelShift(k), top: y + 30, width: 160 }}>
                           <span className="block text-[13px] font-bold leading-tight" style={{ color: canOpen ? C.ink : C.muted, textShadow: HALO }}>
                             {s.title}
                           </span>
-                          <span className="block text-[11px]" style={{ color: isCurrent ? C.brand : C.faint, fontWeight: isCurrent ? 700 : 400, textShadow: HALO }}>
-                            {completed ? `完了 ・ ${s.terms.length}語` : isCurrent ? "いま学べる →" : `未開放 ・ ${s.terms.length}語`}
+                          <span
+                            className="block text-[11px]"
+                            style={{ color: test ? PINK.main : isCurrent ? C.brand : C.faint, fontWeight: isCurrent || test ? 700 : 400, textShadow: HALO }}
+                          >
+                            {test
+                              ? completed
+                                ? "テスト合格 ✓"
+                                : isCurrent
+                                  ? `レベル${s.level}のテスト →`
+                                  : `レベル${s.level}のテスト`
+                              : completed
+                                ? `完了 ・ ${s.terms.length}語`
+                                : isCurrent
+                                  ? "いま学べる →"
+                                  : `未開放 ・ ${s.terms.length}語`}
                           </span>
                         </span>
                       </>
