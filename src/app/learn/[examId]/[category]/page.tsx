@@ -153,7 +153,8 @@ function LearnPathContent() {
   const [pathWidth, setPathWidth] = useState(460);
 
   // チェック問題（小分類ごとの関連過去問プール＝learn_section_questionsから取得）
-  const [pools, setPools] = useState<Map<string, string[]>>(new Map());
+  // terms=その問題が主題として扱う用語（設問文/選択肢マッチのみ）。ステップ単位の絞り込みに使う。
+  const [pools, setPools] = useState<Map<string, { id: string; terms: string[] }[]>>(new Map());
   const [panelPhase, setPanelPhase] = useState<"learn" | "check">("learn");
   const [checkQs, setCheckQs] = useState<Question[]>([]);
   const [checkIdx, setCheckIdx] = useState(0);
@@ -210,15 +211,15 @@ function LearnPathContent() {
       const supabase = createSupabaseBrowserClient();
       const { data } = await supabase
         .from("learn_section_questions")
-        .select("section, question_id, score")
+        .select("section, question_id, score, matched_terms")
         .eq("exam_id", examId)
         .eq("category", category)
         .order("score", { ascending: false });
       if (!on) return;
-      const map = new Map<string, string[]>();
-      for (const r of (data ?? []) as { section: string; question_id: string }[]) {
+      const map = new Map<string, { id: string; terms: string[] }[]>();
+      for (const r of (data ?? []) as { section: string; question_id: string; matched_terms: string[] | null }[]) {
         if (!map.has(r.section)) map.set(r.section, []);
-        map.get(r.section)!.push(r.question_id);
+        map.get(r.section)!.push({ id: r.question_id, terms: r.matched_terms ?? [] });
       }
       setPools(map);
     })();
@@ -292,14 +293,23 @@ function LearnPathContent() {
     setCheckResults([]);
   }, [stepIdx]);
 
+  const poolFor = (s: Step) => pools.get(s.section) ?? [];
   // レベル末テストかどうか（レベル内最後のステップ＆関連過去問プールあり）
-  const isTestStep = (s: Step) => s.isLast && (pools.get(s.section) ?? []).length > 0;
+  const isTestStep = (s: Step) => s.isLast && poolFor(s).length > 0;
+  // 出題候補: 通常ステップ＝このステップで学んだ用語の問題だけ／レベル末テスト＝レベル（小分類）全体
+  const checkCandidates = (s: Step) => {
+    const pool = poolFor(s);
+    if (s.isLast) return pool;
+    const mine = new Set(s.terms.map((t) => t.term));
+    return pool.filter((row) => row.terms.some((t) => mine.has(t)));
+  };
 
   async function startCheck(step: Step, idx: number) {
     // 合格でcurrentIdxが進んでも結果画面が飛ばないよう、URLをこのステップに固定する
     router.replace(`${basePath}?step=${idx + 1}`, { scroll: false });
-    const pool = pools.get(step.section) ?? [];
-    const pick = shuffle(pool).slice(0, isTestStep(step) ? TEST_N : CHECK_N);
+    const pick = shuffle(checkCandidates(step))
+      .slice(0, isTestStep(step) ? TEST_N : CHECK_N)
+      .map((r) => r.id);
     setPanelPhase("check");
     setCheckLoading(true);
     setCheckIdx(0);
@@ -751,14 +761,14 @@ function LearnPathContent() {
                             style={{ background: PINK.main }}
                           >
                             <ClipboardCheck className="h-5 w-5" />
-                            レベル{selected.level}のテストに挑戦（{Math.min(TEST_N, (pools.get(selected.section) ?? []).length)}問）
+                            レベル{selected.level}のテストに挑戦（{Math.min(TEST_N, poolFor(selected).length)}問）
                           </button>
                           <p className="mt-2 text-center text-[11.5px]" style={{ color: C.muted }}>
                             レベル{selected.level}の総仕上げ。本番の合格基準と同じ60%＝
-                            {needFor(true, Math.min(TEST_N, (pools.get(selected.section) ?? []).length))}問の正解でクリアです。
+                            {needFor(true, Math.min(TEST_N, poolFor(selected).length))}問の正解でクリアです。
                           </p>
                         </>
-                      ) : (pools.get(selected.section) ?? []).length > 0 ? (
+                      ) : checkCandidates(selected).length > 0 ? (
                         <>
                           <button
                             onClick={() => startCheck(selected, stepIdx!)}
@@ -766,10 +776,11 @@ function LearnPathContent() {
                             style={{ background: C.brand }}
                           >
                             <Pencil className="h-5 w-5" />
-                            チェック問題に挑戦（{Math.min(CHECK_N, (pools.get(selected.section) ?? []).length)}問）
+                            チェック問題に挑戦（{Math.min(CHECK_N, checkCandidates(selected).length)}問）
                           </button>
                           <p className="mt-2 text-center text-[11.5px]" style={{ color: C.muted }}>
-                            本物の過去問から出題。{needFor(false, Math.min(CHECK_N, (pools.get(selected.section) ?? []).length))}問正解でこのステップをクリアです。
+                            このステップで学んだ用語が、本物の過去問でそのまま問われます。
+                            {needFor(false, Math.min(CHECK_N, checkCandidates(selected).length))}問正解でクリアです。
                           </p>
                         </>
                       ) : (
@@ -900,7 +911,7 @@ function LearnPathContent() {
                     const isSelected = it.stepIdx === stepIdx;
                     const canOpen = completed || unlocked(it.stepIdx);
                     const test = isTestStep(s);
-                    const hasCheck = !test && (pools.get(s.section) ?? []).length > 0;
+                    const hasCheck = !test && checkCandidates(s).length > 0;
                     const palette = test
                       ? completed || isCurrent
                         ? PLAT.test
