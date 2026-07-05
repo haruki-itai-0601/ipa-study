@@ -9,9 +9,9 @@ import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
 import { EXAM_TARGET, passScore, scoreBand } from "@/lib/score";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { calcStreak, daysUntil, getActiveExam, getExamDate, setActiveExamStorage, thisWeekDays, toDayStrings } from "@/lib/streak";
+import { calcStreak, daysUntil, getActiveExam, getExamDate, setActiveExamStorage, toDayStrings } from "@/lib/streak";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
-import { ArrowRight, Brain, ChevronRight, Flame, Mountain, PenLine, Sparkles } from "lucide-react";
+import { ArrowRight, Brain, ChevronRight, Mountain, PenLine, Sparkles } from "lucide-react";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -23,23 +23,15 @@ type Overview = { exam_id: string; total: number; ai: number };
 
 const shortJa = (name: string) => name.replace("技術者試験", "").replace("試験", "");
 
-// KPIカード用のミニ円形ゲージ（中央に数値・下に分母）
-function MiniRing({ pct, color, center, below }: { pct: number; color: string; center: string; below: string }) {
-  const r = 20;
-  const c = 2 * Math.PI * r;
-  const fill = (Math.max(0, Math.min(100, pct)) / 100) * c;
+// KPIの1行カード（左＝数値・右＝ラベル）。コンパクト＆ひと目で読める形。
+function KpiRow({ value, unit, color, label }: { value: string; unit?: string; color: string; label: string }) {
   return (
-    <span className="relative flex h-[52px] w-[52px] flex-none items-center justify-center">
-      <svg viewBox="0 0 48 48" className="h-full w-full -rotate-90">
-        <circle cx="24" cy="24" r={r} fill="none" stroke="#EDF1F6" strokeWidth="5" />
-        {fill > 0 && (
-          <circle cx="24" cy="24" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} />
-        )}
-      </svg>
-      <span className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-        <span className="text-[15px] font-bold" style={{ color: C.ink }}>{center}</span>
-        <span className="mt-0.5 text-[8.5px]" style={{ color: C.faint }}>{below}</span>
+    <span className="flex w-full items-center justify-between">
+      <span className="text-[21px] font-bold leading-none" style={{ color }}>
+        {value}
+        {unit && <span className="ml-0.5 text-[11px] font-medium" style={{ color: C.faint }}>{unit}</span>}
       </span>
+      <span className="text-[12px] font-bold" style={{ color: C.muted }}>{label}</span>
     </span>
   );
 }
@@ -139,7 +131,6 @@ export function MobileHome() {
   };
 
   const streak = calcStreak(days);
-  const weekDays = thisWeekDays(days);
   const countdown = daysUntil(examDate);
 
   return (
@@ -174,54 +165,27 @@ export function MobileHome() {
       </header>
 
       <main className="px-4 pb-24 pt-4">
-        {/* KPI 4枚（合格可能性・累計演習数・連続学習日数・平均正答率）→ タップでデータタブへ */}
+        {/* KPI 4枚（1行型: 左=数値・右=ラベル）→ タップでデータタブへ */}
         {(() => {
           const target = EXAM_TARGET[exam] ?? 600;
           const ready = acc !== null && solved !== null;
           const score = ready ? passScore(acc, solved, target) : null;
           const band = ready ? scoreBand(score!, solved!) : null;
-          const covPct = ready ? Math.min(100, Math.round((solved! / target) * 100)) : 0;
-          const kpiCard = "flex items-center gap-2.5 rounded-2xl p-3";
+          const kpiCard = "flex items-center rounded-xl px-3.5 py-3";
           const kpiStyle = { background: C.card, border: `1px solid ${C.line}` };
           return (
-            <div className="mb-3 grid grid-cols-2 gap-3">
+            <div className="mb-3 grid grid-cols-2 gap-2.5">
               <Link href="/stats" className={kpiCard} style={kpiStyle}>
-                <MiniRing pct={score ?? 0} color={band?.fg ?? C.brand} center={score === null ? "−" : String(score)} below="/100" />
-                <span className="min-w-0">
-                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>合格可能性</span>
-                  {band ? (
-                    <span className="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: band.bg, color: band.fg }}>
-                      {band.label}
-                    </span>
-                  ) : (
-                    <span className="mt-1 block text-[11px]" style={{ color: C.faint }}>計測中…</span>
-                  )}
-                </span>
+                <KpiRow value={score === null ? "−" : String(score)} unit="/100" color={band?.fg ?? C.ink} label="合格可能性" />
               </Link>
               <Link href="/stats" className={kpiCard} style={kpiStyle}>
-                <MiniRing pct={covPct} color={C.brand} center={solved === null ? "−" : String(solved)} below={`/${target}問`} />
-                <span className="min-w-0">
-                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>累計演習数</span>
-                  <span className="mt-1 block text-[12px] font-bold" style={{ color: C.brand }}>
-                    {solved === null ? "…" : `${covPct}% 達成`}
-                  </span>
-                </span>
+                <KpiRow value={solved === null ? "−" : String(solved)} unit="問" color={C.brand} label="累計演習" />
               </Link>
               <Link href="/stats" className={kpiCard} style={kpiStyle}>
-                <MiniRing pct={Math.round((weekDays / 7) * 100)} color="#EA580C" center={String(streak)} below="日連続" />
-                <span className="min-w-0">
-                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>連続学習日数</span>
-                  <span className="mt-1 flex items-center gap-1 text-[12px] font-bold" style={{ color: "#EA580C" }}>
-                    <Flame className="h-3.5 w-3.5" /> 今週 {weekDays}/7日
-                  </span>
-                </span>
+                <KpiRow value={String(streak)} unit="日" color="#EA580C" label="連続学習" />
               </Link>
               <Link href="/stats" className={kpiCard} style={kpiStyle}>
-                <MiniRing pct={acc ?? 0} color="#0F8A5F" center={acc === null ? "−" : String(acc)} below="%" />
-                <span className="min-w-0">
-                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>平均正答率</span>
-                  <span className="mt-1 block text-[12px]" style={{ color: C.faint }}>解答から算出</span>
-                </span>
+                <KpiRow value={acc === null ? "−" : String(acc)} unit="%" color="#0F8A5F" label="平均正答率" />
               </Link>
             </div>
           );
