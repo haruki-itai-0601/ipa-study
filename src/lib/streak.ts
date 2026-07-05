@@ -26,6 +26,35 @@ export function calcStreak(days: string[]): number {
   return s;
 }
 
+// 今週（直近7日のうち今日を含む週内）に学習した日数
+export function thisWeekDays(days: string[]): number {
+  if (!days?.length) return 0;
+  const set = new Set(days);
+  let n = 0;
+  const cur = new Date();
+  for (let i = 0; i < 7; i++) {
+    if (set.has(fmtDateJst(cur))) n++;
+    cur.setDate(cur.getDate() - 1);
+  }
+  return n;
+}
+
+// 試験日（ダッシュボードで設定・localStorage examDates と共有）
+export function getExamDate(examId: string): string | null {
+  try {
+    const j = JSON.parse(localStorage.getItem("examDates") ?? "{}") as Record<string, string>;
+    return j[examId] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function daysUntil(dateStr?: string | null): number | null {
+  if (!dateStr) return null;
+  const diff = Math.ceil((new Date(dateStr + "T00:00:00").getTime() - Date.now()) / 86400000);
+  return diff >= 0 ? diff : null;
+}
+
 // モバイルで選択中の試験（ダッシュボードのタブと共有）
 export function getActiveExam(): string {
   try {

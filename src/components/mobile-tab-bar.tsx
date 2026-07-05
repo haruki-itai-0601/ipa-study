@@ -21,9 +21,9 @@ export function MobileTabBar() {
 
   const tabs = [
     { key: "home", label: "ホーム", href: "/", icon: Home, active: pathname === "/" },
+    { key: "stats", label: "データ", href: "/stats", icon: BarChart3, active: pathname === "/stats" },
     { key: "learn", label: "学習", href: `/learn/${exam}`, icon: Mountain, active: pathname.startsWith("/learn") && !pathname.includes("/review") },
     { key: "review", label: "復習", href: `/learn/${exam}/review`, icon: RotateCcw, active: pathname.includes("/review") },
-    { key: "stats", label: "データ", href: "/stats", icon: BarChart3, active: pathname === "/stats" },
   ];
 
   return (

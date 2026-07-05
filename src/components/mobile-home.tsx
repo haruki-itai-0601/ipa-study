@@ -9,7 +9,7 @@ import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
 import { EXAM_TARGET, passScore, scoreBand } from "@/lib/score";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { calcStreak, getActiveExam, setActiveExamStorage, toDayStrings } from "@/lib/streak";
+import { calcStreak, daysUntil, getActiveExam, getExamDate, setActiveExamStorage, thisWeekDays, toDayStrings } from "@/lib/streak";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { ArrowRight, Brain, ChevronRight, Flame, Mountain, PenLine, Sparkles } from "lucide-react";
 
@@ -46,7 +46,8 @@ function MiniRing({ pct, color, center, below }: { pct: number; color: string; c
 
 export function MobileHome() {
   const [exam, setExam] = useState("ip");
-  const [streak, setStreak] = useState(0);
+  const [days, setDays] = useState<string[]>([]);
+  const [examDate, setExamDate] = useState<string | null>(null);
   const [weakCat, setWeakCat] = useState<string | null>(null);
   const [hasData, setHasData] = useState<boolean | null>(null); // null=読み込み中
   const [acc, setAcc] = useState<number | null>(null); // 選択試験の平均正答率
@@ -56,6 +57,11 @@ export function MobileHome() {
   useEffect(() => {
     setExam(getActiveExam());
   }, []);
+
+  // 試験日（ダッシュボードで設定した localStorage examDates を参照）
+  useEffect(() => {
+    setExamDate(getExamDate(exam));
+  }, [exam]);
 
   // 連続日数と弱点（今日の5問の出題元）。
   // RPCが認証リフレッシュ等で詰まってもUIを固めないよう、独立処理＋タイムアウトで受ける。
@@ -72,7 +78,7 @@ export function MobileHome() {
 
     (async () => {
       const res = await timeout(supabase.rpc("get_answered_days_jst"), 8000);
-      if (on && res) setStreak(calcStreak(toDayStrings(res.data)));
+      if (on && res) setDays(toDayStrings(res.data));
     })();
 
     (async () => {
@@ -132,6 +138,10 @@ export function MobileHome() {
     setActiveExamStorage(id);
   };
 
+  const streak = calcStreak(days);
+  const weekDays = thisWeekDays(days);
+  const countdown = daysUntil(examDate);
+
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
       {/* 細いトップバー: 試験切替 + 連続日数 */}
@@ -150,23 +160,32 @@ export function MobileHome() {
             ))}
           </div>
           <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{shortJa(basicExams.find((e) => e.id === exam)?.name ?? "")}</span>
-          <span className="flex items-center gap-1 text-[13px] font-bold" style={{ color: streak > 0 ? "#EA580C" : C.faint }}>
-            <Flame className="h-4 w-4" /> {streak}日
-          </span>
+          {/* 右上＝試験日カウントダウン（未設定なら設定導線・どちらもデータタブへ） */}
+          {countdown != null ? (
+            <Link href="/stats" className="flex-none rounded-full px-3 py-1.5 text-[11.5px] font-bold text-white" style={{ background: "#0E1B33" }}>
+              本番まであと{countdown}日
+            </Link>
+          ) : (
+            <Link href="/stats" className="flex-none rounded-full px-3 py-1.5 text-[11.5px] font-bold" style={{ border: `1px solid ${C.line}`, color: C.muted }}>
+              試験日を設定
+            </Link>
+          )}
         </div>
       </header>
 
       <main className="px-4 pb-24 pt-4">
-        {/* KPI 2枚（合格可能性スコア・累計演習数）→ タップでデータタブへ */}
+        {/* KPI 4枚（合格可能性・累計演習数・連続学習日数・平均正答率）→ タップでデータタブへ */}
         {(() => {
           const target = EXAM_TARGET[exam] ?? 600;
           const ready = acc !== null && solved !== null;
           const score = ready ? passScore(acc, solved, target) : null;
           const band = ready ? scoreBand(score!, solved!) : null;
           const covPct = ready ? Math.min(100, Math.round((solved! / target) * 100)) : 0;
+          const kpiCard = "flex items-center gap-2.5 rounded-2xl p-3";
+          const kpiStyle = { background: C.card, border: `1px solid ${C.line}` };
           return (
             <div className="mb-3 grid grid-cols-2 gap-3">
-              <Link href="/stats" className="flex items-center gap-2.5 rounded-2xl p-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <Link href="/stats" className={kpiCard} style={kpiStyle}>
                 <MiniRing pct={score ?? 0} color={band?.fg ?? C.brand} center={score === null ? "−" : String(score)} below="/100" />
                 <span className="min-w-0">
                   <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>合格可能性</span>
@@ -179,13 +198,29 @@ export function MobileHome() {
                   )}
                 </span>
               </Link>
-              <Link href="/stats" className="flex items-center gap-2.5 rounded-2xl p-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <Link href="/stats" className={kpiCard} style={kpiStyle}>
                 <MiniRing pct={covPct} color={C.brand} center={solved === null ? "−" : String(solved)} below={`/${target}問`} />
                 <span className="min-w-0">
                   <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>累計演習数</span>
                   <span className="mt-1 block text-[12px] font-bold" style={{ color: C.brand }}>
                     {solved === null ? "…" : `${covPct}% 達成`}
                   </span>
+                </span>
+              </Link>
+              <Link href="/stats" className={kpiCard} style={kpiStyle}>
+                <MiniRing pct={Math.round((weekDays / 7) * 100)} color="#EA580C" center={String(streak)} below="日連続" />
+                <span className="min-w-0">
+                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>連続学習日数</span>
+                  <span className="mt-1 flex items-center gap-1 text-[12px] font-bold" style={{ color: "#EA580C" }}>
+                    <Flame className="h-3.5 w-3.5" /> 今週 {weekDays}/7日
+                  </span>
+                </span>
+              </Link>
+              <Link href="/stats" className={kpiCard} style={kpiStyle}>
+                <MiniRing pct={acc ?? 0} color="#0F8A5F" center={acc === null ? "−" : String(acc)} below="%" />
+                <span className="min-w-0">
+                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>平均正答率</span>
+                  <span className="mt-1 block text-[12px]" style={{ color: C.faint }}>解答から算出</span>
                 </span>
               </Link>
             </div>
@@ -222,10 +257,14 @@ export function MobileHome() {
             <Mountain className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[14.5px] font-bold">
-              {pathResume ? `「${displayCategory(exam, pathResume.category)}」の道の続きから` : "ステップで学習をはじめる"}
+            <span className="block text-[16px] font-bold">
+              {pathResume ? (
+                `「${displayCategory(exam, pathResume.category)}」の道の続きから`
+              ) : (
+                <>ステップで学習<span className="whitespace-nowrap text-[11.5px]">（学習 → 過去問演習）</span></>
+              )}
             </span>
-            <span className="block text-[12px]" style={{ color: C.muted }}>
+            <span className="block text-[13px]" style={{ color: C.muted }}>
               {pathResume ? `${pathResume.done}ステップ完了・学習→過去問演習` : "山道を登りながら、学んで解いて進む"}
             </span>
           </span>
@@ -243,8 +282,8 @@ export function MobileHome() {
               <Brain className="h-5 w-5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[14.5px] font-bold">AI合格診断（10問・3分）</span>
-              <span className="block text-[12px]" style={{ color: C.muted }}>合格可能性スコアと弱点がその場でわかる</span>
+              <span className="block text-[16px] font-bold">AI合格診断（10問・3分）</span>
+              <span className="block text-[13px]" style={{ color: C.muted }}>合格可能性スコアと弱点がその場でわかる</span>
             </span>
             <ChevronRight className="h-5 w-5 flex-none" style={{ color: C.faint }} />
           </Link>
@@ -260,8 +299,8 @@ export function MobileHome() {
             <PenLine className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[14.5px] font-bold">じっくり演習する</span>
-            <span className="block text-[12px]" style={{ color: C.muted }}>年度別・ランダム・分野別・模試・AI予想問題</span>
+            <span className="block text-[16px] font-bold">じっくり演習する</span>
+            <span className="block text-[13px]" style={{ color: C.muted }}>年度別・ランダム・分野別・模試・AI予想問題</span>
           </span>
           <ChevronRight className="h-5 w-5 flex-none" style={{ color: C.faint }} />
         </Link>

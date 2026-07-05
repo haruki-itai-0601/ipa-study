@@ -497,7 +497,8 @@ export function DashboardMain() {
           <div className="w-full px-4 py-4 md:px-8 md:pb-10">
             {/* page head */}
             <div className="mb-3 flex flex-wrap items-end justify-between gap-4">
-              <div>
+              {/* モバイル(=データタブ)ではKPIをホームに移したため、挨拶も非表示にしてレコメンドから始める */}
+              <div className="hidden md:block">
                 <h1 className="text-[25px] font-bold tracking-tight">こんにちは、{isGuest ? "ゲスト" : name}さん</h1>
                 {isGuest ? (
                   <p className="mt-1.5 text-[13px]" style={{ color: C.muted }}>
@@ -561,7 +562,7 @@ export function DashboardMain() {
             </div>
 
             {/* KPI */}
-            <div className="mb-3.5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mb-3.5 hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 {showScoreHelp && (
                   <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: "rgba(15,27,51,0.4)" }} onClick={() => setShowScoreHelp(false)}>

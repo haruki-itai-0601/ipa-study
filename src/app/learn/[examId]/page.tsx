@@ -69,14 +69,18 @@ export default function LearnHubPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-9 pb-24 md:px-6 md:pb-9">
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-4 md:px-6 md:py-9">
         <div className="text-center">
-          <h1 className="text-[26px] font-bold">3つのモードから選んで始めましょう</h1>
-          <p className="mt-1.5 text-[15px]" style={{ color: C.muted }}>
+          {/* モバイルは復習カード非表示（下タブに復習がある）＝見出しも出し分け＋コンパクト */}
+          <h1 className="text-[20px] font-bold md:text-[26px]">
+            <span className="md:hidden">モードを選んで始めましょう</span>
+            <span className="hidden md:inline">3つのモードから選んで始めましょう</span>
+          </h1>
+          <p className="mt-1.5 hidden text-[15px] md:block" style={{ color: C.muted }}>
             ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
           {/* 試験タブ＝1つずつ独立したボタン（折り返し可・見切れない） */}
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <div className="mt-3.5 flex flex-wrap justify-center gap-2 md:mt-5">
             {basicExams.map((e) => {
               const active = e.id === examId;
               return (
@@ -97,7 +101,7 @@ export default function LearnHubPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
+        <div className="mt-5 grid gap-5 md:mt-8 md:grid-cols-3">
           {/* ① ステップで学習（学習→過去問演習） */}
           <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             <div className="flex h-[120px] items-center justify-center" style={{ background: C.brandSoft }}>
@@ -136,8 +140,8 @@ export default function LearnHubPage() {
             </div>
           </div>
 
-          {/* ② 間違いの復習 */}
-          <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+          {/* ② 間違いの復習（モバイルは下タブの「復習」があるため非表示） */}
+          <div className="hidden flex-col overflow-hidden rounded-[14px] md:flex" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             <div className="flex h-[120px] items-center justify-center gap-3.5" style={{ background: C.warnSoft }}>
               <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white">
                 <RotateCcw className="h-6 w-6" style={{ color: C.warn }} />
