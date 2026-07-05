@@ -16,6 +16,7 @@ import { fetchWrongPool } from "@/lib/review";
 import { type Question } from "@/components/quiz-runner";
 import ZoomableImage from "@/components/zoomable-image";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import {
   ArrowLeft, ArrowRight, CheckCircle, Loader2, PenLine, RotateCcw, Trophy, UserPlus, XCircle,
 } from "lucide-react";
@@ -170,7 +171,7 @@ export default function ReviewPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 md:px-6">
+      <main className="mx-auto max-w-3xl px-4 py-6 pb-24 md:px-6 md:pb-6">
         {phase === "loading" && (
           <div className="flex items-center justify-center gap-2 py-20" style={{ color: C.faint }}>
             <Loader2 className="h-5 w-5 animate-spin" /> 読み込み中…
@@ -382,6 +383,7 @@ export default function ReviewPage() {
           </div>
         )}
       </main>
+      <MobileTabBar />
     </div>
   );
 }

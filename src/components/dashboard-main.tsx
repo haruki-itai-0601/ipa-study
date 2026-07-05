@@ -236,7 +236,18 @@ export function DashboardMain() {
   const [answeredDays, setAnsweredDays] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeExam, setActiveExam] = useState<string>(basicExams[0].id);
+  const [activeExam, setActiveExamState] = useState<string>(basicExams[0].id);
+  // モバイルホーム/タブバーと選択試験を共有するため localStorage に保存
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("labActiveExam");
+      if (saved && basicExams.some((e) => e.id === saved)) setActiveExamState(saved);
+    } catch {}
+  }, []);
+  const setActiveExam = (id: string) => {
+    setActiveExamState(id);
+    try { localStorage.setItem("labActiveExam", id); } catch {}
+  };
   const [isPremium, setIsPremium] = useState(false);
   const [isGuest, setIsGuest] = useState(true);
   const [name, setName] = useState<string>("");
@@ -274,7 +285,8 @@ export function DashboardMain() {
       const ov = (ovRes.data as Overview[] | null) ?? [];
       setOverview(ov);
       const daysRes = await supabase.rpc("get_answered_days_jst");
-      setAnsweredDays((daysRes.data as string[] | null) ?? []);
+      // RETURNS TABLE(day date) のため [{day:"YYYY-MM-DD"}] で返る（string[]ではない）
+      setAnsweredDays(((daysRes.data as { day: string }[] | null) ?? []).map((r) => (typeof r === "string" ? r : r.day)));
 
       const byExam = basicExams.map((e) => ({ id: e.id, n: ov.find((o) => o.exam_id === e.id)?.total ?? 0 })).sort((a, b) => b.n - a.n);
       if (byExam[0] && byExam[0].n > 0) setActiveExam(byExam[0].id);
@@ -403,7 +415,7 @@ export function DashboardMain() {
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      <div className="grid min-h-screen" style={{ gridTemplateColumns: "292px 1fr" }}>
+      <div className="grid min-h-screen md:grid-cols-[292px_1fr]">
         {/* ===== Sidebar ===== */}
         <aside className="hidden md:flex flex-col sticky top-0 h-screen overflow-y-auto" style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "10px 14px" }}>
           <Link href="/" className="px-2 pb-2 pt-0.5 leading-tight">
@@ -473,7 +485,7 @@ export function DashboardMain() {
         </aside>
 
         {/* ===== Main ===== */}
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col">
           <header className="sticky top-0 z-10 flex items-center gap-3.5 px-4 py-1.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
             <div className="flex-1" />
             {/* P: ゲストのログイン・新規登録を右上（トップバー）に配置 */}
@@ -562,7 +574,7 @@ export function DashboardMain() {
             </div>
 
             {/* KPI */}
-            <div className="mb-3.5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="mb-3.5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 {showScoreHelp && (
                   <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: "rgba(15,27,51,0.4)" }} onClick={() => setShowScoreHelp(false)}>
@@ -829,7 +841,7 @@ export function DashboardMain() {
 
             {/* 推移(実データ・タブ) + 履歴(サンプル) */}
             <div className="grid gap-[18px] lg:grid-cols-2">
-              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="min-w-0 rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-[17px] font-bold">{trend.isAcc ? "正答率の推移" : "解答数の推移"}</h2>
                   <div className="flex gap-1">
@@ -854,7 +866,7 @@ export function DashboardMain() {
                 <div className="mt-2 text-[11px]" style={{ color: C.faint }}>直近8週・{active.exam.shortName}（実データ）</div>
               </div>
 
-              <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div className="min-w-0 rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center justify-between">
                   <h2 className="text-[17px] font-bold">最近の演習</h2>
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: C.warnSoft, color: C.warn }}>サンプル</span>

@@ -13,6 +13,7 @@ import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { fetchWrongPool } from "@/lib/review";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -68,13 +69,13 @@ export default function LearnHubPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-9 md:px-6">
+      <main className="mx-auto max-w-6xl px-4 py-9 pb-24 md:px-6 md:pb-9">
         <div className="text-center">
           <h1 className="text-[26px] font-bold">3つのモードから選んで始めましょう</h1>
           <p className="mt-1.5 text-[15px]" style={{ color: C.muted }}>
             ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
-          <div className="mt-5 inline-flex gap-1.5 rounded-full p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+          <div className="mt-5 inline-flex max-w-full gap-1.5 overflow-x-auto rounded-full p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             {basicExams.map((e) => {
               const active = e.id === examId;
               return (
@@ -195,6 +196,7 @@ export default function LearnHubPage() {
           「間違いの復習」の対象は、演習の解答記録から自動で作られます。
         </p>
       </main>
+      <MobileTabBar />
     </div>
   );
 }
