@@ -246,7 +246,7 @@ export default function ShindanPage() {
                 <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold text-white" style={{ background: "#111827" }}>
                   3分後、あなたに届く結果
                 </span>
-                <div className="rounded-3xl p-6 text-center text-white shadow-xl" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", transform: "rotate(1.5deg)" }}>
+                <div className="rounded-3xl p-6 text-center text-white shadow-xl" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
                   <div className="text-[11.5px] font-bold text-white/85">合格可能性スコア</div>
                   <div className="mt-3 flex justify-center">
                     <ScoreRing score={65} size={128} stroke={11} color="#fff" track="rgba(255,255,255,0.22)">
