@@ -50,10 +50,10 @@ export function MobileHome() {
     setExam(getActiveExam());
   }, []);
 
-  // 試験日（ダッシュボードで設定した localStorage examDates を参照）
+  // 試験日（全試験共通・ダッシュボードで設定した localStorage examDates を参照）
   useEffect(() => {
-    setExamDate(getExamDate(exam));
-  }, [exam]);
+    setExamDate(getExamDate());
+  }, []);
 
   // 連続日数と弱点（今日の5問の出題元）。
   // RPCが認証リフレッシュ等で詰まってもUIを固めないよう、独立処理＋タイムアウトで受ける。

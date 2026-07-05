@@ -344,7 +344,9 @@ export function DashboardMain() {
 
   const streak = useMemo(() => calcStreak(answeredDays), [answeredDays]);
   const week = useMemo(() => thisWeekDays(answeredDays), [answeredDays]);
-  const countdown = daysUntil(examDates[activeExam]);
+  // 試験日は全試験共通（過去に試験別で保存した値があってもどれか1つを共通値として扱う）
+  const sharedExamDate = Object.values(examDates).find(Boolean) ?? null;
+  const countdown = daysUntil(sharedExamDate);
   // 閲覧上限ゲートの案内（ティア別）
   const lockTier = isGuest
     ? { msg: "未ログインは1日1回まで閲覧できます。無料会員登録すると1日5回に増えます。", href: "/account", label: "無料会員登録" }
@@ -372,9 +374,9 @@ export function DashboardMain() {
   }, [trend]);
 
   function applyDate(v: string) {
-    const next = { ...examDates };
-    if (v) next[activeExam] = v;
-    else delete next[activeExam];
+    // 全試験共通: 同じ日付を全試験ぶん書き込む（削除は全消し）
+    const next: Record<string, string> = {};
+    if (v) for (const e of basicExams) next[e.id] = v;
     setExamDates(next);
     try { localStorage.setItem("examDates", JSON.stringify(next)); } catch {}
   }
@@ -518,7 +520,7 @@ export function DashboardMain() {
                 <div className="relative flex flex-col justify-center rounded-[11px] px-3.5 py-2 text-white" style={{ background: C.dark }}>
                   {countdown != null ? (
                     <button onClick={() => setEditingDate((v) => !v)} className="text-left leading-tight">
-                      <span className="text-[11px]" style={{ color: "#A9B6CC" }}>本番（{examDates[activeExam]?.slice(5).replace("-", "/")}）まで</span>
+                      <span className="text-[11px]" style={{ color: "#A9B6CC" }}>本番（{sharedExamDate?.slice(5).replace("-", "/")}）まで</span>
                       <br />
                       <b className="text-[18px]">あと{countdown}日 <span className="text-[10px] font-normal" style={{ color: "#A9B6CC" }}>✎</span></b>
                     </button>
@@ -528,7 +530,7 @@ export function DashboardMain() {
                     </button>
                   )}
                   {editingDate && (() => {
-                    const cur = examDates[activeExam] || fmtDate(new Date());
+                    const cur = sharedExamDate || fmtDate(new Date());
                     const [y, m, d] = cur.split("-").map(Number);
                     const thisYear = new Date().getFullYear();
                     const apply = (ny: number, nm: number, nd: number) => {
@@ -538,7 +540,7 @@ export function DashboardMain() {
                     const selCls = "rounded-md border bg-white px-2 py-1.5 text-[13px]";
                     return (
                       <div className="absolute left-0 top-full z-30 mt-2 w-[252px] rounded-xl border bg-white p-3 text-left shadow-xl md:left-auto md:right-0" style={{ borderColor: C.line2, color: C.ink }}>
-                        <div className="mb-2 text-[12px] font-bold">{active.exam.name} の試験日</div>
+                        <div className="mb-2 text-[12px] font-bold">試験日（全試験共通）</div>
                         <div className="flex items-center gap-1.5">
                           <select value={y} onChange={(e) => apply(+e.target.value, m, d)} className={selCls} style={{ borderColor: C.line2 }}>
                             {[thisYear, thisYear + 1, thisYear + 2].map((yy) => (<option key={yy} value={yy}>{yy}年</option>))}

@@ -39,11 +39,11 @@ export function thisWeekDays(days: string[]): number {
   return n;
 }
 
-// 試験日（ダッシュボードで設定・localStorage examDates と共有）
-export function getExamDate(examId: string): string | null {
+// 試験日（全試験共通・ダッシュボードで設定。examDatesにどれか1つでも入っていれば共通値として返す）
+export function getExamDate(): string | null {
   try {
     const j = JSON.parse(localStorage.getItem("examDates") ?? "{}") as Record<string, string>;
-    return j[examId] ?? null;
+    return Object.values(j).find(Boolean) ?? null;
   } catch {
     return null;
   }
