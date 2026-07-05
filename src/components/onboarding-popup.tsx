@@ -85,12 +85,12 @@ export function OnboardingPopup() {
         </ul>
 
         <Link
-          href="/challenge"
+          href="/shindan/fe"
           onClick={close}
           className="mt-5 block w-full rounded-xl py-3 text-center text-[15px] font-bold text-white"
           style={{ background: "#1D4ED8" }}
         >
-          まず解いてみる（無料）
+          まず10問、解いてみる（AI合格診断・無料）
         </Link>
         <button
           onClick={close}
