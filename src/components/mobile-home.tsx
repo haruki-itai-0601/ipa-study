@@ -211,6 +211,24 @@ export function MobileHome() {
           </span>
         </Link>
 
+        {/* AI合格診断（何も解いていない人の入口・今日の5問の直下で薄ピンクで少し目立たせる） */}
+        {hasData === false && (
+          <Link
+            href={`/shindan/${exam}`}
+            className="mt-3 flex items-center gap-3 rounded-2xl p-4"
+            style={{ background: "#FDF2F8", border: "1px solid #F9A8D4" }}
+          >
+            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl" style={{ background: "#FCE7F3", color: "#DB2777" }}>
+              <Brain className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[16px] font-bold">AI合格診断（10問・3分）</span>
+              <span className="block text-[13px]" style={{ color: "#9D2463" }}>合格可能性スコアと弱点がその場でわかる</span>
+            </span>
+            <ChevronRight className="h-5 w-5 flex-none" style={{ color: "#DB2777" }} />
+          </Link>
+        )}
+
         {/* 道の続き */}
         <Link
           href={pathResume ? `/learn/${exam}/${encodeURIComponent(pathResume.category)}` : `/learn/${exam}`}
@@ -234,24 +252,6 @@ export function MobileHome() {
           </span>
           <ChevronRight className="h-5 w-5 flex-none" style={{ color: C.faint }} />
         </Link>
-
-        {/* AI合格診断（データが無い人の入口） */}
-        {hasData === false && (
-          <Link
-            href={`/shindan/${exam}`}
-            className="mt-3 flex items-center gap-3 rounded-2xl p-4"
-            style={{ background: C.card, border: `1px solid ${C.line}` }}
-          >
-            <span className="flex h-11 w-11 flex-none items-center justify-center rounded-xl" style={{ background: "#EEF2FF", color: "#4F46E5" }}>
-              <Brain className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[16px] font-bold">AI合格診断（10問・3分）</span>
-              <span className="block text-[13px]" style={{ color: C.muted }}>合格可能性スコアと弱点がその場でわかる</span>
-            </span>
-            <ChevronRight className="h-5 w-5 flex-none" style={{ color: C.faint }} />
-          </Link>
-        )}
 
         {/* その他の演習モード */}
         <Link
