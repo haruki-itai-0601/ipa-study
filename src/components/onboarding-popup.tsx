@@ -10,9 +10,9 @@ import { Sparkles, Check, X } from "lucide-react";
 const KEY = "labOnboardedV1";
 const FEATURES = [
   "過去問演習は すべて無料",
-  "弱点を分野別に分析・可視化（正答率・レーダー）",
-  "応用情報の午後（記述式）を AIが○△×＋講評で採点",
-  "弱点分析を踏まえたレコメンドで「次の一手」まで提案",
+  "弱点を分野別に自動分析・可視化",
+  "応用情報の午後記述は AIが採点・講評",
+  "弱点に合わせて「次の一手」を提案",
 ];
 
 export function OnboardingPopup() {
@@ -65,9 +65,13 @@ export function OnboardingPopup() {
         <div className="text-[12px] font-bold" style={{ color: "#163FB0" }}>
           過去問演習ラボへ、ようこそ
         </div>
-        <h2 className="mt-1 text-[20px] font-bold leading-snug">“ただ解く”だけでは、合格は遠い。</h2>
+        {/* フレーズ単位のinline-blockで、折り返し位置を句切れに固定（中途半端な改行防止） */}
+        <h2 className="mt-1 text-[20px] font-bold leading-snug">
+          <span className="inline-block">“ただ解く”だけでは、</span>
+          <span className="inline-block">合格は遠い。</span>
+        </h2>
         <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: "#677488" }}>
-          過去問演習は無料。<b style={{ color: "#15202E" }}>弱点を分析</b>して次の一手を提案し、自分で採点できない記述問題は<b style={{ color: "#15202E" }}>AIが採点</b>します。
+          過去問演習は無料。<b className="inline-block" style={{ color: "#15202E" }}>弱点を分析</b>して次の一手を提案し、自分で採点できない記述問題は<b className="inline-block" style={{ color: "#15202E" }}>AIが採点</b>します。
         </p>
 
         <ul className="mt-4 space-y-2.5">
@@ -87,10 +91,11 @@ export function OnboardingPopup() {
         <Link
           href="/shindan/fe"
           onClick={close}
-          className="mt-5 block w-full rounded-xl py-3 text-center text-[15px] font-bold text-white"
+          className="mt-5 block w-full rounded-xl py-2.5 text-center text-white"
           style={{ background: "#1D4ED8" }}
         >
-          まず10問、解いてみる（AI合格診断・無料）
+          <span className="block text-[15px] font-bold leading-snug">まず10問、解いてみる</span>
+          <span className="block text-[11.5px] font-semibold leading-snug opacity-85">AI合格診断・無料・登録不要</span>
         </Link>
         <button
           onClick={close}
