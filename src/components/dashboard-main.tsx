@@ -537,7 +537,7 @@ export function DashboardMain() {
                     };
                     const selCls = "rounded-md border bg-white px-2 py-1.5 text-[13px]";
                     return (
-                      <div className="absolute right-0 top-full z-30 mt-2 w-[252px] rounded-xl border bg-white p-3 text-left shadow-xl" style={{ borderColor: C.line2, color: C.ink }}>
+                      <div className="absolute left-0 top-full z-30 mt-2 w-[252px] rounded-xl border bg-white p-3 text-left shadow-xl md:left-auto md:right-0" style={{ borderColor: C.line2, color: C.ink }}>
                         <div className="mb-2 text-[12px] font-bold">{active.exam.name} の試験日</div>
                         <div className="flex items-center gap-1.5">
                           <select value={y} onChange={(e) => apply(+e.target.value, m, d)} className={selCls} style={{ borderColor: C.line2 }}>
