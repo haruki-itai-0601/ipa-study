@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { basicExams, displayCategory } from "@/lib/exams";
+import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
   LayoutDashboard,
@@ -116,6 +116,10 @@ function scoreBand(score: number, solved: number): { label: string; bg: string; 
 }
 function studyHref(examId: string, category: string) {
   return `/exam/${examId}/study?category=${encodeURIComponent(category)}`;
+}
+// 「◯◯を学習」→ ステップで学習（学習パス）のその分野ページへ（中分類→学習分野に変換）
+function learnHref(examId: string, category: string) {
+  return `/learn/${examId}/${encodeURIComponent(learnCategoryFor(examId, category))}`;
 }
 function fmtDate(dt: Date) {
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
@@ -719,7 +723,7 @@ export function DashboardMain() {
                   </div>
                   {active.answered > 0 && active.top ? (
                     <div className="flex w-full flex-none flex-col gap-2 sm:w-auto sm:flex-row">
-                      <Link href={studyHref(activeExam, active.top.category)} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-2.5 text-[15px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "2px solid #9CBEF2" }}>
+                      <Link href={learnHref(activeExam, active.top.category)} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-2.5 text-[15px] font-bold" style={{ background: C.card, color: C.brandDeep, border: "2px solid #9CBEF2" }}>
                         <BookOpen className="h-4 w-4" />「{displayCategory(activeExam, active.top.category)}」を学習
                       </Link>
                       <Link href={`/exam/${activeExam}/past?mode=category&category=${encodeURIComponent(active.top.category)}`} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-4 py-2.5 text-[15px] font-bold text-white" style={{ background: C.brand }}>

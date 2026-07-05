@@ -341,6 +341,18 @@ export function questionCategoriesFor(examId: string, category: string): string[
   return learnToQuestionCategories[examId]?.[category] ?? [category];
 }
 
+// 逆引き: questionsの分野名（IPA中分類）→「学習する」の分野名。
+// 弱点分析（中分類ベース）から学習パスへ誘導するときに使う。
+export function learnCategoryFor(examId: string, questionCategory: string): string {
+  const map = learnToQuestionCategories[examId];
+  if (map) {
+    for (const [learnCat, qCats] of Object.entries(map)) {
+      if (qCats.includes(questionCategory)) return learnCat;
+    }
+  }
+  return questionCategory;
+}
+
 // 分野一覧を3大区分の順に並べ替える（定義にない分野は末尾へ）。
 export function orderLearnCategories(examId: string, cats: string[]): string[] {
   const groups = learnCategoryGroups[examId];
