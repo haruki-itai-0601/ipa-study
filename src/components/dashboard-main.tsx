@@ -8,6 +8,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
+import { EXAM_TARGET, PASS_LINE, passScore, scoreBand } from "@/lib/score";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import {
   LayoutDashboard,
@@ -41,9 +42,6 @@ type Overview = { exam_id: string; total: number; ai: number };
 type TimelineRow = { week_start: string; answered: number; correct: number };
 type SeriesKey = "strategy" | "management" | "technology" | "other";
 type RadarItem = { label: string; acc: number; answered: number };
-
-const EXAM_TARGET: Record<string, number> = { ip: 600, fe: 600, ap: 800 };
-const PASS_LINE = 65;
 
 // サイドバーのナビ定義。基本情報のみ午前/午後にインデント分岐。
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
@@ -102,18 +100,6 @@ function band(acc: number) {
   if (acc >= 60) return { hex: C.std };
   if (acc >= 50) return { hex: C.warn };
   return { hex: C.bad };
-}
-function passScore(acc: number, solved: number, target: number) {
-  if (solved === 0) return 0;
-  const cov = Math.min(1, solved / target);
-  return Math.round(Math.min(100, acc * (0.7 + 0.3 * cov)));
-}
-// 合格可能性スコアの判定バッジ。65以上は一律「合格圏」、65未満は要対策/あと少し、未演習は未測定。
-function scoreBand(score: number, solved: number): { label: string; bg: string; fg: string } {
-  if (solved === 0) return { label: "未測定", bg: C.stdSoft, fg: C.std };
-  if (score >= PASS_LINE) return { label: "合格圏", bg: C.goodSoft, fg: C.good };
-  if (score >= 40) return { label: "あと少し", bg: C.warnSoft, fg: C.warn };
-  return { label: "要対策", bg: C.badSoft, fg: C.bad };
 }
 function studyHref(examId: string, category: string) {
   return `/exam/${examId}/study?category=${encodeURIComponent(category)}`;

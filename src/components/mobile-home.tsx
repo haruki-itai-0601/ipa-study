@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
+import { EXAM_TARGET, passScore, scoreBand } from "@/lib/score";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { calcStreak, getActiveExam, setActiveExamStorage, toDayStrings } from "@/lib/streak";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
@@ -18,14 +19,38 @@ const C = {
 };
 
 type WeakRow = { exam_id: string; category: string; answered: number; correct: number };
+type Overview = { exam_id: string; total: number; ai: number };
 
 const shortJa = (name: string) => name.replace("技術者試験", "").replace("試験", "");
+
+// KPIカード用のミニ円形ゲージ（中央に数値・下に分母）
+function MiniRing({ pct, color, center, below }: { pct: number; color: string; center: string; below: string }) {
+  const r = 20;
+  const c = 2 * Math.PI * r;
+  const fill = (Math.max(0, Math.min(100, pct)) / 100) * c;
+  return (
+    <span className="relative flex h-[52px] w-[52px] flex-none items-center justify-center">
+      <svg viewBox="0 0 48 48" className="h-full w-full -rotate-90">
+        <circle cx="24" cy="24" r={r} fill="none" stroke="#EDF1F6" strokeWidth="5" />
+        {fill > 0 && (
+          <circle cx="24" cy="24" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} />
+        )}
+      </svg>
+      <span className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+        <span className="text-[15px] font-bold" style={{ color: C.ink }}>{center}</span>
+        <span className="mt-0.5 text-[8.5px]" style={{ color: C.faint }}>{below}</span>
+      </span>
+    </span>
+  );
+}
 
 export function MobileHome() {
   const [exam, setExam] = useState("ip");
   const [streak, setStreak] = useState(0);
   const [weakCat, setWeakCat] = useState<string | null>(null);
   const [hasData, setHasData] = useState<boolean | null>(null); // null=読み込み中
+  const [acc, setAcc] = useState<number | null>(null); // 選択試験の平均正答率
+  const [solved, setSolved] = useState<number | null>(null); // 累計演習数(重複除く)
   const [pathResume, setPathResume] = useState<{ category: string; done: number } | null>(null);
 
   useEffect(() => {
@@ -36,6 +61,11 @@ export function MobileHome() {
   // RPCが認証リフレッシュ等で詰まってもUIを固めないよう、独立処理＋タイムアウトで受ける。
   useEffect(() => {
     let on = true;
+    // 試験切替時に前の試験の値が残らないようリセット
+    setWeakCat(null);
+    setHasData(null);
+    setAcc(null);
+    setSolved(null);
     const timeout = <T,>(p: PromiseLike<T>, ms: number): Promise<T | null> =>
       Promise.race([Promise.resolve(p).catch(() => null), new Promise<null>((r) => setTimeout(() => r(null), ms))]);
     const supabase = createSupabaseBrowserClient();
@@ -48,9 +78,15 @@ export function MobileHome() {
     (async () => {
       const res = await timeout(supabase.rpc("get_weakness_stats"), 8000);
       if (!on) return;
-      const rows = (((res?.data ?? []) as WeakRow[]) || [])
+      const examRows = (((res?.data ?? []) as WeakRow[]) || [])
         .map((x) => ({ ...x, answered: Number(x.answered), correct: Number(x.correct) }))
-        .filter((r) => r.exam_id === exam && r.answered >= 2);
+        .filter((r) => r.exam_id === exam);
+      // 平均正答率（合格可能性スコアの材料）
+      const answered = examRows.reduce((s, r) => s + r.answered, 0);
+      const correct = examRows.reduce((s, r) => s + r.correct, 0);
+      setAcc(answered > 0 ? Math.round((correct / answered) * 100) : 0);
+      // 弱点（今日の5問の出題元）は最低2問解いた分野から
+      const rows = examRows.filter((r) => r.answered >= 2);
       if (rows.length > 0) {
         rows.sort((a, b) => a.correct / a.answered - b.correct / b.answered);
         setWeakCat(rows[0].category);
@@ -58,6 +94,13 @@ export function MobileHome() {
       } else {
         setHasData(false);
       }
+    })();
+
+    (async () => {
+      const res = await timeout(supabase.rpc("get_progress_overview"), 8000);
+      if (!on) return;
+      const ov = ((res?.data ?? []) as Overview[]).find((o) => o.exam_id === exam);
+      setSolved(ov?.total ?? 0);
     })();
 
     return () => {
@@ -114,6 +157,41 @@ export function MobileHome() {
       </header>
 
       <main className="px-4 pb-24 pt-4">
+        {/* KPI 2枚（合格可能性スコア・累計演習数）→ タップでデータタブへ */}
+        {(() => {
+          const target = EXAM_TARGET[exam] ?? 600;
+          const ready = acc !== null && solved !== null;
+          const score = ready ? passScore(acc, solved, target) : null;
+          const band = ready ? scoreBand(score!, solved!) : null;
+          const covPct = ready ? Math.min(100, Math.round((solved! / target) * 100)) : 0;
+          return (
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <Link href="/stats" className="flex items-center gap-2.5 rounded-2xl p-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <MiniRing pct={score ?? 0} color={band?.fg ?? C.brand} center={score === null ? "−" : String(score)} below="/100" />
+                <span className="min-w-0">
+                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>合格可能性</span>
+                  {band ? (
+                    <span className="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-bold" style={{ background: band.bg, color: band.fg }}>
+                      {band.label}
+                    </span>
+                  ) : (
+                    <span className="mt-1 block text-[11px]" style={{ color: C.faint }}>計測中…</span>
+                  )}
+                </span>
+              </Link>
+              <Link href="/stats" className="flex items-center gap-2.5 rounded-2xl p-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <MiniRing pct={covPct} color={C.brand} center={solved === null ? "−" : String(solved)} below={`/${target}問`} />
+                <span className="min-w-0">
+                  <span className="block text-[11.5px] font-bold" style={{ color: C.muted }}>累計演習数</span>
+                  <span className="mt-1 block text-[12px] font-bold" style={{ color: C.brand }}>
+                    {solved === null ? "…" : `${covPct}% 達成`}
+                  </span>
+                </span>
+              </Link>
+            </div>
+          );
+        })()}
+
         {/* 今日の5問（主役） */}
         <Link
           href={`/today?exam=${exam}`}

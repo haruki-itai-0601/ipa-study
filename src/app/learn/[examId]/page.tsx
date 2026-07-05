@@ -75,14 +75,15 @@ export default function LearnHubPage() {
           <p className="mt-1.5 text-[15px]" style={{ color: C.muted }}>
             ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
-          <div className="mt-5 inline-flex max-w-full gap-1.5 overflow-x-auto rounded-full p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+          {/* 折り返し可（スマホで2行になっても見切れない） */}
+          <div className="mt-5 inline-flex max-w-full flex-wrap justify-center gap-1.5 rounded-[24px] p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             {basicExams.map((e) => {
               const active = e.id === examId;
               return (
                 <Link
                   key={e.id}
                   href={`/learn/${e.id}`}
-                  className="whitespace-nowrap rounded-full px-5 py-2 text-[15px] font-bold transition-colors"
+                  className="whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-bold transition-colors md:px-5 md:text-[15px]"
                   style={active ? { background: C.brand, color: "#fff" } : { color: "#33415A" }}
                 >
                   {shortJa(e.name)}
