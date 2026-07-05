@@ -11,7 +11,7 @@ export async function generateMetadata({
   const exam = basicExams.find((e) => e.id === examId);
   if (!exam) return { title: "AI合格診断｜過去問演習ラボ" };
   const short = exam.name.replace("試験", "");
-  const title = `${short} AI合格診断｜10問でAIが合格可能性と弱点を名指し`;
+  const title = `${short} AI合格診断｜10問でAIが合格可能性と弱点を診断`;
   const description = `本物の${exam.name}過去問10問で、AIがあなたの合格可能性スコアと最初に潰すべき弱点を診断。登録不要・約3分。診断後はそのまま弱点対策の学習へ。`;
   const ogImage = `/api/og/shindan?e=${examId}`;
   return {

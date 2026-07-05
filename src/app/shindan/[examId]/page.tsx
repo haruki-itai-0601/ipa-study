@@ -1,6 +1,6 @@
 "use client";
 
-// AI合格診断: 登録不要・10問・3分で、合格可能性スコアと最大の弱点をAIが名指しする入口ページ。
+// AI合格診断: 登録不要・10問・3分で、合格可能性スコアと最大の弱点をAIが示す入口ページ。
 // /shindan/[examId]
 // - 出題は本物の過去問のみ。5分野×2問（分野を散らして弱点を推定できる形にする）。
 // - 解答は user_progress に記録（ゲスト=匿名認証でも記録される）→そのまま弱点分析・復習に接続。
@@ -169,11 +169,27 @@ export default function ShindanPage() {
               <h1 className="mt-4 text-[26px] font-bold leading-snug md:text-[30px]">
                 10問で、AIがあなたの
                 <br />
-                合格可能性と弱点を名指しします
+                合格可能性と弱点を示します
               </h1>
               <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-white/85">
                 本物の{exam.name.replace("試験", "")}過去問から、分野を散らして10問を出題。解き終わった瞬間に、合格可能性スコアと「最初に潰すべき弱点」がわかります。
               </p>
+              <div className="mx-auto mt-5 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-2xl p-1" style={{ background: "rgba(255,255,255,0.14)" }}>
+                {basicExams.map((e) => {
+                  const active = e.id === examId;
+                  return (
+                    <Link
+                      key={e.id}
+                      href={`/shindan/${e.id}`}
+                      className="whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition-colors"
+                      style={active ? { background: "#fff", color: "#4338CA" } : { color: "rgba(255,255,255,0.9)" }}
+                    >
+                      {e.name.replace("技術者試験", "").replace("試験", "")}
+                      {e.id === "ap" ? "（午前）" : ""}
+                    </Link>
+                  );
+                })}
+              </div>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[12.5px] font-bold">
                 <span className="rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.16)" }}>登録不要</span>
                 <span className="rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.16)" }}>約3分・10問</span>
@@ -190,7 +206,7 @@ export default function ShindanPage() {
             <div className="mt-4 grid gap-2.5 md:grid-cols-3">
               {[
                 { icon: Pencil, title: "10問解く", desc: "5分野×2問。本物の過去問です" },
-                { icon: Sparkles, title: "AIが名指し", desc: "スコアと最大の弱点がその場で出ます" },
+                { icon: Sparkles, title: "AIが弱点を示す", desc: "スコアと最大の弱点がその場で出ます" },
                 { icon: ClipboardCheck, title: "弱点を潰す", desc: "そのまま学習・復習モードに接続" },
               ].map((s, i) => (
                 <div key={i} className="flex items-start gap-3 rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
@@ -308,7 +324,7 @@ export default function ShindanPage() {
             {weakest ? (
               <div className="mt-4 rounded-2xl p-5" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="flex items-center gap-2 text-[13px] font-bold" style={{ color: "#4F46E5" }}>
-                  <Sparkles className="h-4 w-4" /> AIの名指し
+                  <Sparkles className="h-4 w-4" /> AIの診断結果
                 </div>
                 <p className="mt-2 text-[16px] font-bold leading-relaxed">
                   あなたの最大の弱点は<span style={{ color: C.bad }}>「{displayCategory(examId, weakest.cat)}」</span>。

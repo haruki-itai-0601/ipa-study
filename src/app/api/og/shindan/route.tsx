@@ -60,7 +60,7 @@ export async function GET(request: Request) {
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 58, fontWeight: 700 }}>{examName}</div>
             <div style={{ display: "flex", fontSize: 44, fontWeight: 700, marginTop: 20, lineHeight: 1.4 }}>
-              10問で、AIが合格可能性と弱点を名指しします
+              10問で、AIが合格可能性と弱点を示します
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 28, opacity: 0.92 }}>
@@ -137,7 +137,7 @@ export async function GET(request: Request) {
                 marginBottom: 22,
               }}
             >
-              AIの名指し：最大の弱点は「{weak}」
+              AIの診断：最大の弱点は「{weak}」
             </div>
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 27, opacity: 0.92 }}>
