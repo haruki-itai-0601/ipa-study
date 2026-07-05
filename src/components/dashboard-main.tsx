@@ -395,18 +395,18 @@ export function DashboardMain() {
 
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
   // サイドバーは全項目＋Pro枠が一般的なノートPCの画面高に収まるよう、行間を詰めて運用する
-  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-1 text-[16px] font-medium transition-colors";
+  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-1 text-[15px] font-medium transition-colors lg:text-[16px]";
   // 問題を解く / 学習する の項目（単リンク or 午前/午後サブ）
   const renderNavItem = (it: NavItem) =>
     it.href ? (
-      <Link key={it.id} href={it.href} className="block rounded-[10px] py-1 pl-9 pr-3 text-[16px] font-medium transition-colors hover:bg-gray-50" style={{ color: C.ink }}>
+      <Link key={it.id} href={it.href} className="block rounded-[10px] py-1 pl-7 pr-3 text-[15px] font-medium transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]" style={{ color: C.ink }}>
         {it.label}
       </Link>
     ) : (
       <div key={it.id}>
-        <div className="py-1 pl-9 pr-3 text-[16px] font-medium" style={{ color: C.ink }}>{it.label}</div>
+        <div className="py-1 pl-7 pr-3 text-[15px] font-medium lg:pl-9 lg:text-[16px]" style={{ color: C.ink }}>{it.label}</div>
         {(it.subs ?? []).map((s) => (
-          <Link key={s.href} href={s.href} className="flex items-center gap-1.5 rounded-[10px] py-0.5 pl-14 pr-3 text-[14px] transition-colors hover:bg-gray-50" style={{ color: C.muted }}>
+          <Link key={s.href} href={s.href} className="flex items-center gap-1.5 rounded-[10px] py-0.5 pl-11 pr-3 text-[13px] transition-colors hover:bg-gray-50 lg:pl-14 lg:text-[14px]" style={{ color: C.muted }}>
             <ChevronRight className="h-3.5 w-3.5" style={{ color: C.faint }} /> {s.label}
           </Link>
         ))}
@@ -415,12 +415,13 @@ export function DashboardMain() {
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      <div className="grid min-h-screen md:grid-cols-[292px_1fr]">
+      {/* サイドバー幅はPCとの比率が近づくよう段階設定（iPad縦236 / iPad横・小型PC264 / PC292） */}
+      <div className="grid min-h-screen md:grid-cols-[236px_1fr] lg:grid-cols-[264px_1fr] xl:grid-cols-[292px_1fr]">
         {/* ===== Sidebar ===== */}
-        <aside className="hidden md:flex flex-col sticky top-0 h-screen overflow-y-auto" style={{ background: C.card, borderRight: `1px solid ${C.line}`, padding: "10px 14px" }}>
+        <aside className="hidden md:flex flex-col sticky top-0 h-screen overflow-y-auto px-2.5 py-2.5 lg:px-3.5" style={{ background: C.card, borderRight: `1px solid ${C.line}` }}>
           <Link href="/" className="px-2 pb-2 pt-0.5 leading-tight">
-            <span className="block text-[23px] font-bold">過去問演習ラボ</span>
-            <span className="block text-[16px] font-normal leading-snug" style={{ color: C.muted }}>
+            <span className="block text-[20px] font-bold lg:text-[23px]">過去問演習ラボ</span>
+            <span className="block text-[14px] font-normal leading-snug lg:text-[16px]" style={{ color: C.muted }}>
               AIとともに
               <br />
               最短合格の道をハックする
@@ -429,7 +430,7 @@ export function DashboardMain() {
 
           <nav className="mt-0.5 flex flex-col gap-0">
             {/* ① ダッシュボードを選択（クリックで表示中の試験を切替） */}
-            <div className="flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[15.5px] font-bold" style={{ color: C.ink }}>
+            <div className="flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
               <LayoutDashboard className="h-5 w-5" style={{ color: C.brand }} /> ダッシュボードを選択
             </div>
             {basicExams.map((ex) => {
@@ -438,7 +439,7 @@ export function DashboardMain() {
                 <button
                   key={ex.id}
                   onClick={() => setActiveExam(ex.id)}
-                  className="flex w-full items-center rounded-[10px] py-1 pl-9 pr-3 text-left text-[16px] transition-colors"
+                  className="flex w-full items-center rounded-[10px] py-1 pl-7 pr-3 text-left text-[15px] transition-colors lg:pl-9 lg:text-[16px]"
                   style={on ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 } : { color: C.ink, fontWeight: 500 }}
                 >
                   {shortJa(ex.name)}
@@ -447,13 +448,13 @@ export function DashboardMain() {
             })}
 
             {/* ② 学習と復習する（用語・概念。午前/午後の区別なし） */}
-            <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[15.5px] font-bold" style={{ color: C.ink }}>
+            <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
               <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習・復習する
             </div>
             {LEARN_NAV.map(renderNavItem)}
 
             {/* ③ 演習する（問題を解く。午前/午後あり） */}
-            <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[15.5px] font-bold" style={{ color: C.ink }}>
+            <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
               <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 演習する
             </div>
             {SOLVE_NAV.map(renderNavItem)}
@@ -574,7 +575,7 @@ export function DashboardMain() {
             </div>
 
             {/* KPI */}
-            <div className="mb-3.5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-3.5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 {showScoreHelp && (
                   <div className="fixed inset-0 z-[60] flex items-center justify-center p-5" style={{ background: "rgba(15,27,51,0.4)" }} onClick={() => setShowScoreHelp(false)}>
