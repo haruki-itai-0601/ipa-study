@@ -12,7 +12,7 @@ import { basicExams } from "@/lib/exams";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { fetchWrongPool } from "@/lib/review";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
-import { BackToDashboard } from "@/components/back-to-dashboard";
+import { TopBarAccount } from "@/components/top-bar-account";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 
 const C = {
@@ -61,11 +61,11 @@ export default function LearnHubPage() {
           <Link href="/" aria-label="戻る" style={{ color: C.faint }} className="hover:opacity-70">
             <ArrowLeft className="h-6 w-6" />
           </Link>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="text-[13px]" style={{ color: C.muted }}>学習する</div>
             <div className="truncate text-[17px] font-bold">{exam ? exam.name : "学習する"}</div>
           </div>
-          <BackToDashboard className="ml-auto" />
+          <TopBarAccount />
         </div>
       </header>
 

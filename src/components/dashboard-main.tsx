@@ -10,16 +10,15 @@ import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
 import { EXAM_TARGET, PASS_LINE, passScore, scoreBand } from "@/lib/score";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { TopBarAccount } from "@/components/top-bar-account";
 import {
   LayoutDashboard,
   Clock,
   Settings,
-  Bell,
   Sparkles,
   ArrowRight,
   Lock,
   Loader2,
-  LogIn,
   ChevronRight,
   CalendarDays,
   PenLine,
@@ -477,23 +476,8 @@ export function DashboardMain() {
         <div className="flex min-w-0 flex-col">
           <header className="sticky top-0 z-10 flex items-center gap-3.5 px-4 py-1.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
             <div className="flex-1" />
-            {/* P: ゲストのログイン・新規登録を右上（トップバー）に配置 */}
-            {isGuest && (
-              <Link href="/account" className="inline-flex h-[32px] items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-bold text-white" style={{ background: C.brand }}>
-                <LogIn className="h-4 w-4" />
-                <span className="hidden sm:inline">ログイン・新規登録</span>
-              </Link>
-            )}
-            <button className="flex h-[32px] w-[32px] items-center justify-center rounded-[10px]" style={{ border: `1px solid ${C.line}`, background: C.card, color: C.muted }} aria-label="通知">
-              <Bell className="h-[18px] w-[18px]" />
-            </button>
-            {/* J: 右上ユーザーをクリックで /account */}
-            <Link href="/account" className="flex items-center gap-2.5 rounded-[10px] px-1.5 py-1 transition-colors hover:bg-gray-50">
-              <span className="flex h-[32px] w-[32px] items-center justify-center rounded-full text-sm font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>
-                {isGuest ? "ゲ" : (name || "あ").charAt(0)}
-              </span>
-              <span className="hidden text-[13px] font-medium sm:inline">{isGuest ? "ゲスト" : `${name}さん`}</span>
-            </Link>
+            {/* 右上のアカウント操作群（ログイン・新規登録／通知／アカウント）は全ページ共通コンポーネント */}
+            <TopBarAccount isGuest={isGuest} name={name} />
           </header>
 
           <div className="w-full px-4 py-4 md:px-8 md:pb-10">

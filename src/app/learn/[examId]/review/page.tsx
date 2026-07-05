@@ -15,7 +15,7 @@ import { fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { fetchWrongPool } from "@/lib/review";
 import { type Question } from "@/components/quiz-runner";
 import ZoomableImage from "@/components/zoomable-image";
-import { BackToDashboard } from "@/components/back-to-dashboard";
+import { TopBarAccount } from "@/components/top-bar-account";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import {
   ArrowLeft, ArrowRight, CheckCircle, Loader2, PenLine, RotateCcw, Trophy, UserPlus, XCircle,
@@ -163,11 +163,11 @@ export default function ReviewPage() {
           <Link href={`/learn/${examId}`} aria-label="戻る" style={{ color: C.faint }} className="hover:opacity-70">
             <ArrowLeft className="h-6 w-6" />
           </Link>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="text-[13px]" style={{ color: C.muted }}>{exam ? exam.name : "学習する"}</div>
             <div className="truncate text-[17px] font-bold">間違いの復習</div>
           </div>
-          <BackToDashboard className="ml-auto" />
+          <TopBarAccount />
         </div>
       </header>
 
