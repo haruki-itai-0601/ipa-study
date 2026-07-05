@@ -90,36 +90,62 @@ export async function GET(request: Request) {
           flexDirection: "column",
           justifyContent: "space-between",
           background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-          padding: "56px 72px",
+          padding: "44px 72px",
           fontFamily: "NotoJP",
           color: "#fff",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", fontSize: 30, opacity: 0.92 }}>過去問演習ラボ ／ AI合格診断</div>
-          <div style={{ display: "flex", fontSize: 52, fontWeight: 700, marginTop: 10 }}>{examName}</div>
+          <div style={{ display: "flex", fontSize: 28, opacity: 0.92 }}>過去問演習ラボ ／ AI合格診断</div>
+          <div style={{ display: "flex", fontSize: 48, fontWeight: 700, marginTop: 8 }}>{examName}</div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 48 }}>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", fontSize: 30, opacity: 0.9 }}>合格可能性スコア</div>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <div style={{ display: "flex", fontSize: 150, fontWeight: 700, lineHeight: 1.05 }}>{score}</div>
-              <div style={{ display: "flex", fontSize: 46, opacity: 0.85, marginBottom: 18 }}>/100</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 56 }}>
+          {/* 円形スコアゲージ（結果画面と同じ演出をシェア画像に焼き込む） */}
+          <div style={{ display: "flex", position: "relative", width: 250, height: 250 }}>
+            <svg width={250} height={250} style={{ position: "absolute", top: 0, left: 0 }}>
+              <circle cx={125} cy={125} r={103} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth={20} />
+              <circle
+                cx={125}
+                cy={125}
+                r={103}
+                fill="none"
+                stroke="#fff"
+                strokeWidth={20}
+                strokeLinecap="round"
+                strokeDasharray={`${(score / 100) * 2 * Math.PI * 103} ${2 * Math.PI * 103}`}
+                transform="rotate(-90 125 125)"
+              />
+            </svg>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <div style={{ display: "flex", fontSize: 86, fontWeight: 700, lineHeight: 1 }}>{score}</div>
+              <div style={{ display: "flex", fontSize: 25, opacity: 0.8, marginTop: 4 }}>/100</div>
             </div>
           </div>
-          <div
-            style={{
-              display: "flex",
-              background: band.bg,
-              borderRadius: 18,
-              padding: "14px 30px",
-              fontSize: 42,
-              fontWeight: 700,
-              marginTop: 44,
-            }}
-          >
-            {band.label}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", fontSize: 32, opacity: 0.92 }}>合格可能性スコア</div>
+            <div
+              style={{
+                display: "flex",
+                background: band.bg,
+                borderRadius: 18,
+                padding: "12px 30px",
+                fontSize: 42,
+                fontWeight: 700,
+                alignSelf: "flex-start",
+              }}
+            >
+              {band.label}
+            </div>
           </div>
         </div>
 

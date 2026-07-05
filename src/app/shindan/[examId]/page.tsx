@@ -41,6 +41,36 @@ function bandOf(score: number) {
 
 type Phase = "intro" | "loading" | "quiz" | "result";
 
+// 円形スコアゲージ（結果画面・スタート画面のイメージカード共用）
+function ScoreRing({
+  score, size, stroke, color, track, children,
+}: {
+  score: number; size: number; stroke: number; color: string; track: string; children: React.ReactNode;
+}) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="absolute inset-0">
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={`${(Math.max(0, Math.min(100, score)) / 100) * circ} ${circ}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          style={{ transition: "stroke-dasharray 1.1s cubic-bezier(.22,1,.36,1)" }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>
+    </div>
+  );
+}
+
 export default function ShindanPage() {
   const params = useParams();
   const examId = params.examId as string;
@@ -52,6 +82,7 @@ export default function ShindanPage() {
   const [idx, setIdx] = useState(0);
   const [sel, setSel] = useState<string | null>(null);
   const [results, setResults] = useState<{ category: string; correct: boolean }[]>([]);
+  const [ringScore, setRingScore] = useState(0); // 結果画面のゲージ演出（0→スコアへ伸びる）
   const startRef = useRef(0);
 
   async function start() {
@@ -126,6 +157,14 @@ export default function ShindanPage() {
   const correctCount = results.filter((r) => r.correct).length;
   const score = correctCount * 10;
   const band = bandOf(score);
+
+  // 結果表示時にゲージを0からスコアまで伸ばす
+  useEffect(() => {
+    if (phase !== "result") return;
+    setRingScore(0);
+    const t = setTimeout(() => setRingScore(score), 200);
+    return () => clearTimeout(t);
+  }, [phase, score]);
   const perCat = cats.map((cat) => {
     const rows = results.filter((r) => r.category === cat);
     return { cat, total: rows.length, correct: rows.filter((r) => r.correct).length };
@@ -162,27 +201,16 @@ export default function ShindanPage() {
       <main className="mx-auto max-w-3xl px-4 py-6 md:px-6">
         {phase === "intro" && (
           <>
-            <div className="overflow-hidden rounded-3xl px-6 py-9 text-center text-white md:px-10" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: "rgba(255,255,255,0.18)" }}>
-                <Brain className="h-7 w-7" />
-              </span>
-              <h1 className="mt-4 text-[26px] font-bold leading-snug md:text-[30px]">
-                10問で、AIがあなたの
-                <br />
-                合格可能性と弱点を示します
-              </h1>
-              <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-white/85">
-                本物の{exam.name.replace("試験", "")}過去問から、分野を散らして10問を出題。解き終わった瞬間に、合格可能性スコアと「最初に潰すべき弱点」がわかります。
-              </p>
-              <div className="mx-auto mt-5 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-2xl p-1" style={{ background: "rgba(255,255,255,0.14)" }}>
+            <div className="flex justify-center">
+              <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-2xl p-1" style={{ background: "#EDF1F6" }}>
                 {basicExams.map((e) => {
                   const active = e.id === examId;
                   return (
                     <Link
                       key={e.id}
                       href={`/shindan/${e.id}`}
-                      className="whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition-colors"
-                      style={active ? { background: "#fff", color: "#4338CA" } : { color: "rgba(255,255,255,0.9)" }}
+                      className="whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors"
+                      style={active ? { background: C.brand, color: "#fff" } : { color: "#33415A" }}
                     >
                       {e.name.replace("技術者試験", "").replace("試験", "")}
                       {e.id === "ap" ? "（午前）" : ""}
@@ -190,20 +218,53 @@ export default function ShindanPage() {
                   );
                 })}
               </div>
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[12.5px] font-bold">
-                <span className="rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.16)" }}>登録不要</span>
-                <span className="rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.16)" }}>約3分・10問</span>
-                <span className="rounded-full px-3 py-1" style={{ background: "rgba(255,255,255,0.16)" }}>本物の過去問</span>
-              </div>
-              <button
-                onClick={start}
-                className="mx-auto mt-6 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-white px-6 py-4 text-[16px] font-bold transition-transform hover:-translate-y-0.5"
-                style={{ color: "#4338CA" }}
-              >
-                診断をはじめる <ArrowRight className="h-5 w-5" />
-              </button>
             </div>
-            <div className="mt-4 grid gap-2.5 md:grid-cols-3">
+
+            <div className="mt-7 items-center gap-10 md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+              <div className="text-center md:text-left">
+                <div className="text-[13px] font-bold tracking-wide" style={{ color: "#4F46E5" }}>AI合格診断（無料）</div>
+                <h1 className="mt-2 text-[29px] font-bold leading-snug md:text-[33px]">
+                  10問で、AIがあなたの
+                  <br />
+                  合格可能性と弱点を示します
+                </h1>
+                <p className="mx-auto mt-3 max-w-md text-[14.5px] leading-relaxed md:mx-0" style={{ color: C.muted }}>
+                  本物の{exam.name.replace("試験", "")}過去問から分野を散らして10問を出題。解き終わった瞬間に、合格可能性スコアと「最初に潰すべき弱点」がわかります。
+                </p>
+                <button
+                  onClick={start}
+                  className="mx-auto mt-6 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl px-6 py-4 text-[16px] font-bold text-white transition-transform hover:-translate-y-0.5 md:mx-0"
+                  style={{ background: C.brand, boxShadow: "0 10px 24px rgba(29,78,216,0.28)" }}
+                >
+                  診断をはじめる <ArrowRight className="h-5 w-5" />
+                </button>
+                <p className="mt-3 text-[12.5px]" style={{ color: C.faint }}>登録不要・約3分・本物の過去問だけを使用</p>
+              </div>
+
+              {/* 3分後に届く「結果のイメージ」プレビュー */}
+              <div className="relative mx-auto mt-9 w-full max-w-[290px] md:mt-0">
+                <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold text-white" style={{ background: "#111827" }}>
+                  3分後、あなたに届く結果
+                </span>
+                <div className="rounded-3xl p-6 text-center text-white shadow-xl" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", transform: "rotate(1.5deg)" }}>
+                  <div className="text-[11.5px] font-bold text-white/85">合格可能性スコア</div>
+                  <div className="mt-3 flex justify-center">
+                    <ScoreRing score={65} size={128} stroke={11} color="#fff" track="rgba(255,255,255,0.22)">
+                      <span className="text-[34px] font-bold leading-none">65</span>
+                      <span className="mt-0.5 text-[10.5px] text-white/75">/100</span>
+                    </ScoreRing>
+                  </div>
+                  <span className="mt-3 inline-block rounded-full px-3 py-1 text-[12px] font-bold" style={{ background: "rgba(255,255,255,0.92)", color: C.good }}>
+                    合格圏
+                  </span>
+                  <div className="mt-3 rounded-xl px-3 py-2 text-[11.5px] font-bold" style={{ background: "rgba(255,255,255,0.16)" }}>
+                    最大の弱点：「セキュリティ」
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-10 grid gap-2.5 md:grid-cols-3">
               {[
                 { icon: Pencil, title: "10問解く", desc: "5分野×2問。本物の過去問です" },
                 { icon: Sparkles, title: "AIが弱点を示す", desc: "スコアと最大の弱点がその場で出ます" },
@@ -311,12 +372,14 @@ export default function ShindanPage() {
           <>
             <div className="rounded-3xl px-6 py-8 text-center text-white" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
               <div className="text-[13.5px] font-bold text-white/85">{exam.name}・AI合格診断の結果</div>
-              <div className="mt-2 flex items-end justify-center gap-1">
-                <span className="text-[64px] font-bold leading-none">{score}</span>
-                <span className="mb-1.5 text-[20px] text-white/80">/100</span>
+              <div className="mt-5 flex justify-center">
+                <ScoreRing score={ringScore} size={190} stroke={14} color="#fff" track="rgba(255,255,255,0.22)">
+                  <span className="text-[54px] font-bold leading-none">{score}</span>
+                  <span className="mt-1 text-[13px] text-white/75">/100</span>
+                </ScoreRing>
               </div>
-              <div className="mt-1 text-[13px] text-white/85">合格可能性スコア（10問の簡易診断）</div>
-              <span className="mt-3 inline-block rounded-full px-4 py-1.5 text-[15px] font-bold" style={{ background: "rgba(255,255,255,0.92)", color: band.fg }}>
+              <div className="mt-4 text-[13px] text-white/85">合格可能性スコア（10問の簡易診断）</div>
+              <span className="mt-2.5 inline-block rounded-full px-4 py-1.5 text-[15px] font-bold" style={{ background: "rgba(255,255,255,0.92)", color: band.fg }}>
                 {band.label}
               </span>
             </div>
