@@ -84,17 +84,25 @@ export function OnboardingPopup() {
           ))}
         </ul>
 
-        <button
+        <Link
+          href="/challenge"
           onClick={close}
-          className="mt-5 w-full rounded-xl py-3 text-[15px] font-bold text-white"
+          className="mt-5 block w-full rounded-xl py-3 text-center text-[15px] font-bold text-white"
           style={{ background: "#1D4ED8" }}
         >
-          はじめる
+          まず解いてみる（無料）
+        </Link>
+        <button
+          onClick={close}
+          className="mt-2 w-full rounded-xl py-2.5 text-[13.5px] font-bold"
+          style={{ background: "#EDF1F6", color: "#15202E" }}
+        >
+          ダッシュボードを見る
         </button>
         <Link
           href="/account"
           onClick={close}
-          className="mt-2 block text-center text-[12.5px] font-semibold"
+          className="mt-2.5 block text-center text-[12.5px] font-semibold"
           style={{ color: "#163FB0" }}
         >
           会員登録すると、学習進捗を保存できます →
