@@ -75,8 +75,8 @@ export default function LearnHubPage() {
           <p className="mt-1.5 text-[15px]" style={{ color: C.muted }}>
             ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
-          {/* 折り返し可（スマホで2行になっても見切れない） */}
-          <div className="mt-5 inline-flex max-w-full flex-wrap justify-center gap-1.5 rounded-[24px] p-1" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+          {/* 試験タブ＝1つずつ独立したボタン（折り返し可・見切れない） */}
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
             {basicExams.map((e) => {
               const active = e.id === examId;
               return (
@@ -84,7 +84,11 @@ export default function LearnHubPage() {
                   key={e.id}
                   href={`/learn/${e.id}`}
                   className="whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-bold transition-colors md:px-5 md:text-[15px]"
-                  style={active ? { background: C.brand, color: "#fff" } : { color: "#33415A" }}
+                  style={
+                    active
+                      ? { background: C.brand, color: "#fff", border: `1px solid ${C.brand}`, boxShadow: "0 4px 12px rgba(29,78,216,0.25)" }
+                      : { background: C.card, color: "#33415A", border: `1px solid ${C.line}` }
+                  }
                 >
                   {shortJa(e.name)}
                 </Link>
