@@ -48,9 +48,10 @@ const PASS_LINE = 65;
 // サイドバーのナビ定義。基本情報のみ午前/午後にインデント分岐。
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
 const SOLVE_NAV: NavItem[] = [
-  { id: "ip", label: "ITパスポート", href: "/exam/ip" },
-  { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe" }, { label: "午後", href: "/exam/fe/b" }] },
-  { id: "ap", label: "応用情報技術者", subs: [{ label: "午前", href: "/exam/ap" }, { label: "午後", href: "/exam/ap/pm" }] },
+  // 午前系は試験トップ（SEOページ）を挟まず、出題モード選択（/past）へ直行する
+  { id: "ip", label: "ITパスポート", href: "/exam/ip/past" },
+  { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe/past" }, { label: "午後", href: "/exam/fe/b" }] },
+  { id: "ap", label: "応用情報技術者", subs: [{ label: "午前", href: "/exam/ap/past" }, { label: "午後", href: "/exam/ap/pm" }] },
 ];
 const LEARN_NAV: NavItem[] = [
   // 学習する（用語・概念）＝午前/午後の区別なし。分野一覧 /learn/[試験] へ

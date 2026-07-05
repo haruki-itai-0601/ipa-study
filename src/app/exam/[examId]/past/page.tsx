@@ -13,13 +13,14 @@ import {
   Layers,
   RotateCcw,
   Timer,
+  Brain,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import QuizRunner, { type Question } from "@/components/quiz-runner";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 
-type Mode = "year" | "random" | "category" | "wrong" | "exam";
+type Mode = "year" | "random" | "category" | "wrong" | "exam" | "ai";
 
 const RANDOM_COUNT = 20;
 const CATEGORY_COUNT = 20;
@@ -66,10 +67,12 @@ const MODES: {
   { key: "category", title: "分野別", desc: "苦手な分野をまとめて演習", icon: Layers, color: "border-violet-200", iconBg: "bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/30" },
   { key: "wrong", title: "誤答復習", desc: "過去に間違えた問題だけ再挑戦", icon: RotateCcw, color: "border-rose-200", iconBg: "bg-gradient-to-br from-rose-500 to-rose-600 shadow-md shadow-rose-500/30" },
   { key: "exam", title: "模試（タイマー）", desc: "年度を選んで本番形式・制限時間で挑戦", icon: Timer, color: "border-amber-200", iconBg: "bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-amber-500/30" },
+  { key: "ai", title: "AI予想問題", desc: "IPAシラバスからAIが生成した予想問題を解く", icon: Brain, color: "border-yellow-200", iconBg: "bg-gradient-to-br from-yellow-400 to-orange-400 shadow-md shadow-yellow-400/30" },
 ];
 
 export default function PastExamPage() {
   const params = useParams();
+  const router = useRouter();
   const examId = params.examId as string;
   const exam = getExam(examId);
 
@@ -286,6 +289,8 @@ export default function PastExamPage() {
         return startWrong();
       case "exam":
         return enterYearSelect("exam");
+      case "ai":
+        return router.push(`/exam/${examId}/ai`);
     }
   };
 
