@@ -202,15 +202,22 @@ export default function ShindanPage() {
         {phase === "intro" && (
           <>
             <div className="flex justify-center">
-              <div className="inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-2xl p-1" style={{ background: "#EDF1F6" }}>
+              <div
+                className="inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full p-1.5 shadow-sm"
+                style={{ background: "#FFFFFF", border: `1px solid ${C.line}` }}
+              >
                 {basicExams.map((e) => {
                   const active = e.id === examId;
                   return (
                     <Link
                       key={e.id}
                       href={`/shindan/${e.id}`}
-                      className="whitespace-nowrap rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors"
-                      style={active ? { background: C.brand, color: "#fff" } : { color: "#33415A" }}
+                      className="whitespace-nowrap rounded-full px-6 py-2.5 text-[15px] font-bold transition-colors"
+                      style={
+                        active
+                          ? { background: "#DB2777", color: "#fff", boxShadow: "0 4px 12px rgba(219,39,119,0.35)" }
+                          : { color: "#33415A" }
+                      }
                     >
                       {e.name.replace("技術者試験", "").replace("試験", "")}
                       {e.id === "ap" ? "（午前）" : ""}
