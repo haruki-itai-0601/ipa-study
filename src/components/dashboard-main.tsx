@@ -659,24 +659,27 @@ export function DashboardMain() {
 
             {/* 弱点に基づくレコメンド（閲覧上限ゲートつき） */}
             {analysisLocked ? (
-              <div className="mb-3.5 flex flex-col items-start gap-4 rounded-[14px] px-[18px] py-3 sm:flex-row sm:items-center" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl" style={{ background: C.stdSoft, color: C.muted }}><Lock className="h-6 w-6" /></span>
-                <div className="flex-1">
-                  <div className="text-[15px] font-bold">弱点に基づくレコメンドは本日の上限に達しました</div>
-                  <div className="mt-0.5 text-[13px]" style={{ color: C.muted }}>{lockTier.msg}</div>
+              <div className="mb-3.5 rounded-[14px] px-[18px] py-3 sm:flex sm:items-center sm:gap-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="flex items-start gap-3 sm:flex-1">
+                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl" style={{ background: C.stdSoft, color: C.muted }}><Lock className="h-6 w-6" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[16.5px] font-bold leading-snug">弱点に基づくレコメンドは本日の上限に達しました</div>
+                    <div className="mt-1 text-[13px]" style={{ color: C.muted }}>{lockTier.msg}</div>
+                  </div>
                 </div>
-                <Link href={lockTier.href} className="inline-flex flex-none items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}>{lockTier.label}</Link>
+                <Link href={lockTier.href} className="mt-3 flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white sm:mt-0 sm:w-auto sm:flex-none" style={{ background: C.brand }}>{lockTier.label}</Link>
               </div>
             ) : isGuest ? (
-              <div className="mb-3.5 flex flex-col gap-3 rounded-[14px] p-4 sm:flex-row sm:items-center sm:px-5" style={{ background: C.brandSoft, border: "2px solid #9CBEF2" }}>
-                <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
-                <div className="flex-1">
-                  <div className="text-[15px] font-bold">弱点分析を踏まえたレコメンドで「次の一手」まで提案</div>
-                  <div className="mt-0.5 text-[12.5px]" style={{ color: C.muted }}><b style={{ color: C.ink }}>無料会員登録</b>で進捗を保存。あなたの解答データを<b style={{ color: C.ink }}>弱点分析</b>し、次にやるべき分野まで提案します。</div>
+              <div className="mb-3.5 rounded-[14px] p-4 sm:flex sm:items-center sm:gap-4 sm:px-5" style={{ background: C.brandSoft, border: "2px solid #9CBEF2" }}>
+                {/* アイコン左・テキスト右の横並び（モバイル含む） */}
+                <div className="flex items-start gap-3 sm:flex-1">
+                  <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}><Sparkles className="h-6 w-6" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[16.5px] font-bold leading-snug">弱点分析を踏まえたレコメンドで「次の一手」まで提案</div>
+                    <div className="mt-1 text-[13px]" style={{ color: C.muted }}><b style={{ color: C.ink }}>無料会員登録</b>で進捗を保存。あなたの解答データを<b style={{ color: C.ink }}>弱点分析</b>し、次にやるべき分野まで提案します。</div>
+                  </div>
                 </div>
-                <div className="flex flex-none gap-2.5">
-                  <Link href="/account" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />無料会員登録</Link>
-                </div>
+                <Link href="/account" className="mt-3 flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[11px] px-5 py-3 text-[13.5px] font-bold text-white sm:mt-0 sm:w-auto sm:flex-none" style={{ background: C.brand }}><Sparkles className="h-4 w-4" />無料会員登録</Link>
               </div>
             ) : (
               /* ログイン会員: 弱点分析ベースのおすすめ（全員・即時/無料） */

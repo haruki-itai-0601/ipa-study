@@ -75,11 +75,8 @@ export default function LearnHubPage() {
 
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-1.5 md:px-6 md:py-9">
         <div className="text-center">
-          {/* モバイルは復習カード非表示（下タブに復習がある）＝見出しも出し分け＋コンパクト */}
-          <h1 className="text-[19px] font-bold leading-snug md:text-[26px]">
-            <span className="md:hidden">モードを選んで始めましょう</span>
-            <span className="hidden md:inline">3つのモードから選んで始めましょう</span>
-          </h1>
+          {/* 見出しはデスクトップのみ（モバイルは下のカードで自明なため非表示） */}
+          <h1 className="hidden text-[26px] font-bold leading-snug md:block">3つのモードから選んで始めましょう</h1>
           <p className="mt-1.5 hidden text-[15px] md:block" style={{ color: C.muted }}>
             ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>

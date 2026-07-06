@@ -130,7 +130,13 @@ export function MobileHome() {
       {/* 共通トップバー（試験プルダウン＋試験日カウントダウン） */}
       <MobileTopBar exam={exam} onExamChange={switchExam} />
 
-      <main className="px-4 pb-24 pt-4">
+      <main className="px-4 pb-24 pt-3.5">
+        {/* Web向けの控えめなブランド（ホーム最上部のみ） */}
+        <div className="mb-3 flex items-baseline gap-2">
+          <h1 className="text-[16px] font-bold tracking-tight" style={{ color: C.ink }}>過去問演習ラボ</h1>
+          <span className="text-[10.5px] font-medium" style={{ color: C.faint }}>AIとともに最短合格</span>
+        </div>
+
         {/* KPI 4枚（1行型: 左=数値・右=ラベル）→ タップでデータタブへ */}
         {(() => {
           const target = EXAM_TARGET[exam] ?? 600;
