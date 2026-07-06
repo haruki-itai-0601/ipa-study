@@ -209,9 +209,8 @@ export default function SettingsPage() {
             </div>
             <ul className="mt-3 space-y-1.5">
               {[
-                "午後（記述式）を AIが○△×＋講評で採点",
-                "AIレコメンドが弱点から「次の一手」を提案",
-                "弱点分析・今日の5問が回数無制限に",
+                "弱点分析ダッシュボード・弱点分析に基づくレコメンドが使い放題",
+                "応用情報の午後（記述式）を AIが○△×＋講評で採点",
               ].map((t) => (
                 <li key={t} className="flex items-start gap-2 text-[12.5px] leading-snug text-white/90">
                   <Check className="mt-0.5 h-4 w-4 flex-none" style={{ color: "#7DD3A8" }} />

@@ -327,6 +327,8 @@ export function DashboardMain() {
 
   const streak = useMemo(() => calcStreak(answeredDays), [answeredDays]);
   const week = useMemo(() => thisWeekDays(answeredDays), [answeredDays]);
+  // 午後（記述）の区分は応用情報のみ。他試験に切り替えたらトグルを午前に戻す
+  useEffect(() => { if (activeExam !== "ap") setPmTab("am"); }, [activeExam]);
   // 試験日は全試験共通（過去に試験別で保存した値があってもどれか1つを共通値として扱う）
   const sharedExamDate = Object.values(examDates).find(Boolean) ?? null;
   const countdown = daysUntil(sharedExamDate);
@@ -717,13 +719,16 @@ export function DashboardMain() {
             <div className="mb-3.5 rounded-[14px] px-[18px] py-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div className="flex items-center justify-between">
                 <h2 className="text-[17px] font-bold">弱点分析 — 分野別正答率</h2>
-                <div className="flex gap-1">
-                  {(["am", "pm"] as const).map((t) => (
-                    <button key={t} onClick={() => setPmTab(t)} className="rounded-lg px-3 py-1.5 text-[12px] font-bold" style={pmTab === t ? { background: C.dark, color: "#fff" } : { background: C.card, color: C.muted, border: `1px solid ${C.line2}` }}>
-                      {t === "am" ? "午前" : "午後"}
-                    </button>
-                  ))}
-                </div>
+                {/* 午前/午後の区分があるのは応用情報のみ（ITパスポートは区分なし・基本情報の科目Bは記述AI採点の対象外） */}
+                {activeExam === "ap" && (
+                  <div className="flex gap-1">
+                    {(["am", "pm"] as const).map((t) => (
+                      <button key={t} onClick={() => setPmTab(t)} className="rounded-lg px-3 py-1.5 text-[12px] font-bold" style={pmTab === t ? { background: C.dark, color: "#fff" } : { background: C.card, color: C.muted, border: `1px solid ${C.line2}` }}>
+                        {t === "am" ? "午前" : "午後"}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="mt-1 text-[11.5px]" style={{ color: C.faint }}>正答率の低い分野から表示。クリックでその分野を演習できます。</div>
 
@@ -734,7 +739,7 @@ export function DashboardMain() {
                   <p className="mt-1 text-[12.5px]" style={{ color: C.muted }}>{lockTier.msg}</p>
                   <Link href={lockTier.href} className="mt-3 inline-flex items-center gap-1.5 rounded-[11px] px-5 py-2.5 text-[13px] font-bold text-white" style={{ background: C.brand }}>{lockTier.label}</Link>
                 </div>
-              ) : pmTab === "pm" ? (
+              ) : activeExam === "ap" && pmTab === "pm" ? (
                 <div className="mt-4 flex flex-col items-center justify-center rounded-xl px-4 py-10 text-center" style={{ background: C.bg, border: `1px dashed ${C.line2}` }}>
                   <Lock className="mb-2 h-6 w-6" style={{ color: C.faint }} />
                   <p className="text-[13px] font-bold">午後（記述）の分析は Pro 機能です</p>
