@@ -96,33 +96,7 @@ export default function SettingsPage() {
           </p>
         )}
 
-        {/* Pro */}
-        <div className="mt-3">
-          {isPremium ? (
-            <div className={row} style={{ background: C.goodSoft, border: `1px solid #BFE6D2` }}>
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "#fff", color: C.good }}>
-                <Crown className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-[15px] font-bold" style={{ color: C.good }}>プレミアム会員</div>
-                <div className="text-[12.5px]" style={{ color: "#3a4658" }}>午後AI採点・詳細分析が使い放題</div>
-              </div>
-            </div>
-          ) : (
-            <Link href="/premium" className={row} style={{ background: C.dark }}>
-              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}>
-                <Sparkles className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-[15px] font-bold text-white">Proはこちら（月額980円）</div>
-                <div className="text-[12.5px]" style={{ color: "#A9B6CC" }}>午後の記述をAIが○△×＋講評で採点</div>
-              </div>
-              <ChevronRight className="h-5 w-5 flex-none text-white/70" />
-            </Link>
-          )}
-        </div>
-
-        {/* 試験日 */}
+        {/* 試験日（設定の入口。カウントダウンは共通トップバーに表示） */}
         <div className="mt-3 rounded-2xl p-4" style={rowStyle}>
           <button onClick={() => setEditingDate((v) => !v)} className="flex w-full items-center gap-3 text-left">
             <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: C.brandSoft, color: C.brand }}>
@@ -131,7 +105,7 @@ export default function SettingsPage() {
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-bold">試験日</span>
               <span className="block text-[12.5px]" style={{ color: C.muted }}>
-                {examDate ? `本番：${examDate.replace(/-/g, "/")}` : "未設定（設定すると本番までの残り日数を表示）"}
+                {examDate ? `本番：${examDate.replace(/-/g, "/")} ・ 変更はこちら` : "試験日の設定はこちらから"}
               </span>
             </span>
             <ChevronRight className="h-5 w-5 flex-none" style={{ color: C.faint, transform: editingDate ? "rotate(90deg)" : "none", transition: "transform .15s" }} />
@@ -165,6 +139,32 @@ export default function SettingsPage() {
               </div>
             );
           })()}
+        </div>
+
+        {/* Pro（試験日の下） */}
+        <div className="mt-3">
+          {isPremium ? (
+            <div className={row} style={{ background: C.goodSoft, border: `1px solid #BFE6D2` }}>
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "#fff", color: C.good }}>
+                <Crown className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-bold" style={{ color: C.good }}>プレミアム会員</div>
+                <div className="text-[12.5px]" style={{ color: "#3a4658" }}>午後AI採点・詳細分析が使い放題</div>
+              </div>
+            </div>
+          ) : (
+            <Link href="/premium" className={row} style={{ background: C.dark }}>
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}>
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15px] font-bold text-white">Proはこちら（月額980円）</div>
+                <div className="text-[12.5px]" style={{ color: "#A9B6CC" }}>午後の記述をAIが○△×＋講評で採点</div>
+              </div>
+              <ChevronRight className="h-5 w-5 flex-none text-white/70" />
+            </Link>
+          )}
         </div>
 
         <p className="mt-6 text-center text-[11.5px]" style={{ color: C.faint }}>

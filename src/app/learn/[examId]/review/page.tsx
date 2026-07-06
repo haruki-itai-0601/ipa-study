@@ -180,7 +180,7 @@ export default function ReviewPage() {
         <div className="mb-3">
           <h1 className="text-[19px] font-bold leading-snug">間違えた問題の復習</h1>
           <p className="text-[12.5px]" style={{ color: C.muted }}>
-            {exam ? exam.name.replace("試験", "") : ""}・一度間違えた問題を克服するまで繰り返します
+            間違えた問題を克服するまで繰り返します
           </p>
         </div>
         {phase === "loading" && (
