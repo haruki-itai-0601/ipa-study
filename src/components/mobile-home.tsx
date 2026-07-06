@@ -6,11 +6,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
+import { displayCategory, learnCategoryFor } from "@/lib/exams";
 import { EXAM_TARGET, passScore, scoreBand } from "@/lib/score";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { calcStreak, daysUntil, getActiveExam, getExamDate, setActiveExamStorage, toDayStrings } from "@/lib/streak";
+import { calcStreak, getActiveExam, setActiveExamStorage, toDayStrings } from "@/lib/streak";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { MobileTopBar } from "@/components/mobile-top-bar";
 import { ArrowRight, Brain, ChevronRight, Mountain, PenLine, Sparkles } from "lucide-react";
 
 const C = {
@@ -20,8 +21,6 @@ const C = {
 
 type WeakRow = { exam_id: string; category: string; answered: number; correct: number };
 type Overview = { exam_id: string; total: number; ai: number };
-
-const shortJa = (name: string) => name.replace("技術者試験", "").replace("試験", "");
 
 // KPIの1行カード（左＝数値・右＝ラベル）。コンパクト＆ひと目で読める形。
 function KpiRow({ value, unit, color, label }: { value: string; unit?: string; color: string; label: string }) {
@@ -39,7 +38,6 @@ function KpiRow({ value, unit, color, label }: { value: string; unit?: string; c
 export function MobileHome() {
   const [exam, setExam] = useState("ip");
   const [days, setDays] = useState<string[]>([]);
-  const [examDate, setExamDate] = useState<string | null>(null);
   const [weakCat, setWeakCat] = useState<string | null>(null);
   const [hasData, setHasData] = useState<boolean | null>(null); // null=読み込み中
   const [acc, setAcc] = useState<number | null>(null); // 選択試験の平均正答率
@@ -48,11 +46,6 @@ export function MobileHome() {
 
   useEffect(() => {
     setExam(getActiveExam());
-  }, []);
-
-  // 試験日（全試験共通・ダッシュボードで設定した localStorage examDates を参照）
-  useEffect(() => {
-    setExamDate(getExamDate());
   }, []);
 
   // 連続日数と弱点（今日の5問の出題元）。
@@ -131,38 +124,11 @@ export function MobileHome() {
   };
 
   const streak = calcStreak(days);
-  const countdown = daysUntil(examDate);
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      {/* 細いトップバー: 試験切替 + 連続日数 */}
-      <header className="sticky top-0 z-10 border-b" style={{ background: "rgba(255,255,255,0.9)", borderColor: C.line, backdropFilter: "blur(10px)" }}>
-        <div className="flex items-center gap-2 px-4 py-2.5">
-          <div className="flex gap-1 rounded-full p-0.5" style={{ background: "#EDF1F6" }}>
-            {basicExams.map((e) => (
-              <button
-                key={e.id}
-                onClick={() => switchExam(e.id)}
-                className="rounded-full px-2.5 py-1 text-[11.5px] font-bold transition-colors"
-                style={e.id === exam ? { background: C.brand, color: "#fff" } : { color: "#33415A" }}
-              >
-                {e.id.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{shortJa(basicExams.find((e) => e.id === exam)?.name ?? "")}</span>
-          {/* 右上＝試験日カウントダウン（未設定なら設定導線・どちらもデータタブへ） */}
-          {countdown != null ? (
-            <Link href="/stats" className="flex-none rounded-full px-3 py-1.5 text-[11.5px] font-bold text-white" style={{ background: "#0E1B33" }}>
-              本番まであと{countdown}日
-            </Link>
-          ) : (
-            <Link href="/stats" className="flex-none rounded-full px-3 py-1.5 text-[11.5px] font-bold" style={{ border: `1px solid ${C.line}`, color: C.muted }}>
-              試験日を設定
-            </Link>
-          )}
-        </div>
-      </header>
+      {/* 共通トップバー（試験プルダウン＋試験日カウントダウン） */}
+      <MobileTopBar exam={exam} onExamChange={switchExam} />
 
       <main className="px-4 pb-24 pt-4">
         {/* KPI 4枚（1行型: 左=数値・右=ラベル）→ タップでデータタブへ */}
@@ -198,13 +164,13 @@ export function MobileHome() {
           style={{ background: "linear-gradient(135deg, #1D4ED8, #4F46E5)", boxShadow: "0 12px 28px rgba(29,78,216,0.32)" }}
         >
           <div className="flex items-center gap-1.5 text-[12px] font-bold text-white/85">
-            <Sparkles className="h-4 w-4" /> AIが選ぶ、あなたの
+            <Sparkles className="h-4 w-4" /> 弱点分析に基づく、あなたの
           </div>
           <div className="mt-1 text-[30px] font-bold leading-tight">今日の5問</div>
           <p className="mt-1.5 text-[13px] leading-relaxed text-white/85">
             {hasData && weakCat
               ? `弱点「${displayCategory(exam, weakCat)}」から出題します`
-              : "解くほどAIの出題があなたの弱点に寄っていきます"}
+              : "解くほど、あなたの弱点に合わせて出題します"}
           </p>
           <span className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-[15px] font-bold" style={{ color: "#1D4ED8" }}>
             解きはじめる <ArrowRight className="h-5 w-5" />
@@ -270,7 +236,7 @@ export function MobileHome() {
         </Link>
 
         <p className="mt-4 text-center text-[11px]" style={{ color: C.faint }}>
-          出題はすべて本物のIPA過去問。解答は弱点分析・間違いの復習に自動でつながります。
+          出題はすべて本物のIPA過去問。解答は弱点分析・間違えた問題の復習に自動でつながります。
         </p>
       </main>
 

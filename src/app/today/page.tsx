@@ -12,9 +12,10 @@ import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { calcStreak, getActiveExam, toDayStrings } from "@/lib/streak";
+import { incTodayCount, remainingToday, TODAY_LIMIT, type Tier } from "@/lib/quota";
 import { type Question } from "@/components/quiz-runner";
 import {
-  ArrowLeft, ArrowRight, CheckCircle, Flame, Loader2, Pencil, RotateCcw, Sparkles, XCircle,
+  ArrowLeft, ArrowRight, CheckCircle, Flame, Loader2, LogIn, Pencil, RotateCcw, Sparkles, XCircle,
 } from "lucide-react";
 
 const C = {
@@ -34,7 +35,7 @@ const TRY_CATS: Record<string, string[]> = {
 };
 
 type WeakRow = { exam_id: string; category: string; answered: number; correct: number };
-type Phase = "loading" | "quiz" | "done";
+type Phase = "loading" | "quiz" | "done" | "limit";
 
 function TodayContent() {
   const sp = useSearchParams();
@@ -46,16 +47,43 @@ function TodayContent() {
   const [sel, setSel] = useState<string | null>(null);
   const [results, setResults] = useState<boolean[]>([]);
   const [streak, setStreak] = useState(0);
+  const [tier, setTier] = useState<Tier>("guest");
   const examRef = useRef("ip");
+  const tierRef = useRef<Tier>("guest");
 
   useEffect(() => {
     const e = sp.get("exam");
     const id = e && basicExams.some((x) => x.id === e) ? e : getActiveExam();
     setExam(id);
     examRef.current = id;
-    load(id);
+    (async () => {
+      // ティア判定（未ログイン/無料/有料）＝1日の回数上限に使う
+      let t: Tier = "guest";
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && !user.is_anonymous) {
+          const { data: sub } = await supabase.from("subscriptions").select("status, current_period_end").eq("user_id", user.id).maybeSingle();
+          const pro = sub?.status === "active" && (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
+          t = pro ? "pro" : "free";
+        }
+      } catch {}
+      tierRef.current = t;
+      setTier(t);
+      startOrGate(id);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 上限チェック→OKなら1回分を消費して出題、超過なら案内画面へ
+  function startOrGate(examId: string) {
+    if (remainingToday(tierRef.current) <= 0) {
+      setPhase("limit");
+      return;
+    }
+    incTodayCount();
+    load(examId);
+  }
 
   async function load(examId: string) {
     setPhase("loading");
@@ -170,7 +198,38 @@ function TodayContent() {
       <main className="mx-auto max-w-3xl px-4 pb-16 pt-4 md:px-6">
         {phase === "loading" && (
           <div className="flex items-center justify-center gap-2 py-24" style={{ color: C.faint }}>
-            <Loader2 className="h-5 w-5 animate-spin" /> AIが今日の5問を選んでいます…
+            <Loader2 className="h-5 w-5 animate-spin" /> 今日の5問を準備しています…
+          </div>
+        )}
+
+        {phase === "limit" && (
+          <div className="mx-auto max-w-md pt-6">
+            <div className="rounded-3xl px-6 py-8 text-center" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "#EEF2FF", color: "#4F46E5" }}>
+                <Sparkles className="h-7 w-7" />
+              </span>
+              <h1 className="mt-4 text-[18px] font-bold">今日の5問は本日ぶんが終了です</h1>
+              <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: C.muted }}>
+                {tier === "guest"
+                  ? `未ログインは1日${TODAY_LIMIT.guest}回まで。無料会員登録すると1日${TODAY_LIMIT.free}回に増えます。`
+                  : `無料会員は1日${TODAY_LIMIT.free}回まで。Pro（有料）なら回数無制限で解けます。`}
+              </p>
+              {tier === "guest" ? (
+                <Link href="/account" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white" style={{ background: C.brand }}>
+                  <LogIn className="h-5 w-5" /> 無料会員登録・ログイン
+                </Link>
+              ) : (
+                <Link href="/premium" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white" style={{ background: "#0E1B33" }}>
+                  <Sparkles className="h-5 w-5" /> Proにアップグレード
+                </Link>
+              )}
+              <Link href="/" className="mt-3 inline-block text-[13px] font-bold" style={{ color: C.brand }}>
+                ホームに戻る
+              </Link>
+            </div>
+            <p className="mt-3 text-center text-[11.5px]" style={{ color: C.faint }}>
+              ほかの学習（ステップ学習・復習・じっくり演習）は引き続き使えます。
+            </p>
           </div>
         )}
 
@@ -284,7 +343,7 @@ function TodayContent() {
                 </Link>
               )}
               <button
-                onClick={() => load(examRef.current)}
+                onClick={() => startOrGate(examRef.current)}
                 className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14px] font-bold"
                 style={{ background: "#EDF1F6", color: C.ink }}
               >

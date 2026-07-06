@@ -459,7 +459,7 @@ export default function ShindanPage() {
               </div>
             </div>
             <p className="mt-3 text-center text-[11.5px]" style={{ color: C.faint }}>
-              診断の解答は記録され、ダッシュボードの弱点分析・間違いの復習にそのまま繋がります。
+              診断の解答は記録され、ダッシュボードの弱点分析・間違えた問題の復習にそのまま繋がります。
             </p>
           </>
         )}

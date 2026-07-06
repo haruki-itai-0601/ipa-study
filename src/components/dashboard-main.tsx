@@ -12,6 +12,7 @@ import { EXAM_TARGET, PASS_LINE, passScore, scoreBand } from "@/lib/score";
 import { calcStreak, fmtDateJst, thisWeekDays } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { TopBarAccount } from "@/components/top-bar-account";
+import { MobileTopBar } from "@/components/mobile-top-bar";
 import {
   LayoutDashboard,
   Clock,
@@ -434,7 +435,7 @@ export function DashboardMain() {
               <Clock className="h-5 w-5" /> 学習履歴
             </Link>
             <Link href={`/learn/${activeExam}/review`} className={navItem} style={{ color: C.ink }}>
-              <RotateCcw className="h-5 w-5" /> 間違いの復習
+              <RotateCcw className="h-5 w-5" /> 間違えた問題の復習
             </Link>
             <Link href={`/learn/glossary?exam=${activeExam}`} className={navItem} style={{ color: C.ink }}>
               <BookA className="h-5 w-5" /> 用語集
@@ -457,9 +458,11 @@ export function DashboardMain() {
 
         {/* ===== Main ===== */}
         <div className="flex min-w-0 flex-col">
-          <header className="sticky top-0 z-10 flex items-center gap-3.5 px-4 py-1.5 md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
+          {/* モバイル＝共通トップバー（試験プルダウン＋試験日カウントダウン） */}
+          <MobileTopBar exam={activeExam} onExamChange={setActiveExam} />
+          {/* デスクトップ＝右上アカウント群 */}
+          <header className="sticky top-0 z-10 hidden items-center gap-3.5 px-4 py-1.5 md:flex md:px-7" style={{ background: C.card, borderBottom: `1px solid ${C.line}` }}>
             <div className="flex-1" />
-            {/* 右上のアカウント操作群（ログイン・新規登録／通知／アカウント）は全ページ共通コンポーネント */}
             <TopBarAccount isGuest={isGuest} name={name} />
           </header>
 
@@ -477,8 +480,8 @@ export function DashboardMain() {
                   <p className="mt-0.5 text-[13.5px]" style={{ color: C.muted }}>今日も合格に一歩近づきましょう。</p>
                 )}
               </div>
-              {/* K: 試験名チップを右のボックスと同サイズ（2行・同padding） */}
-              <div className="flex items-stretch gap-2.5">
+              {/* K: 試験名チップ＋試験日（モバイルは共通トップバーが担うため非表示） */}
+              <div className="hidden items-stretch gap-2.5 md:flex">
                 <div className="hidden flex-col justify-center rounded-[11px] px-3.5 py-2 sm:flex" style={{ background: C.brandSoft, color: C.brandDeep }}>
                   <span className="text-[11px] font-medium opacity-80">対象の試験</span>
                   <b className="text-[15px] leading-tight">{active.exam.name}</b>

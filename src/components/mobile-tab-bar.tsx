@@ -1,13 +1,13 @@
 "use client";
 
 // モバイル専用の下部タブバー（md未満で表示）。
-// タブ＝ホーム（今日の5問）／学習（ステップで学習）／復習（間違いの復習）／データ（統計）。
+// タブ＝ホーム／データ／学習／復習／設定（アカウント・Pro・試験日などの集約先）。
 // クイズ・パス等の集中フローには置かない（設置は各ページ側で判断する）。
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Home, Mountain, RotateCcw } from "lucide-react";
+import { BarChart3, Home, Mountain, RotateCcw, Settings } from "lucide-react";
 import { getActiveExam } from "@/lib/streak";
 
 // 非アクティブ色は #9AA6B6 だとコントラスト不足(約2:1)だったため #6B7688(約4.6:1)に
@@ -25,6 +25,7 @@ export function MobileTabBar() {
     { key: "stats", label: "データ", href: "/stats", icon: BarChart3, active: pathname === "/stats" },
     { key: "learn", label: "学習", href: `/learn/${exam}`, icon: Mountain, active: pathname.startsWith("/learn") && !pathname.includes("/review") },
     { key: "review", label: "復習", href: `/learn/${exam}/review`, icon: RotateCcw, active: pathname.includes("/review") },
+    { key: "settings", label: "設定", href: "/settings", icon: Settings, active: pathname === "/settings" },
   ];
 
   return (

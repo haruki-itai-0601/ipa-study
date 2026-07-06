@@ -6,14 +6,16 @@
 // /learn/[examId]
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { basicExams } from "@/lib/exams";
+import { setActiveExamStorage } from "@/lib/streak";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { fetchWrongPool } from "@/lib/review";
 import { ArrowLeft, RotateCcw, Search } from "lucide-react";
 import { TopBarAccount } from "@/components/top-bar-account";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { MobileTopBar } from "@/components/mobile-top-bar";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -25,8 +27,10 @@ const shortJa = (name: string) => name.replace("試験", "");
 
 export default function LearnHubPage() {
   const params = useParams();
+  const router = useRouter();
   const examId = params.examId as string;
   const exam = basicExams.find((e) => e.id === examId);
+  const switchExam = (id: string) => { setActiveExamStorage(id); router.push(`/learn/${id}`); };
 
   const [stats, setStats] = useState<{ cats: number; terms: number; glossary: number } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,31 +60,31 @@ export default function LearnHubPage() {
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      <header className="sticky top-0 z-10 border-b" style={{ background: "rgba(255,255,255,0.8)", borderColor: C.line, backdropFilter: "blur(12px)" }}>
+      {/* モバイル＝共通トップバー（試験プルダウンで別試験のハブへ） */}
+      <MobileTopBar exam={examId} onExamChange={switchExam} />
+      {/* デスクトップ＝戻る＋アカウント群 */}
+      <header className="sticky top-0 z-10 hidden border-b md:block" style={{ background: "rgba(255,255,255,0.8)", borderColor: C.line, backdropFilter: "blur(12px)" }}>
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4 md:px-6">
           <Link href="/" aria-label="戻る" style={{ color: C.faint }} className="hover:opacity-70">
             <ArrowLeft className="h-6 w-6" />
           </Link>
-          <div className="min-w-0 flex-1">
-            <div className="text-[13px]" style={{ color: C.muted }}>学習する</div>
-            <div className="truncate text-[17px] font-bold">{exam ? exam.name : "学習する"}</div>
-          </div>
+          <div className="flex-1" />
           <TopBarAccount />
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pb-24 pt-4 md:px-6 md:py-9">
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-1.5 md:px-6 md:py-9">
         <div className="text-center">
           {/* モバイルは復習カード非表示（下タブに復習がある）＝見出しも出し分け＋コンパクト */}
-          <h1 className="text-[20px] font-bold md:text-[26px]">
+          <h1 className="text-[19px] font-bold leading-snug md:text-[26px]">
             <span className="md:hidden">モードを選んで始めましょう</span>
             <span className="hidden md:inline">3つのモードから選んで始めましょう</span>
           </h1>
           <p className="mt-1.5 hidden text-[15px] md:block" style={{ color: C.muted }}>
             ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
           </p>
-          {/* 試験タブ＝1つずつ独立したボタン（折り返し可・見切れない） */}
-          <div className="mt-3.5 flex flex-wrap justify-center gap-2 md:mt-5">
+          {/* 試験タブ（デスクトップのみ。モバイルは上部プルダウンで切替） */}
+          <div className="mt-2.5 hidden flex-wrap justify-center gap-2 md:mt-5 md:flex">
             {basicExams.map((e) => {
               const active = e.id === examId;
               return (
@@ -153,7 +157,7 @@ export default function LearnHubPage() {
               </span>
             </div>
             <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
-              <div className="text-[19px] font-bold">間違いの復習</div>
+              <div className="text-[19px] font-bold">間違えた問題の復習</div>
               <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
                 {wrong === null ? "読み込み中…" : wrong.loggedIn ? `復習対象 ${wrong.count}問` : "会員登録で間違いが貯まります"}
               </div>
@@ -202,7 +206,7 @@ export default function LearnHubPage() {
         </div>
 
         <p className="mt-6 text-center text-[12.5px]" style={{ color: C.faint }}>
-          「間違いの復習」の対象は、演習の解答記録から自動で作られます。
+          「間違えた問題の復習」の対象は、演習の解答記録から自動で作られます。
         </p>
       </main>
       <MobileTabBar />

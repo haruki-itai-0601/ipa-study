@@ -7,9 +7,10 @@
 // - 解答は user_progress に記録する＝復習で正解すると弱点から自然に消える。
 
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { basicExams, displayCategory, questionSource } from "@/lib/exams";
+import { setActiveExamStorage } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { fetchWrongPool } from "@/lib/review";
@@ -17,6 +18,7 @@ import { type Question } from "@/components/quiz-runner";
 import ZoomableImage from "@/components/zoomable-image";
 import { TopBarAccount } from "@/components/top-bar-account";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
+import { MobileTopBar } from "@/components/mobile-top-bar";
 import {
   ArrowLeft, ArrowRight, CheckCircle, Loader2, PenLine, RotateCcw, Trophy, UserPlus, XCircle,
 } from "lucide-react";
@@ -41,8 +43,10 @@ type Phase = "loading" | "login" | "empty" | "quiz" | "done";
 
 export default function ReviewPage() {
   const params = useParams();
+  const router = useRouter();
   const examId = params.examId as string;
   const exam = basicExams.find((e) => e.id === examId);
+  const switchExam = (id: string) => { setActiveExamStorage(id); router.push(`/learn/${id}/review`); };
 
   const [phase, setPhase] = useState<Phase>("loading");
   const [poolTotal, setPoolTotal] = useState(0); // 復習対象の総数（セット外も含む）
@@ -158,20 +162,27 @@ export default function ReviewPage() {
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
-      <header className="sticky top-0 z-10 border-b" style={{ background: "rgba(255,255,255,0.8)", borderColor: C.line, backdropFilter: "blur(12px)" }}>
+      {/* モバイル＝共通トップバー（試験プルダウン） */}
+      <MobileTopBar exam={examId} onExamChange={switchExam} />
+      {/* デスクトップ＝戻る＋アカウント群 */}
+      <header className="sticky top-0 z-10 hidden border-b md:block" style={{ background: "rgba(255,255,255,0.8)", borderColor: C.line, backdropFilter: "blur(12px)" }}>
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4 md:px-6">
           <Link href={`/learn/${examId}`} aria-label="戻る" style={{ color: C.faint }} className="hover:opacity-70">
             <ArrowLeft className="h-6 w-6" />
           </Link>
-          <div className="min-w-0 flex-1">
-            <div className="text-[13px]" style={{ color: C.muted }}>{exam ? exam.name : "学習する"}</div>
-            <div className="truncate text-[17px] font-bold">間違いの復習</div>
-          </div>
+          <div className="flex-1" />
           <TopBarAccount />
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 pb-24 md:px-6 md:pb-6">
+      <main className="mx-auto max-w-3xl px-4 py-5 pb-24 md:px-6 md:pb-6">
+        {/* ページ見出し（間違えた問題の復習） */}
+        <div className="mb-3">
+          <h1 className="text-[19px] font-bold leading-snug">間違えた問題の復習</h1>
+          <p className="text-[12.5px]" style={{ color: C.muted }}>
+            {exam ? exam.name.replace("試験", "") : ""}・一度間違えた問題を克服するまで繰り返します
+          </p>
+        </div>
         {phase === "loading" && (
           <div className="flex items-center justify-center gap-2 py-20" style={{ color: C.faint }}>
             <Loader2 className="h-5 w-5 animate-spin" /> 読み込み中…
@@ -183,7 +194,7 @@ export default function ReviewPage() {
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ background: C.warnSoft }}>
               <RotateCcw className="h-7 w-7" style={{ color: C.warn }} />
             </span>
-            <h1 className="mt-4 text-[17px] font-bold">間違いの復習は、解答の記録から自動で作られます</h1>
+            <h1 className="mt-4 text-[17px] font-bold">間違えた問題の復習は、解答の記録から自動で作られます</h1>
             <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: C.muted }}>
               無料会員登録（ログイン）すると、演習で間違えた問題がここに貯まり、克服するまで1問ずつやり直せます。
             </p>
