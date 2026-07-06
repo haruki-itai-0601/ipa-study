@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = new Anthropic({ apiKey });
+    // リトライ・タイムアウトを絞る（Anthropic 5xx 連発時のコスト/待ち時間の暴走を防ぐ）
+    const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 30000 });
 
     // 入力長を制限（プロンプト暴走・コスト・インジェクション対策）。記述として十分な2000字に切り詰め。
     const answer = userAnswer.slice(0, 2000);

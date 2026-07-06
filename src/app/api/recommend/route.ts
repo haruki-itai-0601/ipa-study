@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
         { status: 429 }
       );
     }
-    const client = new Anthropic({ apiKey });
+    // リトライ・タイムアウトを絞る（Anthropic 5xx 連発時のコスト/待ち時間の暴走を防ぐ）
+    const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 30000 });
 
     const statLines = cats.map((c) => `・${displayCategory(examId, c.category)}：${c.acc}%（${c.correct}/${c.answered}問）`).join("\n");
     const system =

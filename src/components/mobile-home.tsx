@@ -14,7 +14,7 @@ import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { ArrowRight, Brain, ChevronRight, Mountain, PenLine, Sparkles } from "lucide-react";
 
 const C = {
-  bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
+  bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#6B7688",
   line: "#E7EBF1", brand: "#1D4ED8", brandSoft: "#EAF0FE", bad: "#DC2626",
 };
 

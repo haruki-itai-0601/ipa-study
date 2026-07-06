@@ -321,7 +321,16 @@ function LearnPathContent() {
     const supabase = createSupabaseBrowserClient();
     const { data } = await supabase.from("questions").select("*").in("id", pick);
     const byId = new Map(((data ?? []) as Question[]).map((q) => [q.id, q]));
-    setCheckQs(pick.map((id) => byId.get(id)).filter(Boolean) as Question[]);
+    const built = pick.map((id) => byId.get(id)).filter(Boolean) as Question[];
+    // pick は非空でも該当問題が取得できない場合（問題削除・カテゴリ再タグ・stale参照）、
+    // 空パネルで進行不能になるのを防ぐ。問題が無いステップは完了扱いにして学習ビューへ戻す。
+    if (built.length === 0) {
+      if (!isDone(step.id)) markDone(step.id);
+      setPanelPhase("learn");
+      setCheckLoading(false);
+      return;
+    }
+    setCheckQs(built);
     setCheckLoading(false);
   }
 
