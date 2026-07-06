@@ -12,7 +12,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { getExamDate, fmtDateJst } from "@/lib/streak";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import {
-  CalendarDays, ChevronRight, CreditCard, Crown, FileText, Loader2,
+  CalendarDays, Check, ChevronRight, CreditCard, Crown, FileText, Loader2,
   LogIn, LogOut, Mail, ScrollText, Shield, Sparkles, User,
 } from "lucide-react";
 
@@ -197,15 +197,34 @@ export default function SettingsPage() {
             {err && <p className="mt-2 text-center text-[12px]" style={{ color: C.bad }}>{err}</p>}
           </div>
         ) : (
-          <Link href="/premium" className="flex items-center gap-3 rounded-2xl p-4" style={{ background: C.dark }}>
-            <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}>
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-[15px] font-bold text-white">Proはこちら（月額980円）</div>
-              <div className="text-[12.5px]" style={{ color: "#A9B6CC" }}>午後の記述をAIが○△×＋講評で採点</div>
+          <Link href="/premium" className="block rounded-2xl p-4" style={{ background: C.dark }}>
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}>
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[15.5px] font-bold text-white">Proで午後も最短合格</div>
+                <div className="text-[11.5px]" style={{ color: "#A9B6CC" }}>月額980円 ・ 14日間無料でお試し</div>
+              </div>
             </div>
-            <ChevronRight className="h-5 w-5 flex-none text-white/70" />
+            <ul className="mt-3 space-y-1.5">
+              {[
+                "午後（記述式）を AIが○△×＋講評で採点",
+                "AIレコメンドが弱点から「次の一手」を提案",
+                "弱点分析・今日の5問が回数無制限に",
+              ].map((t) => (
+                <li key={t} className="flex items-start gap-2 text-[12.5px] leading-snug text-white/90">
+                  <Check className="mt-0.5 h-4 w-4 flex-none" style={{ color: "#7DD3A8" }} />
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+            <span className="mt-3.5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-white py-2.5 text-[14px] font-bold" style={{ color: C.dark }}>
+              14日間無料で試す <ChevronRight className="h-4 w-4" />
+            </span>
+            <p className="mt-2 text-center text-[10.5px]" style={{ color: "#8A98B3" }}>
+              いつでも解約OK・解約後も請求期間の末日まで利用できます
+            </p>
           </Link>
         )}
 
