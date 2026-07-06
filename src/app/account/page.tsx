@@ -5,6 +5,7 @@ import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
   title: "会員登録 / ログイン｜過去問演習ラボ",
+  robots: { index: false, follow: false }, // ログイン/会員登録ページは検索インデックス不要
 };
 
 export default function AccountPage() {

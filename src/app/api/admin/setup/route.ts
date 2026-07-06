@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { safeEqual } from "@/lib/admin-token";
 
 /** crypto のみで Base32 シークレットを生成（otplib 不要） */
 function generateBase32Secret(): string {
@@ -22,10 +23,26 @@ function generateBase32Secret(): string {
   return result;
 }
 
-export async function GET() {
-  // TOTP_SECRET がすでに設定済みなら setup 不可
+// TOTP シードの発行は「管理パスワードを知っている人」に限定する（POST + ADMIN_SECRET 照合）。
+// 以前は未認証GETで誰でもシードを取得でき、2FAが実質パスワード1要素に劣化していた。
+export async function POST(request: NextRequest) {
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (!adminSecret) {
+    return NextResponse.json({ error: "ADMIN_SECRET が設定されていません" }, { status: 500 });
+  }
+  // すでに TOTP_SECRET 設定済みなら setup 不可
   if (process.env.TOTP_SECRET) {
     return NextResponse.json({ error: "すでに設定済みです" }, { status: 403 });
+  }
+  // 管理パスワード必須（定数時間比較）
+  let password: unknown;
+  try {
+    ({ password } = await request.json());
+  } catch {
+    password = undefined;
+  }
+  if (typeof password !== "string" || !safeEqual(password, adminSecret)) {
+    return NextResponse.json({ error: "パスワードが違います" }, { status: 401 });
   }
 
   const secret = generateBase32Secret();

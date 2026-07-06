@@ -38,6 +38,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# 内部レビュー用のローカルツール（本番へ出さない）
+public/device-preview.html
 next-env.d.ts
 
 # daily-question 投稿済みログ（ローカル状態）

@@ -46,7 +46,33 @@ function verifyTOTP(token: string, secret: string): boolean {
   return false;
 }
 
+// 簡易レート制限（管理パスワードの総当たり対策）。サーバーレスのためインスタンス単位の
+// ベストエフォートだが、無いよりは総当たりを大幅に鈍化させる。恒久対策はパスワードの
+// 長ランダム化（ADMIN_SECRET）とTOTP有効化。
+const WINDOW_MS = 10 * 60 * 1000;
+const MAX_ATTEMPTS = 8;
+const attempts = new Map<string, { count: number; resetAt: number }>();
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  if (attempts.size > 5000) attempts.clear(); // メモリ暴走の簡易ガード
+  const rec = attempts.get(ip);
+  if (!rec || now > rec.resetAt) {
+    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return false;
+  }
+  rec.count++;
+  return rec.count > MAX_ATTEMPTS;
+}
+
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (rateLimited(ip)) {
+    return NextResponse.json(
+      { error: "試行回数が多すぎます。しばらく待って再度お試しください。" },
+      { status: 429 }
+    );
+  }
+
   const { password, totp } = await request.json();
   const adminSecret = process.env.ADMIN_SECRET;
   const totpSecret = process.env.TOTP_SECRET;

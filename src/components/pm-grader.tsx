@@ -13,13 +13,15 @@ type SubAnswer = {
   label: string;
   sub_order: number;
   answer_type: AnswerType;
+  // 記号・数値・短答の模範解答（自動採点用）。記述(text)は空文字＝クライアントに渡さない
+  // （記述の模範解答は有料コンテンツ。採点API応答からのみ表示する＝カンニング防止）。
   correct: string;
-  note: string;
 };
 
-// 採点結果。status は両系統で共通、comment は記述のAI講評／エラーメッセージ
+// 採点結果。status は両系統で共通、comment は記述のAI講評／エラーメッセージ、
+// correct は採点後にサーバーから返る模範解答（記述の表示用）
 type GradeStatus = "correct" | "partial" | "wrong" | "unanswered" | "pending" | "error" | "member_only";
-type Grade = { status: GradeStatus; comment?: string };
+type Grade = { status: GradeStatus; comment?: string; correct?: string };
 
 // 採点用の正規化：全角英数→半角、各種空白・記号ゆれを吸収して比較する
 function normalizeAns(s: string): string {
@@ -104,10 +106,10 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
       setShowResult(false);
       setGrading(false);
       const supabase = createSupabaseBrowserClient();
-      // 設問データ
+      // 設問データ（ビュー経由＝記述の模範解答 correct は含まれない。記号/数値/短答の correct のみ）
       const { data } = await supabase
-        .from("pm_sub_answers")
-        .select("*")
+        .from("pm_sub_answers_client")
+        .select("id, pm_question_id, label, sub_order, answer_type, correct")
         .eq("pm_question_id", pmQuestionId)
         .order("sub_order");
       // 会員状態（自分の subscriptions を読む。RLSで本人のみ）
@@ -189,7 +191,8 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
           } else if (!res.ok) {
             setGraded((g) => ({ ...g, [s.id]: { status: "error", comment: data?.error ?? "採点に失敗しました" } }));
           } else {
-            setGraded((g) => ({ ...g, [s.id]: { status: data.result, comment: data.comment } }));
+            // data.correct = サーバーが採点後に返す模範解答（記述の表示用）
+            setGraded((g) => ({ ...g, [s.id]: { status: data.result, comment: data.comment, correct: data.correct } }));
           }
         } catch {
           setGraded((g) => ({ ...g, [s.id]: { status: "error", comment: "通信エラーが発生しました" } }));
@@ -353,7 +356,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                         </div>
                       )}
                       <p className="mt-1.5 text-xs text-gray-600">
-                        模範解答：<span className="font-semibold text-gray-800">{s.correct}</span>
+                        模範解答：<span className="font-semibold text-gray-800">{g.correct || s.correct}</span>
                       </p>
                       <p className="text-[10px] text-gray-400">
                         ※AIによる自動採点のため、判定・講評は絶対的な正解ではありません。あくまで参考としてご利用ください。

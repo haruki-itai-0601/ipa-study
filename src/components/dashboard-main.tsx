@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
 import { EXAM_TARGET, PASS_LINE, passScore, scoreBand } from "@/lib/score";
+import { calcStreak, fmtDateJst, thisWeekDays } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { TopBarAccount } from "@/components/top-bar-account";
 import {
@@ -107,26 +108,8 @@ function studyHref(examId: string, category: string) {
 function learnHref(examId: string, category: string) {
   return `/learn/${examId}/${encodeURIComponent(learnCategoryFor(examId, category))}`;
 }
-function fmtDate(dt: Date) {
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
-}
-function calcStreak(days: string[]): number {
-  if (!days?.length) return 0;
-  const set = new Set(days);
-  const cur = new Date();
-  if (!set.has(fmtDate(cur))) cur.setDate(cur.getDate() - 1);
-  let s = 0;
-  while (set.has(fmtDate(cur))) { s++; cur.setDate(cur.getDate() - 1); }
-  return s;
-}
-function thisWeekDays(days: string[]): number {
-  if (!days?.length) return 0;
-  const set = new Set(days);
-  let n = 0;
-  const cur = new Date();
-  for (let i = 0; i < 7; i++) { if (set.has(fmtDate(cur))) n++; cur.setDate(cur.getDate() - 1); }
-  return n;
-}
+// 連続日数・今週日数・JST日付は streak.ts に一本化（ローカル時刻バグ回避のため）
+const fmtDate = fmtDateJst;
 function daysUntil(dateStr?: string | null): number | null {
   if (!dateStr) return null;
   const diff = Math.ceil((new Date(dateStr + "T00:00:00").getTime() - Date.now()) / 86400000);

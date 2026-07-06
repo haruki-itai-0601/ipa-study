@@ -7,6 +7,8 @@ export const metadata = {
   title: "プレミアム会員のご案内｜過去問演習ラボ",
   description:
     "月額980円で午後問題の記述式をAIが○△×＋講評で採点。応用情報技術者試験の記述対策を効率化します。",
+  // Stripeからの ?checkout=success|cancel 変種を正規URLへ集約
+  alternates: { canonical: "/premium" },
 };
 
 export default function PremiumPage() {

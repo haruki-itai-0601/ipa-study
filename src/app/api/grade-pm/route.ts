@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import Anthropic from "@anthropic-ai/sdk";
 
 // 午後問題の「記述式」設問を Claude（Haiku）で採点する。
@@ -41,8 +42,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 設問の模範解答をサーバー側で取得（pm_sub_answers は select 全員可）
-    const { data: sub, error } = await supabase
+    // 設問の模範解答は service_role でサーバー側のみ取得（pm_sub_answers はクライアントから
+    // 直接読めないようロック済み＝カンニング防止）。会員チェックは上でユーザーセッションを使用。
+    const admin = createSupabaseAdminClient();
+    if (!admin) {
+      return NextResponse.json({ error: "AI採点は現在利用できません（サーバー設定不備）" }, { status: 503 });
+    }
+    const { data: sub, error } = await admin
       .from("pm_sub_answers")
       .select("label, answer_type, correct")
       .eq("id", subId)

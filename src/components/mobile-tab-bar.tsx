@@ -10,7 +10,8 @@ import { usePathname } from "next/navigation";
 import { BarChart3, Home, Mountain, RotateCcw } from "lucide-react";
 import { getActiveExam } from "@/lib/streak";
 
-const C = { ink: "#15202E", faint: "#9AA6B6", brand: "#1D4ED8", line: "#E7EBF1" };
+// 非アクティブ色は #9AA6B6 だとコントラスト不足(約2:1)だったため #6B7688(約4.6:1)に
+const C = { ink: "#15202E", faint: "#6B7688", brand: "#1D4ED8", line: "#E7EBF1" };
 
 export function MobileTabBar() {
   const pathname = usePathname();
@@ -33,7 +34,7 @@ export function MobileTabBar() {
     >
       <div className="mx-auto flex max-w-md items-stretch">
         {tabs.map((t) => (
-          <Link key={t.key} href={t.href} className="flex flex-1 flex-col items-center gap-0.5 py-2">
+          <Link key={t.key} href={t.href} className="flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 py-2">
             <t.icon className="h-[22px] w-[22px]" style={{ color: t.active ? C.brand : C.faint }} />
             <span className="text-[10.5px] font-bold" style={{ color: t.active ? C.brand : C.faint }}>
               {t.label}

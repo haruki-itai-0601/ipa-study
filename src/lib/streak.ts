@@ -9,32 +9,38 @@ export function toDayStrings(data: unknown): string[] {
     .filter(Boolean);
 }
 
+const DAY_MS = 86400000;
+
+// 任意の時刻をJSTの暦日(YYYY-MM-DD)に変換する。実行環境のタイムゾーンに依存しないよう
+// エポック(getTime)にJSTオフセット(+9h)を足してUTC表記の日付部分を取り出す。
+// ※以前はブラウザのローカル時刻(getFullYear等)で計算しており、サーバーのJST集計
+//   (get_answered_days_jst)とズレて深夜帯や国外ユーザーで連続日数が誤って0になっていた。
 export function fmtDateJst(dt: Date) {
-  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+  return new Date(dt.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 }
 
 export function calcStreak(days: string[]): number {
   if (!days?.length) return 0;
   const set = new Set(days);
-  const cur = new Date();
-  if (!set.has(fmtDateJst(cur))) cur.setDate(cur.getDate() - 1);
+  let cur = new Date();
+  if (!set.has(fmtDateJst(cur))) cur = new Date(cur.getTime() - DAY_MS);
   let s = 0;
   while (set.has(fmtDateJst(cur))) {
     s++;
-    cur.setDate(cur.getDate() - 1);
+    cur = new Date(cur.getTime() - DAY_MS);
   }
   return s;
 }
 
-// 今週（直近7日のうち今日を含む週内）に学習した日数
+// 今週（今日を含む直近7日）に学習した日数。JST基準・エポック減算でTZ非依存。
 export function thisWeekDays(days: string[]): number {
   if (!days?.length) return 0;
   const set = new Set(days);
   let n = 0;
-  const cur = new Date();
+  let cur = new Date();
   for (let i = 0; i < 7; i++) {
     if (set.has(fmtDateJst(cur))) n++;
-    cur.setDate(cur.getDate() - 1);
+    cur = new Date(cur.getTime() - DAY_MS);
   }
   return n;
 }
