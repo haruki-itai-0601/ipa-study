@@ -75,13 +75,14 @@ function TodayContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 上限チェック→OKなら1回分を消費して出題、超過なら案内画面へ
+  // 上限チェック→OKなら出題、超過なら案内画面へ。
+  // 回数の消費は「実際に出題が確定したとき」だけ行う（load内）。表示しただけ／0件で
+  // done に落ちたときに枠を溶かさないため。
   function startOrGate(examId: string) {
     if (remainingToday(tierRef.current) <= 0) {
       setPhase("limit");
       return;
     }
-    incTodayCount();
     load(examId);
   }
 
@@ -128,6 +129,7 @@ function TodayContent() {
       setPhase("done");
       return;
     }
+    incTodayCount(); // 出題が確定したときだけ1回分を消費する
     setQs(list);
     setPhase("quiz");
   }

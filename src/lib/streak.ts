@@ -55,10 +55,18 @@ export function getExamDate(): string | null {
   }
 }
 
+// 試験日までの残り日数。試験日と「今のJST暦日」をどちらもUTC正午で数値化して引くことで
+// 実行環境のTZに依存させない（fmtDateJst＝streak/quotaと同じJST基準に統一）。
+// 以前は new Date(dateStr+"T00:00:00") がブラウザのローカルTZでパースされ、Date.now()との
+// 組み合わせで非JST端末・深夜帯にカウントダウンが±1ズレていた。
 export function daysUntil(dateStr?: string | null): number | null {
   if (!dateStr) return null;
-  const diff = Math.ceil((new Date(dateStr + "T00:00:00").getTime() - Date.now()) / 86400000);
-  return diff >= 0 ? diff : null;
+  const toUtcNoon = (ymd: string) => {
+    const [y, m, d] = ymd.split("-").map(Number);
+    return Date.UTC(y, m - 1, d, 12);
+  };
+  const diff = Math.round((toUtcNoon(dateStr) - toUtcNoon(fmtDateJst(new Date()))) / 86400000);
+  return Number.isFinite(diff) && diff >= 0 ? diff : null;
 }
 
 // モバイルで選択中の試験（ダッシュボードのタブと共有）

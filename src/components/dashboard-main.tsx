@@ -267,8 +267,10 @@ export function DashboardMain() {
   const viewCountedRef = useRef(false);
   useEffect(() => {
     if (loading || viewCountedRef.current) return;
+    if (isPremium) { viewCountedRef.current = true; setAnalysisLocked(false); return; }
+    // 見せる弱点データが無ければ消費しない（データが揃うまで待つ／新規ユーザーで枠が溶けない）。
+    if (rows.length === 0) { setAnalysisLocked(false); return; }
     viewCountedRef.current = true;
-    if (isPremium) { setAnalysisLocked(false); return; }
     const limit = isGuest ? 3 : 7;
     const key = `waViews:${fmtDate(new Date())}`;
     let count = 0;
@@ -279,7 +281,7 @@ export function DashboardMain() {
       try { localStorage.setItem(key, String(count + 1)); } catch {}
       setAnalysisLocked(false);
     }
-  }, [loading, isGuest, isPremium]);
+  }, [loading, isGuest, isPremium, rows.length]);
 
   useEffect(() => {
     (async () => {
