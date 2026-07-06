@@ -1,3 +1,4 @@
+import "server-only"; // service_role キーを扱うため、クライアントからの誤importをビルド時に禁止する
 import { createClient } from "@supabase/supabase-js";
 
 // service_role キーで RLS をバイパスする管理用クライアント。
