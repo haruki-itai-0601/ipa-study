@@ -269,7 +269,7 @@ export function DashboardMain() {
     if (loading || viewCountedRef.current) return;
     viewCountedRef.current = true;
     if (isPremium) { setAnalysisLocked(false); return; }
-    const limit = isGuest ? 1 : 5;
+    const limit = isGuest ? 3 : 7;
     const key = `waViews:${fmtDate(new Date())}`;
     let count = 0;
     try { count = parseInt(localStorage.getItem(key) || "0", 10) || 0; } catch {}
@@ -332,8 +332,8 @@ export function DashboardMain() {
   const countdown = daysUntil(sharedExamDate);
   // 閲覧上限ゲートの案内（ティア別）
   const lockTier = isGuest
-    ? { msg: "未ログインは1日1回まで閲覧できます。無料会員登録すると1日5回に増えます。", href: "/account", label: "無料会員登録" }
-    : { msg: "無料会員は1日5回まで閲覧できます。Pro（有料）なら無制限に見られます。", href: "/premium", label: "Proにアップグレード" };
+    ? { msg: "未ログインは1日3回まで閲覧できます。無料会員登録すると1日7回に増えます。", href: "/account", label: "無料会員登録" }
+    : { msg: "無料会員は1日7回まで閲覧できます。Pro（有料）なら無制限に見られます。", href: "/premium", label: "Proにアップグレード" };
 
   const trend = useMemo(() => {
     const accArr = timeline.map((t) => (t.answered > 0 ? Math.round((t.correct / t.answered) * 100) : 0));
