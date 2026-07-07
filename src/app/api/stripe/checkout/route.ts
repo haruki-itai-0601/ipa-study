@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase";
-import { getStripe, PREMIUM_PRICE_JPY, PREMIUM_PRODUCT_NAME } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
+import { PREMIUM_PRICE_JPY, PREMIUM_PRICE_YEARLY_JPY, PREMIUM_PRODUCT_NAME } from "@/lib/pricing";
 import { PAYMENTS_ENABLED } from "@/lib/flags";
 
-// プレミアム会員（月額サブスク）の Stripe Checkout セッションを作成する。
+// プレミアム会員（月額 / 年額サブスク）の Stripe Checkout セッションを作成する。
 export async function POST(request: NextRequest) {
   try {
     // 決済の一時停止中はサーバー側でも受け付けない（UIを迂回した直接POST対策）。
@@ -53,7 +54,13 @@ export async function POST(request: NextRequest) {
     }
 
     const origin = request.nextUrl.origin;
-    const priceId = process.env.STRIPE_PRICE_ID;
+
+    // 料金プランはクライアントからは種別（monthly / yearly）だけ受け取り、金額はサーバー側で固定する
+    // （改ざん防止）。price_data で動的生成するため Stripe ダッシュボードでの商品作成は不要。
+    const body = await request.json().catch(() => ({}));
+    const isYearly = body?.plan === "yearly";
+    const unitAmount = isYearly ? PREMIUM_PRICE_YEARLY_JPY : PREMIUM_PRICE_JPY;
+    const interval: "month" | "year" = isYearly ? "year" : "month";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -63,20 +70,17 @@ export async function POST(request: NextRequest) {
         ? { customer: existing.stripe_customer_id }
         : { customer_email: user.email }),
       line_items: [
-        priceId
-          ? { price: priceId, quantity: 1 }
-          : {
-              // STRIPE_PRICE_ID 未設定でも動くフォールバック（ダッシュボードでの商品作成不要）
-              price_data: {
-                currency: "jpy",
-                unit_amount: PREMIUM_PRICE_JPY,
-                recurring: { interval: "month" },
-                product_data: { name: PREMIUM_PRODUCT_NAME },
-              },
-              quantity: 1,
-            },
+        {
+          price_data: {
+            currency: "jpy",
+            unit_amount: unitAmount,
+            recurring: { interval },
+            product_data: { name: PREMIUM_PRODUCT_NAME },
+          },
+          quantity: 1,
+        },
       ],
-      metadata: { user_id: user.id },
+      metadata: { user_id: user.id, plan: isYearly ? "yearly" : "monthly" },
       // 14日間無料トライアル。トライアル中は Stripe 上 trialing → Webアプリ側は webhook の
       // mapStatus で "active" に正規化されるため、既存のプレミアム判定がそのまま機能する。
       subscription_data: { metadata: { user_id: user.id }, trial_period_days: 14 },

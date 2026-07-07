@@ -404,7 +404,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
             <p className="flex items-center justify-center gap-1.5 text-sm text-violet-700 font-semibold">
               <Lock className="w-4 h-4" /> 記述のAI採点は有料会員限定です —{" "}
               <Link href="/premium" className="underline hover:text-violet-900">
-                月額980円
+                月額300円〜
               </Link>
             </p>
           )}

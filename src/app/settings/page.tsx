@@ -204,7 +204,7 @@ export default function SettingsPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-[15.5px] font-bold text-white">Proで午後も最短合格</div>
-                <div className="text-[11.5px]" style={{ color: "#A9B6CC" }}>月額980円 ・ 14日間無料でお試し</div>
+                <div className="text-[11.5px]" style={{ color: "#A9B6CC" }}>月額300円／年額3,000円 ・ 14日間無料でお試し</div>
               </div>
             </div>
             <ul className="mt-3 space-y-1.5">

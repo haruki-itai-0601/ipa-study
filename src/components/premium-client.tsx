@@ -6,8 +6,15 @@ import type { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { PAYMENTS_ENABLED } from "@/lib/flags";
 import { track } from "@/lib/track";
+import {
+  PREMIUM_PRICE_JPY,
+  PREMIUM_PRICE_YEARLY_JPY,
+  PREMIUM_YEARLY_PER_MONTH_JPY,
+} from "@/lib/pricing";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Sparkles, CreditCard, LogIn, Loader2, Wrench } from "lucide-react";
+
+type Plan = "monthly" | "yearly";
 
 type Subscription = {
   status: string;
@@ -31,6 +38,7 @@ export function PremiumClient() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
+  const [plan, setPlan] = useState<Plan>("monthly");
 
   useEffect(() => {
     track("premium_view"); // プレミアム案内ページの閲覧
@@ -69,13 +77,22 @@ export function PremiumClient() {
     (!subscription.current_period_end ||
       new Date(subscription.current_period_end) > new Date());
 
-  async function callApi(path: string) {
-    if (path.includes("checkout")) track("begin_checkout", { value: 980, currency: "JPY" });
-    else if (path.includes("portal")) track("open_billing_portal");
+  async function callApi(path: string, payload?: object) {
+    if (path.includes("checkout")) {
+      track("begin_checkout", {
+        value: plan === "yearly" ? PREMIUM_PRICE_YEARLY_JPY : PREMIUM_PRICE_JPY,
+        currency: "JPY",
+      });
+    } else if (path.includes("portal")) track("open_billing_portal");
     setErr("");
     setBusy(true);
     try {
-      const res = await fetch(path, { method: "POST" });
+      const res = await fetch(path, {
+        method: "POST",
+        ...(payload
+          ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }
+          : {}),
+      });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.url) {
         setErr(data?.error ?? "処理に失敗しました。時間をおいて再度お試しください。");
@@ -164,7 +181,7 @@ export function PremiumClient() {
     return (
       <Card className="border-2 border-violet-200">
         <CardContent className="p-5 space-y-4">
-          <PlanSummary />
+          <PlanSummary plan={plan} setPlan={setPlan} />
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3.5 space-y-1.5">
             <p className="flex items-center gap-1.5 font-bold text-amber-700">
               <Wrench className="w-4 h-4" /> ただいま準備中です
@@ -186,7 +203,7 @@ export function PremiumClient() {
     return (
       <Card className="border-2 border-violet-200">
         <CardContent className="p-5 space-y-4">
-          <PlanSummary />
+          <PlanSummary plan={plan} setPlan={setPlan} />
           <p className="text-sm text-gray-600 leading-relaxed">
             プレミアム登録には、先に無料の会員登録（ログイン）が必要です。
           </p>
@@ -206,28 +223,37 @@ export function PremiumClient() {
   return (
     <Card className="border-2 border-violet-200">
       <CardContent className="p-5 space-y-4">
-        <PlanSummary />
+        <PlanSummary plan={plan} setPlan={setPlan} />
         {checkoutResult === "cancel" && (
           <p className="text-sm text-gray-500">お手続きはキャンセルされました。</p>
         )}
         {err && <p className="text-sm text-red-600">{err}</p>}
         <button
-          onClick={() => callApi("/api/stripe/checkout")}
+          onClick={() => callApi("/api/stripe/checkout", { plan })}
           disabled={busy}
           className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-3 text-base font-bold text-white shadow-md shadow-violet-500/30 hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:translate-y-0"
         >
           {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-          {busy ? "決済ページへ移動中…" : "14日間無料ではじめる（その後 月額980円）"}
+          {busy
+            ? "決済ページへ移動中…"
+            : plan === "yearly"
+              ? `14日間無料ではじめる（その後 年額${PREMIUM_PRICE_YEARLY_JPY.toLocaleString()}円）`
+              : `14日間無料ではじめる（その後 月額${PREMIUM_PRICE_JPY.toLocaleString()}円）`}
         </button>
         <p className="text-xs text-gray-400 leading-relaxed">
-          14日間は無料です。14日間が過ぎると月額980円が発生します（クレジットカード決済・Stripe）。トライアル中を含め、いつでも解約でき、解約後も請求期間の末日までご利用いただけます。
+          14日間は無料です。14日間が過ぎると
+          {plan === "yearly"
+            ? `年額${PREMIUM_PRICE_YEARLY_JPY.toLocaleString()}円`
+            : `月額${PREMIUM_PRICE_JPY.toLocaleString()}円`}
+          が発生します（クレジットカード決済・Stripe）。トライアル中を含め、いつでも解約でき、解約後も請求期間の末日までご利用いただけます。
         </p>
       </CardContent>
     </Card>
   );
 }
 
-function PlanSummary() {
+function PlanSummary({ plan, setPlan }: { plan: Plan; setPlan: (p: Plan) => void }) {
+  const isYearly = plan === "yearly";
   return (
     <div className="space-y-3">
       <div>
@@ -237,9 +263,40 @@ function PlanSummary() {
           </div>
           <h2 className="font-bold text-gray-900">プレミアム会員</h2>
         </div>
+
+        {/* 月額 / 年額 トグル */}
+        <div className="mt-2.5 inline-flex rounded-full bg-gray-100 p-1">
+          <button
+            type="button"
+            onClick={() => setPlan("monthly")}
+            className={`rounded-full px-3.5 py-1 text-xs font-bold transition-colors ${
+              !isYearly ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+            }`}
+          >
+            月額
+          </button>
+          <button
+            type="button"
+            onClick={() => setPlan("yearly")}
+            className={`rounded-full px-3.5 py-1 text-xs font-bold transition-colors ${
+              isYearly ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+            }`}
+          >
+            年額
+            <span className="ml-1 text-emerald-600">2ヶ月分お得</span>
+          </button>
+        </div>
+
         <p className="mt-2">
-          <span className="text-3xl font-extrabold text-gray-900">980</span>
-          <span className="text-sm text-gray-500 font-semibold">円/月（税込）</span>
+          <span className="text-3xl font-extrabold text-gray-900">
+            {(isYearly ? PREMIUM_PRICE_YEARLY_JPY : PREMIUM_PRICE_JPY).toLocaleString()}
+          </span>
+          <span className="text-sm text-gray-500 font-semibold">{isYearly ? "円/年（税込）" : "円/月（税込）"}</span>
+          {isYearly && (
+            <span className="ml-2 text-xs font-semibold text-emerald-600">
+              実質 約{PREMIUM_YEARLY_PER_MONTH_JPY}円/月
+            </span>
+          )}
         </p>
         <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
           🎁 14日間無料・いつでも解約OK

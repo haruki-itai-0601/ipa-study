@@ -30,7 +30,7 @@ const items: { label: string; value: React.ReactNode }[] = [
   },
   {
     label: "販売価格",
-    value: "プレミアム会員 月額980円（税込）",
+    value: "プレミアム会員 月額300円／年額3,000円（いずれも税込）",
   },
   {
     label: "商品代金以外の必要料金",

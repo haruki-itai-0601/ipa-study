@@ -820,7 +820,7 @@ export function HomeDashboard() {
                       <Sparkles className="w-5 h-5" />
                       14日間無料で試す
                     </Link>
-                    <p className="mt-2 text-xs text-gray-400">月額¥980・14日間無料・いつでも解約OK</p>
+                    <p className="mt-2 text-xs text-gray-400">月額¥300／年額¥3,000・14日間無料・いつでも解約OK</p>
                   </div>
                   {/* 右：サンプル提案のチラ見せ */}
                   <div className="relative overflow-hidden rounded-xl border border-violet-100 bg-violet-50/60 p-3.5 text-left">
