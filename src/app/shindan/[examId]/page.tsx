@@ -189,21 +189,21 @@ export default function ShindanPage() {
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
       <header className="sticky top-0 z-10 border-b" style={{ background: "rgba(255,255,255,0.8)", borderColor: C.line, backdropFilter: "blur(12px)" }}>
-        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4 md:px-6">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2 md:px-6 md:py-4">
           <div className="min-w-0">
-            <div className="text-[13px]" style={{ color: C.muted }}>{exam.name}</div>
+            <div className="hidden text-[13px] md:block" style={{ color: C.muted }}>{exam.name}</div>
             <div className="truncate text-[17px] font-bold">AI合格診断</div>
           </div>
           <BackToDashboard className="ml-auto" />
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 md:px-6">
+      <main className="mx-auto max-w-3xl px-4 py-4 md:px-6 md:py-6">
         {phase === "intro" && (
           <>
             <div className="flex justify-center">
               <div
-                className="inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full p-1.5 shadow-sm"
+                className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full p-1 shadow-sm"
                 style={{ background: "#FFFFFF", border: `1px solid ${C.line}` }}
               >
                 {basicExams.map((e) => {
@@ -212,7 +212,7 @@ export default function ShindanPage() {
                     <Link
                       key={e.id}
                       href={`/shindan/${e.id}`}
-                      className="whitespace-nowrap rounded-full px-6 py-2.5 text-[15px] font-bold transition-colors"
+                      className="whitespace-nowrap rounded-full px-6 py-2 text-[15px] font-bold transition-colors"
                       style={
                         active
                           ? { background: "#DB2777", color: "#fff", boxShadow: "0 4px 12px rgba(219,39,119,0.35)" }
@@ -227,10 +227,10 @@ export default function ShindanPage() {
               </div>
             </div>
 
-            <div className="mt-7 items-center gap-10 md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+            <div className="mt-3 items-center gap-10 md:mt-7 md:grid md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
               <div className="text-center md:text-left">
                 <div className="text-[13px] font-bold tracking-wide" style={{ color: "#4F46E5" }}>AI合格診断（無料）</div>
-                <h1 className="mt-2 text-[29px] font-bold leading-snug md:text-[33px]">
+                <h1 className="mt-2 text-[25px] font-bold leading-snug md:text-[33px]">
                   10問で、AIがあなたの
                   <br />
                   合格可能性と弱点を示します
@@ -240,7 +240,7 @@ export default function ShindanPage() {
                 </p>
                 <button
                   onClick={start}
-                  className="mx-auto mt-6 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl px-6 py-4 text-[16px] font-bold text-white transition-transform hover:-translate-y-0.5 md:mx-0"
+                  className="mx-auto mt-5 flex w-full max-w-sm items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-[16px] font-bold text-white transition-transform hover:-translate-y-0.5 md:mt-6 md:py-4 md:mx-0"
                   style={{ background: C.brand, boxShadow: "0 10px 24px rgba(29,78,216,0.28)" }}
                 >
                   診断をはじめる <ArrowRight className="h-5 w-5" />
@@ -249,7 +249,7 @@ export default function ShindanPage() {
               </div>
 
               {/* 3分後に届く「結果のイメージ」プレビュー */}
-              <div className="relative mx-auto mt-9 w-full max-w-[290px] md:mt-0">
+              <div className="relative mx-auto mt-6 w-full max-w-[290px] md:mt-0">
                 <span className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-bold text-white" style={{ background: "#111827" }}>
                   3分後、あなたに届く結果
                 </span>
