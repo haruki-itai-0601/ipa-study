@@ -49,8 +49,17 @@ type NavItem = { id: string; label: string; href?: string; subs?: { label: strin
 const SOLVE_NAV: NavItem[] = [
   // 午前系は試験トップ（SEOページ）を挟まず、出題モード選択（/past）へ直行する
   { id: "ip", label: "ITパスポート", href: "/exam/ip/past" },
-  { id: "fe", label: "基本情報技術者", subs: [{ label: "午前", href: "/exam/fe/past" }, { label: "午後", href: "/exam/fe/b" }] },
-  { id: "ap", label: "応用情報技術者", subs: [{ label: "午前", href: "/exam/ap/past" }, { label: "午後", href: "/exam/ap/pm" }] },
+  // 基本情報・応用情報は1行に集約（午前/午後・科目は試験ページ内で選ぶ）
+  { id: "fe", label: "基本情報技術者", href: "/exam/fe" },
+  { id: "ap", label: "応用情報技術者", href: "/exam/ap" },
+];
+// 2027年開始の新試験（名称はIPA公表の仮称。略称は検索されないためフル表記で載せる）
+const NEW_EXAM_NAV: NavItem[] = [
+  { id: "dm", label: "データマネジメント試験（仮称）", href: "/exam/dm" },
+  { id: "pd-m", label: "プロフェッショナルデジタルスキル マネジメント（仮称）", href: "/exam/pd-m" },
+  { id: "pd-d", label: "プロフェッショナルデジタルスキル データ・AI（仮称）", href: "/exam/pd-d" },
+  { id: "pd-s", label: "プロフェッショナルデジタルスキル システム（仮称）", href: "/exam/pd-s" },
+  { id: "sc", label: "情報処理安全確保支援士", href: "/exam/sc" },
 ];
 const LEARN_NAV: NavItem[] = [
   // 学習する（用語・概念）＝午前/午後の区別なし。分野一覧 /learn/[試験] へ
@@ -428,11 +437,26 @@ export function DashboardMain() {
             </div>
             {LEARN_NAV.map(renderNavItem)}
 
-            {/* ③ 演習する（問題を解く。午前/午後あり） */}
+            {/* ③ 演習する（問題を解く。午前/午後は各試験ページ内で選択） */}
             <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
               <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 演習する
             </div>
             {SOLVE_NAV.map(renderNavItem)}
+
+            {/* 2027年開始の新試験（仮称・フル表記＝検索語と一致させる） */}
+            <div className="mt-1 px-3 pb-0.5 text-[12px] font-bold lg:text-[12.5px]" style={{ color: C.muted }}>
+              2027年開始の新試験
+            </div>
+            {NEW_EXAM_NAV.map((it) => (
+              <Link
+                key={it.id}
+                href={it.href!}
+                className="block rounded-[10px] py-1 pl-7 pr-3 text-[13.5px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[14.5px]"
+                style={{ color: C.ink }}
+              >
+                {it.label}
+              </Link>
+            ))}
 
             <div className="my-0.5 h-px" style={{ background: C.line }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
