@@ -378,14 +378,14 @@ export function DashboardMain() {
   // 2027年開始の新試験グループ（仮称表記は見出し側にまとめる）
   const renderNewExamGroup = () => (
     <>
-      <div className="mt-1 px-3 pb-0.5 text-[12px] font-bold lg:text-[12.5px]" style={{ color: C.muted }}>
+      <div className="mt-1 px-3 pb-0.5 text-[13px] font-bold lg:text-[13.5px]" style={{ color: C.muted }}>
         2027年開始の新試験（仮称）
       </div>
       {NEW_EXAMS.map((it) => (
         <Link
           key={it.id}
           href={`/exam/${it.id}`}
-          className="block rounded-[10px] py-1 pl-7 pr-3 text-[13.5px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[14.5px]"
+          className="block rounded-[10px] py-1 pl-7 pr-3 text-[15px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]"
           style={{ color: C.ink }}
         >
           {it.label}
