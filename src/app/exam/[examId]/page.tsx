@@ -1,7 +1,7 @@
 import { getExam, examGroupLabel, sectionLabel } from "@/lib/exams";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine, Sparkles, ChevronRight } from "lucide-react";
+import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine, Sparkles, ChevronRight, Mountain, BookA, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -194,10 +194,66 @@ export default async function ExamPage({
           </div>
         </section>
 
+        {/* 学習・復習する（用語・概念の学習と間違い復習。学習コンテンツがある試験のみ表示） */}
+        {["ip", "fe", "ap"].includes(examId) && (
+          <section>
+            <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              学習・復習する
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Link href={`/learn/${examId}`}>
+                <Card className="group border border-sky-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl p-2.5 shadow-md shadow-sky-500/30 group-hover:scale-105 transition-transform">
+                        <Mountain className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">ステップで学習</div>
+                        <div className="text-xs text-gray-500">山道を登りながら、学んで解いて進む</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href={`/learn/glossary?exam=${examId}`}>
+                <Card className="group border border-teal-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl p-2.5 shadow-md shadow-teal-500/30 group-hover:scale-105 transition-transform">
+                        <BookA className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">用語集</div>
+                        <div className="text-xs text-gray-500">試験に出る用語を検索・確認</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href={`/learn/${examId}/review`}>
+                <Card className="group border border-rose-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl p-2.5 shadow-md shadow-rose-500/30 group-hover:scale-105 transition-transform">
+                        <RotateCcw className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900">間違い復習</div>
+                        <div className="text-xs text-gray-500">間違えた問題を解き直して克服</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </div>
+          </section>
+        )}
+
         {/* 演習モード選択 */}
         <section>
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
-            演習モードを選ぶ
+            演習する
           </h2>
           <div className={`grid grid-cols-1 gap-4 ${examId === "am1" ? "" : "md:grid-cols-2"}`}>
 

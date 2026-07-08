@@ -46,12 +46,11 @@ type RadarItem = { label: string; acc: number; answered: number };
 
 // サイドバーのナビ定義。基本情報のみ午前/午後にインデント分岐。
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
-const SOLVE_NAV: NavItem[] = [
-  // 午前系は試験トップ（SEOページ）を挟まず、出題モード選択（/past）へ直行する
-  { id: "ip", label: "ITパスポート", href: "/exam/ip/past" },
-  // 基本情報は1行に集約（午前/午後・科目は試験ページ内で選ぶ）
+// 試験を選ぶ（学習・復習・演習は各試験ページ＝総合ハブの中で選択する）
+const EXAM_NAV: NavItem[] = [
+  { id: "ip", label: "ITパスポート", href: "/exam/ip" },
   { id: "fe", label: "基本情報技術者", href: "/exam/fe" },
-  // 応用情報はサイドバーの学習/演習から外す（転換ハブ化方針。ダッシュボード選択には残す）
+  // 応用情報はサイドバーから外す（転換ハブ化方針。ダッシュボード選択には残す）
   // 支援士は2027年以降も存続する現行試験なので、新試験グループではなくここに置く
   { id: "sc", label: "情報処理安全確保支援士", href: "/exam/sc" },
 ];
@@ -62,12 +61,6 @@ const NEW_EXAMS = [
   { id: "pd-m", label: "プロフェッショナルデジタルスキル マネジメント" },
   { id: "pd-d", label: "プロフェッショナルデジタルスキル データ・AI" },
   { id: "pd-s", label: "プロフェッショナルデジタルスキル システム" },
-];
-const LEARN_NAV: NavItem[] = [
-  // 学習する（用語・概念）＝午前/午後の区別なし。分野一覧 /learn/[試験] へ
-  { id: "ip", label: "ITパスポート", href: "/learn/ip" },
-  { id: "fe", label: "基本情報技術者", href: "/learn/fe" },
-  { id: "sc", label: "情報処理安全確保支援士", href: "/learn/sc" },
 ];
 // 試験名を短縮（ITパスポート / 基本情報 / 応用情報）
 const shortJa = (name: string) => name.replace("試験", ""); // ITパスポート / 基本情報技術者 / 応用情報技術者
@@ -382,16 +375,16 @@ export function DashboardMain() {
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
   // サイドバーは全項目＋Pro枠が一般的なノートPCの画面高に収まるよう、行間を詰めて運用する
   const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-1 text-[15px] font-medium transition-colors lg:text-[16px]";
-  // 2027年開始の新試験グループ（学習・演習の両セクションで使う。仮称表記は見出し側にまとめる）
-  const renderNewExamGroup = (prefix: "/learn" | "/exam") => (
+  // 2027年開始の新試験グループ（仮称表記は見出し側にまとめる）
+  const renderNewExamGroup = () => (
     <>
       <div className="mt-1 px-3 pb-0.5 text-[12px] font-bold lg:text-[12.5px]" style={{ color: C.muted }}>
         2027年開始の新試験（仮称）
       </div>
       {NEW_EXAMS.map((it) => (
         <Link
-          key={`${prefix}-${it.id}`}
-          href={`${prefix}/${it.id}`}
+          key={it.id}
+          href={`/exam/${it.id}`}
           className="block rounded-[10px] py-1 pl-7 pr-3 text-[13.5px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[14.5px]"
           style={{ color: C.ink }}
         >
@@ -451,19 +444,12 @@ export function DashboardMain() {
               );
             })}
 
-            {/* ② 学習と復習する（用語・概念。午前/午後の区別なし） */}
+            {/* ② 試験を選ぶ（学習・復習・演習は試験ページ＝総合ハブ内で選択） */}
             <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
-              <BookOpen className="h-5 w-5" style={{ color: C.brand }} /> 学習・復習する
+              <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 試験を選ぶ
             </div>
-            {LEARN_NAV.map(renderNavItem)}
-            {renderNewExamGroup("/learn")}
-
-            {/* ③ 演習する（問題を解く。午前/午後は各試験ページ内で選択） */}
-            <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
-              <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 演習する
-            </div>
-            {SOLVE_NAV.map(renderNavItem)}
-            {renderNewExamGroup("/exam")}
+            {EXAM_NAV.map(renderNavItem)}
+            {renderNewExamGroup()}
 
             <div className="my-0.5 h-px" style={{ background: C.line }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
