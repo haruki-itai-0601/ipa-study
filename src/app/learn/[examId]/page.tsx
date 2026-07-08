@@ -123,10 +123,27 @@ export default function LearnHubPage() {
                 </Link>
               );
             })}
+            {/* データマネジメント試験（仮称）はIPの次ステップ想定のため1列目（応用情報の横）に置く */}
+            {(() => {
+              const active = examId === "dm";
+              return (
+                <Link
+                  href="/learn/dm"
+                  className="whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-bold transition-colors md:px-5 md:text-[15px]"
+                  style={
+                    active
+                      ? { background: C.brand, color: "#fff", border: `1px solid ${C.brand}`, boxShadow: "0 4px 12px rgba(29,78,216,0.25)" }
+                      : { background: C.card, color: "#33415A", border: `1px solid ${C.line}` }
+                  }
+                >
+                  {NEW_EXAM_INFO.dm.label}
+                </Link>
+              );
+            })()}
           </div>
           {/* 2027年開始の新試験（仮称）タブ＝2列目 */}
           <div className="mt-2 hidden flex-wrap justify-center gap-2 md:flex">
-            {Object.entries(NEW_EXAM_INFO).map(([id, info]) => {
+            {Object.entries(NEW_EXAM_INFO).filter(([id]) => id !== "dm").map(([id, info]) => {
               const active = id === examId;
               return (
                 <Link
