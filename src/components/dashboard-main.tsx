@@ -626,7 +626,7 @@ export function DashboardMain() {
                   <div className="min-w-0">
                     <div className="text-[13px] font-medium" style={{ color: C.muted }}>累計演習数</div>
                     <div className="mt-1 flex items-baseline gap-2.5">
-                      <span className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.round((active.solved / active.target) * 100)}<small className="text-[11px] font-medium"> % 達成</small></span>
+                      <span className="text-[13px] font-bold" style={{ color: C.brandDeep }}>{loading ? "–" : Math.min(100, Math.round((active.solved / Math.max(1, active.target)) * 100))}<small className="text-[11px] font-medium"> % 達成</small></span>
                       <span className="text-[12px]" style={{ color: C.muted }}>今週 +{trend.total}問</span>
                     </div>
                     <div className="mt-1 text-[9px] leading-none" style={{ color: C.faint }}>※同じ問題は1問として集計（重複除く）</div>

@@ -7,7 +7,13 @@ import { Lock, Loader2, ShieldCheck } from "lucide-react";
 function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "/admin";
+  // オープンリダイレクト対策: from は「/」始まりの内部パスのみ許可し、
+  // スキーム相対（//evil.com）やバックスラッシュ・制御文字は弾いて /admin にフォールバックする。
+  const rawFrom = searchParams.get("from") ?? "/admin";
+  const from =
+    rawFrom.startsWith("/") && !rawFrom.startsWith("//") && !/[\\\t\r\n]/.test(rawFrom)
+      ? rawFrom
+      : "/admin";
 
   const [password, setPassword] = useState("");
   const [totp, setTotp] = useState("");

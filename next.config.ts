@@ -27,8 +27,8 @@ function hydrateEnvLocalForDev(): void {
 
 hydrateEnvLocalForDev();
 
-// CSP（まずは Report-Only で導入＝違反はブロックされず、ブラウザ console／レポートに出るだけ。
-// 本番機能を壊さずに実際の読み込み元を観測し、問題が無いことを確認してから将来 enforce へ移行する）。
+// CSP（enforce＝実際に違反をブロックする本番モード。Report-Only で一定期間観測し
+// 違反0を確認できたため 2026-07-08 に enforce へ移行）。
 // 許可設計の根拠:
 //  - script: 自己 + GA4(googletagmanager) + Next/GA4 のインライン初期化のため 'unsafe-inline'
 //  - style : Tailwind＋大量の style 属性のため 'unsafe-inline'
@@ -36,13 +36,20 @@ hydrateEnvLocalForDev();
 //  - font  : next/font はセルフホストのため 'self'（＋data:）
 //  - connect: Supabase(REST/Realtime) と GA4 ビーコン
 //  - Stripe はクライアントで stripe.js を読み込まず Checkout はサーバー→redirect のため許可不要
-const cspReportOnly = [
+// 注: script-src に 'unsafe-inline' が残るため XSS 全面防御ではないが、object-src 'none'／
+//     base-uri 'self'／form-action 'self'／connect-src 許可制／frame-ancestors 'self' 等が
+//     enforce されることで実害（データ持ち出し・クリックジャッキング・フォーム乗っ取り）を抑止する。
+// React は開発モードのみデバッグ用に eval() を使う（本番では一切使わない）。
+// 本番の script-src は 'unsafe-eval' を付けず厳格に保ち、開発時だけ許可して
+// ローカルの eval ブロック（コンソールエラー）を避ける。
+const devEval = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
+const csp = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+  `script-src 'self' 'unsafe-inline'${devEval} https://www.googletagmanager.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
@@ -58,8 +65,8 @@ const securityHeaders = [
   // クリックジャッキング防止。同一オリジンの iframe（ローカル検証ツール等）は許可。
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
-  // 観測モード。違反が無いことを確認できたら Content-Security-Policy（enforce）へ切替える。
-  { key: "Content-Security-Policy-Report-Only", value: cspReportOnly },
+  // enforce モード（違反を実際にブロック）。Report-Only 期間で違反0を確認済み。
+  { key: "Content-Security-Policy", value: csp },
 ];
 
 const nextConfig: NextConfig = {

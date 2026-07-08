@@ -57,17 +57,34 @@ function TodayContent() {
     setExam(id);
     examRef.current = id;
     (async () => {
-      // ティア判定（未ログイン/無料/有料）＝1日の回数上限に使う
+      // ティア判定（未ログイン/無料/有料）＝1日の回数上限に使う。
+      // 注意: getUser() の「例外（ネットワーク断・セッション取得失敗）」と「正常に未ログインと判明」は
+      // 区別する。前者で guest 固定にすると、ログイン済み会員が一時的な失敗で guest 上限に落ちてしまう。
       let t: Tier = "guest";
       try {
         const supabase = createSupabaseBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && !user.is_anonymous) {
-          const { data: sub } = await supabase.from("subscriptions").select("status, current_period_end").eq("user_id", user.id).maybeSingle();
-          const pro = sub?.status === "active" && (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
-          t = pro ? "pro" : "free";
+        let userRes = await supabase.auth.getUser().catch(() => null);
+        if (userRes === null) {
+          // 一時的な取得失敗の可能性。1回だけリトライしてから判断する。
+          await new Promise((r) => setTimeout(r, 400));
+          userRes = await supabase.auth.getUser().catch(() => null);
         }
-      } catch {}
+        if (userRes === null) {
+          // 認証状態を確定できなかった。会員を guest 上限に落とさないよう free 扱いにする（過度に緩めない）。
+          t = "free";
+        } else {
+          const user = userRes.data?.user ?? null;
+          if (user && !user.is_anonymous) {
+            const { data: sub } = await supabase.from("subscriptions").select("status, current_period_end").eq("user_id", user.id).maybeSingle();
+            const pro = sub?.status === "active" && (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
+            t = pro ? "pro" : "free";
+          }
+          // user===null は「正常に未ログインと判明」＝guest のまま。
+        }
+      } catch {
+        // 想定外の例外でも会員を過度に制限しないよう free にフォールバック。
+        t = "free";
+      }
       tierRef.current = t;
       setTier(t);
       startOrGate(id);
@@ -309,11 +326,19 @@ function TodayContent() {
         {phase === "done" && (
           <div className="mx-auto max-w-md">
             <div className="rounded-3xl px-6 py-8 text-center text-white" style={{ background: "linear-gradient(135deg, #1D4ED8, #4F46E5)" }}>
-              <div className="text-[13px] font-bold text-white/85">今日の5問、完了！</div>
-              <div className="mt-2 flex items-end justify-center gap-1">
-                <span className="text-[56px] font-bold leading-none">{correctCount}</span>
-                <span className="mb-1.5 text-[18px] text-white/80">/ {results.length || N} 問正解</span>
+              <div className="text-[13px] font-bold text-white/85">
+                {results.length === 0 ? "本日はここまで" : "今日の5問、完了！"}
               </div>
+              {results.length === 0 ? (
+                <div className="mt-2 text-[15px] font-bold leading-snug">
+                  この分野で出題できる問題が見つかりませんでした
+                </div>
+              ) : (
+                <div className="mt-2 flex items-end justify-center gap-1">
+                  <span className="text-[56px] font-bold leading-none">{correctCount}</span>
+                  <span className="mb-1.5 text-[18px] text-white/80">/ {results.length} 問正解</span>
+                </div>
+              )}
               <div className="mx-auto mt-4 flex w-fit items-center gap-2 rounded-full px-4 py-2" style={{ background: "rgba(255,255,255,0.16)" }}>
                 <Flame className="h-5 w-5" style={{ color: "#FDBA74" }} />
                 <span className="text-[14.5px] font-bold">連続 {streak}日目</span>
