@@ -58,12 +58,12 @@ const EXAM_NAV: NavItem[] = [
   // 支援士は2027年以降も存続する現行試験なので、新試験グループではなくここに置く
   { id: "sc", label: "情報処理安全確保支援士", href: "/exam/sc" },
 ];
-// 2027年開始の新試験（名称はIPA公表の仮称。略称は検索されないためフル表記＋各項目に（仮称）を付ける）
+// 2027年開始の新試験（名称はIPA公表の仮称。略称は検索されないためフル表記。（仮称）はグループ見出しに集約）
 const NEW_EXAMS = [
-  { id: "dm", label: "データマネジメント試験（仮称）" },
-  { id: "pd-m", label: "プロフェッショナルデジタルスキル マネジメント（仮称）" },
-  { id: "pd-d", label: "プロフェッショナルデジタルスキル データ・AI（仮称）" },
-  { id: "pd-s", label: "プロフェッショナルデジタルスキル システム（仮称）" },
+  { id: "dm", label: "データマネジメント試験" },
+  { id: "pd-m", label: "プロフェッショナルデジタルスキル マネジメント" },
+  { id: "pd-d", label: "プロフェッショナルデジタルスキル データ・AI" },
+  { id: "pd-s", label: "プロフェッショナルデジタルスキル システム" },
 ];
 // 試験名を短縮（ITパスポート / 基本情報 / 応用情報）
 const shortJa = (name: string) => name.replace("試験", ""); // ITパスポート / 基本情報技術者 / 応用情報技術者
@@ -379,22 +379,23 @@ export function DashboardMain() {
   // セクション統合で項目数が減ったぶん、行間をゆったり取って見やすくする
   const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-1 text-[15px] font-medium transition-colors lg:text-[16px]";
   // 2027年開始の新試験グループ（仮称表記は見出し側にまとめる）
+  // 新試験グループはピンクの囲みで強調（枠=濃いピンク・中=薄いピンク。（仮称）は見出し側に集約）
   const renderNewExamGroup = () => (
-    <>
-      <div className="mt-1.5 px-3 pb-0.5 text-[13px] font-bold lg:text-[13.5px]" style={{ color: C.muted }}>
-        2027年開始の新試験
+    <div className="ml-5 mt-1.5 rounded-[12px] border-2 px-2 pb-1.5 pt-1 lg:ml-7" style={{ borderColor: "#EC4899", background: "#FDF2F8" }}>
+      <div className="px-1.5 pb-0.5 text-[13px] font-bold lg:text-[13.5px]" style={{ color: "#BE185D" }}>
+        新試験（仮称）
       </div>
       {NEW_EXAMS.map((it) => (
         <Link
           key={it.id}
           href={`/learn/${it.id}`}
-          className="block rounded-[10px] py-1 pl-7 pr-3 text-[15px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]"
+          className="block rounded-[8px] px-1.5 py-1 text-[15px] font-medium leading-snug transition-colors hover:bg-white/70 lg:text-[16px]"
           style={{ color: C.ink }}
         >
           {it.label}
         </Link>
       ))}
-    </>
+    </div>
   );
   // 問題を解く / 学習する の項目（単リンク or 午前/午後サブ）
   const renderNavItem = (it: NavItem) =>

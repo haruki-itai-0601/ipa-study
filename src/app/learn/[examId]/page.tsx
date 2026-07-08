@@ -198,7 +198,7 @@ export default function LearnHubPage() {
                 </Link>
               ) : (
                 <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
-                  準備中
+                  {newExam ? "近日公開" : "準備中"}
                 </span>
               )}
             </div>
@@ -287,13 +287,19 @@ export default function LearnHubPage() {
               <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
                 演習で間違えた問題だけを1問ずつやり直して、克服するまで繰り返せます。
               </p>
-              <Link
-                href={`/learn/${examId}/review`}
-                className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: C.warn }}
-              >
-                間違いをやり直す
-              </Link>
+              {newExam ? (
+                <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+                  近日公開
+                </span>
+              ) : (
+                <Link
+                  href={`/learn/${examId}/review`}
+                  className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+                  style={{ background: C.warn }}
+                >
+                  間違いをやり直す
+                </Link>
+              )}
             </div>
           </div>
         </div>
