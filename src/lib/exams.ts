@@ -273,11 +273,92 @@ export const exams = [
     textColor: "text-slate-600",
     badgeBg: "bg-slate-100",
   },
+  {
+    id: "es",
+    name: "エンベデッドシステムスペシャリスト試験",
+    shortName: "ES",
+    description: "組込み・IoTシステムの設計・開発を問う高度試験",
+    categories: [
+      "組込みシステム",
+      "プロセッサ",
+      "メモリ",
+      "リアルタイムOS",
+      "電子回路",
+      "論理回路",
+      "センサ・アクチュエータ",
+      "通信・ネットワーク",
+      "セキュリティ",
+      "ソフトウェア開発",
+      "システム構成",
+      "標準化・法規",
+    ],
+    color: "from-lime-500 to-lime-600",
+    bgColor: "bg-lime-50",
+    borderColor: "border-lime-200",
+    textColor: "text-lime-600",
+    badgeBg: "bg-lime-100",
+  },
+  // ===== 2027年開始の新試験（仮称）。問題演習は構成元試験の過去問を横断出題する（TRACK_SOURCES参照） =====
+  {
+    id: "dm",
+    name: "データマネジメント試験（仮称）",
+    shortName: "DM",
+    description: "データ・AI利活用の基本を問う2027年開始の新設試験。ITパスポートの次のステップ",
+    categories: [],
+    color: "from-pink-500 to-rose-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    textColor: "text-pink-600",
+    badgeBg: "bg-pink-100",
+  },
+  {
+    id: "pd-m",
+    name: "プロフェッショナルデジタルスキル試験（仮称）マネジメント区分",
+    shortName: "PD-M",
+    description: "デジタル活用をマネジメントする専門知識・技能を問う2027年開始の新設試験",
+    categories: ["プロジェクトマネジメント", "サービスマネジメント", "経営戦略マネジメント", "システム監査", "ガバナンス"],
+    color: "from-pink-500 to-rose-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    textColor: "text-pink-600",
+    badgeBg: "bg-pink-100",
+  },
+  {
+    id: "pd-d",
+    name: "プロフェッショナルデジタルスキル試験（仮称）データ・AI区分",
+    shortName: "PD-D",
+    description: "データ基盤・データ整備・AI活用の専門知識・技能を問う2027年開始の新設試験",
+    categories: ["データベース", "データマネジメント", "データ分析", "AI利活用"],
+    color: "from-pink-500 to-rose-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    textColor: "text-pink-600",
+    badgeBg: "bg-pink-100",
+  },
+  {
+    id: "pd-s",
+    name: "プロフェッショナルデジタルスキル試験（仮称）システム区分",
+    shortName: "PD-S",
+    description: "システムの要件定義・アーキテクチャ設計・開発・運用を問う2027年開始の新設試験",
+    categories: ["システムアーキテクチャ", "ネットワーク", "組込み・IoT", "開発・運用"],
+    color: "from-pink-500 to-rose-600",
+    bgColor: "bg-pink-50",
+    borderColor: "border-pink-200",
+    textColor: "text-pink-600",
+    badgeBg: "bg-pink-100",
+  },
 ];
+
+// 2027新試験の科目A-2（専門知識）に相当する構成元試験（横断出題のソース）。dmは構成元なし＝出題不可
+export const TRACK_SOURCES: Record<string, string[]> = {
+  "pd-m": ["st", "pm", "sm", "au"],
+  "pd-d": ["db"],
+  "pd-s": ["sa", "nw", "es"],
+};
 
 // 試験のグルーピング（トップ＝初級、別ページ＝高度）
 export const BASIC_EXAM_IDS = ["ip", "fe", "ap"] as const; // メイン（やさしい順：IP→FE→AP）
-export const ADVANCED_EXAM_IDS = ["pm", "sc", "nw", "db", "sa", "st", "sm", "au"] as const; // 高度8区分
+export const ADVANCED_EXAM_IDS = ["pm", "sc", "nw", "db", "sa", "st", "sm", "au", "es"] as const; // 高度9区分
 
 export const basicExams = BASIC_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
 export const advancedExams = ADVANCED_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
@@ -389,7 +470,8 @@ export function sectionLabel(examId: string): string {
   if (examId === "am1") return "午前Ⅰ";
   if (examId === "ap") return "午前";
   if (examId === "fe") return "科目A";
-  if (examId === "ip") return "";
+  if (examId === "ip" || examId === "dm") return "";
+  if (TRACK_SOURCES[examId]) return "科目A-2（専門知識）相当";
   return "午前Ⅱ";
 }
 

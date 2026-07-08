@@ -440,8 +440,8 @@ export function DashboardMain() {
                 value={activeExam}
                 onChange={(e) => setActiveExam(e.target.value)}
                 aria-label="ダッシュボードに表示する試験"
-                className="w-full cursor-pointer rounded-[10px] border px-2.5 py-2 text-[15px] font-bold lg:text-[16px]"
-                style={{ borderColor: C.line2, background: C.brandSoft, color: C.brandDeep }}
+                className="w-full cursor-pointer rounded-[10px] border-2 px-2.5 py-2 text-[15px] font-bold lg:text-[16px]"
+                style={{ borderColor: "#EC4899", background: "#FDF2F8", color: "#BE185D" }}
               >
                 {DASH_EXAMS.map((ex) => (
                   <option key={ex.id} value={ex.id}>

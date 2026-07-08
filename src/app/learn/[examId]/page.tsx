@@ -18,25 +18,35 @@ import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { MobileTopBar } from "@/components/mobile-top-bar";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 
-// 2027年開始の新試験（仮称）。学習コンテンツはシラバス公開後、問題演習は構成元試験の過去問を横断出題予定。
-const NEW_EXAM_INFO: Record<string, { label: string; practice: string }> = {
+// 2027年開始の新試験（仮称）。学習コンテンツはシラバス公開後。
+// 問題演習は ready=true の試験で構成元試験の過去問を横断出題する（/exam/[id]/past が対応済み）。
+const NEW_EXAM_INFO: Record<string, { label: string; practice: string; ready?: boolean }> = {
   dm: {
     label: "データマネジメント試験（仮称）",
     practice: "新設試験のため過去問はありません。IPA公表のサンプル問題と、シラバスにもとづくAI予想問題を出題できるよう準備中です。",
   },
   "pd-m": {
     label: "プロフェッショナルデジタルスキル マネジメント（仮称）",
-    practice: "構成元となった ITストラテジスト・プロジェクトマネージャ・ITサービスマネージャ・システム監査技術者 の本物の過去問から出題予定です。",
+    practice: "構成元となった ITストラテジスト・プロジェクトマネージャ・ITサービスマネージャ・システム監査技術者 の本物の過去問（科目A-2相当）から出題します。",
+    ready: true,
   },
   "pd-d": {
     label: "プロフェッショナルデジタルスキル データ・AI（仮称）",
-    practice: "構成元となった データベーススペシャリスト の本物の過去問に加え、AI・データ分析の新領域はシラバス公開後に対策問題を追加予定です。",
+    practice: "構成元となった データベーススペシャリスト の本物の過去問（科目A-2相当）から出題します。AI・データ分析の新領域はシラバス公開後に追加予定です。",
+    ready: true,
   },
   "pd-s": {
     label: "プロフェッショナルデジタルスキル システム（仮称）",
-    practice: "構成元となった システムアーキテクト・ネットワークスペシャリスト・エンベデッドシステムスペシャリスト の本物の過去問から出題予定です。",
+    practice: "構成元となった システムアーキテクト・ネットワークスペシャリスト・エンベデッドシステムスペシャリスト の本物の過去問（科目A-2相当）から出題します。",
+    ready: true,
   },
 };
+// 試験タブ1列目（ダッシュボードを選択と同じ顔ぶれ。応用情報はサイドバー下部の再編案内へ）
+const EXAM_TABS = [
+  { id: "ip", label: "ITパスポート" },
+  { id: "fe", label: "基本情報技術者" },
+  { id: "sc", label: "情報処理安全確保支援士" },
+];
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -106,7 +116,7 @@ export default function LearnHubPage() {
           </p>
           {/* 試験タブ（デスクトップのみ。モバイルは上部プルダウンで切替） */}
           <div className="mt-2.5 hidden flex-wrap justify-center gap-2 md:mt-5 md:flex">
-            {basicExams.map((e) => {
+            {EXAM_TABS.map((e) => {
               const active = e.id === examId;
               return (
                 <Link
@@ -119,7 +129,7 @@ export default function LearnHubPage() {
                       : { background: C.card, color: "#33415A", border: `1px solid ${C.line}` }
                   }
                 >
-                  {shortJa(e.name)}
+                  {e.label}
                 </Link>
               );
             })}
@@ -222,14 +232,23 @@ export default function LearnHubPage() {
             <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
               <div className="text-[19px] font-bold">問題演習</div>
               <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
-                {newExam ? "構成元試験の過去問で対策（準備中）" : "本物のIPA過去問・出題モード6種類"}
+                {newExam
+                  ? newExam.ready
+                    ? "構成元試験の本物の過去問・出題モード5種類"
+                    : "構成元試験の過去問で対策（準備中）"
+                  : "本物のIPA過去問・出題モード6種類"}
               </div>
-              {newExam ? (
+              {newExam && !newExam.ready ? (
                 <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
                   {newExam.practice}
                 </p>
               ) : (
                 <div className="mb-4 mt-2.5 flex-1">
+                  {newExam?.ready && (
+                    <p className="mb-2 text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
+                      {newExam.practice}
+                    </p>
+                  )}
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { label: "年度別", href: `/exam/${examId}/past?mode=year` },
@@ -237,7 +256,8 @@ export default function LearnHubPage() {
                       { label: "分野別", href: `/exam/${examId}/past?mode=category` },
                       { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
                       { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
-                      { label: "AI予想問題", href: `/exam/${examId}/ai` },
+                      // AI予想問題は新試験（横断出題）では未対応
+                      ...(newExam ? [] : [{ label: "AI予想問題", href: `/exam/${examId}/ai` }]),
                     ].map((m) => (
                       <Link
                         key={m.label}
@@ -251,7 +271,7 @@ export default function LearnHubPage() {
                   </div>
                 </div>
               )}
-              {newExam ? (
+              {newExam && !newExam.ready ? (
                 <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
                   近日公開
                 </span>

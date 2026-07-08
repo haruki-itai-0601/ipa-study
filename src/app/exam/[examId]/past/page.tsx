@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getExam, sectionLabel, displayCategory, questionCategoriesFor } from "@/lib/exams";
+import { getExam, sectionLabel, displayCategory, questionCategoriesFor, TRACK_SOURCES } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchAllRows, fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -107,6 +107,10 @@ export default function PastExamPage() {
     setView("quiz");
   };
 
+  // 2027新試験は構成元試験の過去問を横断出題する（それ以外は自分のexam_idのみ）
+  const sourceIds = TRACK_SOURCES[examId] ?? [examId];
+  const isTrack = !!TRACK_SOURCES[examId];
+
   // 年度選択画面に入るときに年度一覧を取得（target: 年度別演習 or 模試）
   const enterYearSelect = async (target: "year" | "exam") => {
     setYearTarget(target);
@@ -114,7 +118,9 @@ export default function PastExamPage() {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
     // DB側で集計（1000行上限の影響を受けない）
-    const { data } = await supabase.rpc("get_past_year_counts", { p_exam_id: examId });
+    const { data } = isTrack
+      ? await supabase.rpc("get_past_year_counts_multi", { p_exam_ids: sourceIds })
+      : await supabase.rpc("get_past_year_counts", { p_exam_id: examId });
     if (data) {
       const counts: Record<string, number> = {};
       (data as { year: string; n: number }[]).forEach((r) => {
@@ -133,7 +139,9 @@ export default function PastExamPage() {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
     // DB側で集計（1000行上限の影響を受けない）
-    const { data } = await supabase.rpc("get_past_category_counts", { p_exam_id: examId });
+    const { data } = isTrack
+      ? await supabase.rpc("get_past_category_counts_multi", { p_exam_ids: sourceIds })
+      : await supabase.rpc("get_past_category_counts", { p_exam_id: examId });
     if (data) {
       const list = (data as { category: string; n: number }[])
         .map((r) => ({ name: r.category, count: r.n }))
@@ -150,7 +158,7 @@ export default function PastExamPage() {
     const { data } = await supabase
       .from("questions")
       .select("*")
-      .eq("exam_id", examId)
+      .in("exam_id", sourceIds)
       .eq("year", year)
       .eq("type", "past")
       .order("q_number");
@@ -162,10 +170,9 @@ export default function PastExamPage() {
   const startRandom = async () => {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
-    const { data } = await supabase.rpc("get_random_past_questions", {
-      p_exam_id: examId,
-      p_count: RANDOM_COUNT,
-    });
+    const { data } = isTrack
+      ? await supabase.rpc("get_random_past_questions_multi", { p_exam_ids: sourceIds, p_count: RANDOM_COUNT })
+      : await supabase.rpc("get_random_past_questions", { p_exam_id: examId, p_count: RANDOM_COUNT });
     setLoading(false);
     const picked = (data as Question[]) ?? [];
     startQuiz(picked, "ランダム演習", `${exam?.name} ・ ${picked.length}問`);
@@ -195,7 +202,7 @@ export default function PastExamPage() {
       supabase
         .from("questions")
         .select("*")
-        .eq("exam_id", examId)
+        .in("exam_id", sourceIds)
         .eq("type", "past")
         .in("category", questionCategoriesFor(examId, category))
         .order("id")
@@ -221,7 +228,7 @@ export default function PastExamPage() {
       supabase
         .from("questions")
         .select("*")
-        .eq("exam_id", examId)
+        .in("exam_id", sourceIds)
         .eq("type", "past")
         .in("category", questionCategoriesFor(examId, category))
         .order("id")
@@ -267,7 +274,7 @@ export default function PastExamPage() {
     const { data } = await supabase
       .from("questions")
       .select("*")
-      .eq("exam_id", examId)
+      .in("exam_id", sourceIds)
       .eq("year", year)
       .eq("type", "past")
       .order("q_number");
@@ -369,7 +376,8 @@ export default function PastExamPage() {
               <p className="text-sm text-gray-500">本物のIPA過去問{sectionLabel(examId) ? `（${sectionLabel(examId)}）` : ""}から出題されます</p>
             </div>
             <div className="space-y-3">
-              {MODES.map((m) => {
+              {/* AI予想問題は新試験（横断出題）ではまだ未対応のため非表示 */}
+              {MODES.filter((m) => m.key !== "ai" || !isTrack).map((m) => {
                 const Icon = m.icon;
                 return (
                   <button

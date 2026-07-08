@@ -255,7 +255,7 @@ export default async function ExamPage({
           <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">
             演習する
           </h2>
-          <div className={`grid grid-cols-1 gap-4 ${examId === "am1" ? "" : "md:grid-cols-2"}`}>
+          <div className={`grid grid-cols-1 gap-4 ${["am1", "dm", "pd-m", "pd-d", "pd-s"].includes(examId) ? "" : "md:grid-cols-2"}`}>
 
             {/* 過去問演習 */}
             <Link href={`/exam/${examId}/past`}>
@@ -285,8 +285,8 @@ export default async function ExamPage({
               </Card>
             </Link>
 
-            {/* AI予想問題演習（午前Ⅰは対象外） */}
-            {examId !== "am1" && (
+            {/* AI予想問題演習（午前Ⅰ・2027新試験は対象外） */}
+            {!["am1", "dm", "pd-m", "pd-d", "pd-s"].includes(examId) && (
             <Link href={`/exam/${examId}/ai`}>
               <Card className="group border border-amber-200 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich hover:shadow-rich-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer h-full">
                 <CardContent className="p-6">

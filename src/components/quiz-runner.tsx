@@ -10,6 +10,8 @@ import ZoomableImage from "@/components/zoomable-image";
 
 export type Question = {
   id: string;
+  // 横断出題（2027新試験＝構成元の複数試験から出題）では問題ごとに元試験が異なるため、出典表示に使う
+  exam_id?: string;
   category: string;
   year: string;
   question: string;
@@ -269,7 +271,7 @@ export default function QuizRunner({
         </Card>
 
         {/* 出典 */}
-        <p className="text-xs text-gray-400">{questionSource(examId, question.year, question.q_number)}</p>
+        <p className="text-xs text-gray-400">{questionSource(question.exam_id ?? examId, question.year, question.q_number)}</p>
 
         {/* 選択肢 */}
         <div className="space-y-3">
