@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { basicExams, displayCategory, learnCategoryFor } from "@/lib/exams";
+import { getExam, displayCategory, learnCategoryFor } from "@/lib/exams";
 import { EXAM_TARGET, PASS_LINE, passScore, scoreBand } from "@/lib/score";
 import { calcStreak, fmtDateJst, thisWeekDays } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
@@ -28,6 +28,7 @@ import {
   BookA,
   HelpCircle,
   RotateCcw,
+  Newspaper,
 } from "lucide-react";
 
 // ===== フラット青パレット =====
@@ -46,6 +47,9 @@ type RadarItem = { label: string; acc: number; answered: number };
 
 // サイドバーのナビ定義。基本情報のみ午前/午後にインデント分岐。
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
+// ダッシュボードを選択の対象（学習・演習・復習と同じ顔ぶれ）。
+// 応用情報は再編で2026年度までのため外し、サイドバー最下部の「2027年度以降の応用情報技術者について」で案内する
+const DASH_EXAMS = ["ip", "fe", "sc"].map((id) => getExam(id)!);
 // 学習・演習・復習（遷移先＝4モードハブ /learn/[試験]。学習コンテンツが無い試験は試験ページへ）
 const EXAM_NAV: NavItem[] = [
   { id: "ip", label: "ITパスポート", href: "/learn/ip" },
@@ -208,12 +212,12 @@ export function DashboardMain() {
   const [answeredDays, setAnsweredDays] = useState<string[]>([]);
   const [timeline, setTimeline] = useState<TimelineRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeExam, setActiveExamState] = useState<string>(basicExams[0].id);
+  const [activeExam, setActiveExamState] = useState<string>(DASH_EXAMS[0].id);
   // モバイルホーム/タブバーと選択試験を共有するため localStorage に保存
   useEffect(() => {
     try {
       const saved = localStorage.getItem("labActiveExam");
-      if (saved && basicExams.some((e) => e.id === saved)) setActiveExamState(saved);
+      if (saved && DASH_EXAMS.some((e) => e.id === saved)) setActiveExamState(saved);
     } catch {}
   }, []);
   const setActiveExam = (id: string) => {
@@ -260,7 +264,7 @@ export function DashboardMain() {
       // RETURNS TABLE(day date) のため [{day:"YYYY-MM-DD"}] で返る（string[]ではない）
       setAnsweredDays(((daysRes.data as { day: string }[] | null) ?? []).map((r) => (typeof r === "string" ? r : r.day)));
 
-      const byExam = basicExams.map((e) => ({ id: e.id, n: ov.find((o) => o.exam_id === e.id)?.total ?? 0 })).sort((a, b) => b.n - a.n);
+      const byExam = DASH_EXAMS.map((e) => ({ id: e.id, n: ov.find((o) => o.exam_id === e.id)?.total ?? 0 })).sort((a, b) => b.n - a.n);
       if (byExam[0] && byExam[0].n > 0) setActiveExam(byExam[0].id);
       setLoading(false);
     })();
@@ -295,7 +299,7 @@ export function DashboardMain() {
   }, [activeExam]);
 
   const active = useMemo(() => {
-    const exam = basicExams.find((e) => e.id === activeExam)!;
+    const exam = DASH_EXAMS.find((e) => e.id === activeExam) ?? DASH_EXAMS[0];
     const er = rows.filter((x) => x.exam_id === activeExam);
     const answered = er.reduce((s, x) => s + x.answered, 0);
     const correct = er.reduce((s, x) => s + x.correct, 0);
@@ -366,7 +370,7 @@ export function DashboardMain() {
   function applyDate(v: string) {
     // 全試験共通: 同じ日付を全試験ぶん書き込む（削除は全消し）
     const next: Record<string, string> = {};
-    if (v) for (const e of basicExams) next[e.id] = v;
+    if (v) for (const e of DASH_EXAMS) next[e.id] = v;
     setExamDates(next);
     try { localStorage.setItem("examDates", JSON.stringify(next)); } catch {}
   }
@@ -429,7 +433,7 @@ export function DashboardMain() {
             <div className="flex items-center gap-2 px-3 pb-1 pt-1 text-[16px] font-bold lg:text-[17px]" style={{ color: C.ink }}>
               <LayoutDashboard className="h-[21px] w-[21px]" style={{ color: C.brand }} /> ダッシュボードを選択
             </div>
-            {basicExams.map((ex) => {
+            {DASH_EXAMS.map((ex) => {
               const on = ex.id === activeExam;
               return (
                 <button
@@ -462,6 +466,16 @@ export function DashboardMain() {
             </Link>
             <Link href="/account" className={navItem} style={{ color: C.ink }}>
               <Settings className="h-5 w-5" /> {isGuest ? "ログイン・設定" : "設定"}
+            </Link>
+
+            {/* 応用情報は2026年度で再編＝ダッシュボード選択から外し、解説記事（/reform-2027）へ案内する */}
+            <Link
+              href="/reform-2027"
+              className="mt-1.5 flex items-start gap-3 rounded-[10px] px-3 py-1.5 text-[15px] font-bold leading-snug transition-colors hover:bg-gray-50 lg:text-[16px]"
+              style={{ color: C.brandDeep }}
+            >
+              <Newspaper className="mt-0.5 h-5 w-5 flex-none" />
+              2027年度以降の応用情報技術者について
             </Link>
           </nav>
 
