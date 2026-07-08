@@ -297,13 +297,17 @@ export default function PastExamPage() {
   useEffect(() => {
     // 学習分析などから ?mode=category&category=... で来たら、その分野演習を直接開始
     const sp = new URLSearchParams(window.location.search);
-    if (sp.get("mode") === "category" && sp.get("category")) {
+    const modeParam = sp.get("mode");
+    if (modeParam === "category" && sp.get("category")) {
       const cat = sp.get("category") as string;
       if (sp.get("wrong") === "1") {
         startCategoryWrong(cat);
       } else {
         startCategory(cat);
       }
+    } else if (modeParam && ["year", "random", "category", "wrong", "exam", "ai"].includes(modeParam)) {
+      // 学習ハブの「問題演習」カード等から ?mode=year|random|category|wrong|exam|ai で直接そのモードへ
+      onSelectMode(modeParam as Mode);
     } else {
       setView("hub");
     }

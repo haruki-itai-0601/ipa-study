@@ -46,10 +46,10 @@ type RadarItem = { label: string; acc: number; answered: number };
 
 // サイドバーのナビ定義。基本情報のみ午前/午後にインデント分岐。
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
-// 試験を選ぶ（学習・復習・演習は各試験ページ＝総合ハブの中で選択する）
+// 学習・演習・復習（遷移先＝4モードハブ /learn/[試験]。学習コンテンツが無い試験は試験ページへ）
 const EXAM_NAV: NavItem[] = [
-  { id: "ip", label: "ITパスポート", href: "/exam/ip" },
-  { id: "fe", label: "基本情報技術者", href: "/exam/fe" },
+  { id: "ip", label: "ITパスポート", href: "/learn/ip" },
+  { id: "fe", label: "基本情報技術者", href: "/learn/fe" },
   // 応用情報はサイドバーから外す（転換ハブ化方針。ダッシュボード選択には残す）
   // 支援士は2027年以降も存続する現行試験なので、新試験グループではなくここに置く
   { id: "sc", label: "情報処理安全確保支援士", href: "/exam/sc" },

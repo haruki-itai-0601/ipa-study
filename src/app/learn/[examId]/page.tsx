@@ -1,7 +1,7 @@
 "use client";
 
 // 学習する：モード選択ハブ（Canva Design School風）。
-// 試験タブ＋3モードカード（ステップで学習／間違いの復習／用語集）。
+// 試験タブ＋4モード（ステップで学習／間違いの復習／問題演習＋横長の用語集）。
 // コンテンツは中央寄せにして両サイドに余白を残す（将来の広告枠）。
 // /learn/[examId]
 
@@ -12,7 +12,7 @@ import { basicExams } from "@/lib/exams";
 import { setActiveExamStorage } from "@/lib/streak";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { fetchWrongPool } from "@/lib/review";
-import { ArrowLeft, RotateCcw, Search } from "lucide-react";
+import { ArrowLeft, PenLine, RotateCcw, Search } from "lucide-react";
 import { TopBarAccount } from "@/components/top-bar-account";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { MobileTopBar } from "@/components/mobile-top-bar";
@@ -21,6 +21,7 @@ const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
   line: "#E7EBF1", brand: "#1D4ED8", brandSoft: "#EAF0FE",
   warn: "#C2410C", warnSoft: "#FBEDE6", good: "#0F8A5F", goodSoft: "#E7F3EE",
+  ex: "#6D28D9", exSoft: "#F1ECFB",
 };
 
 const shortJa = (name: string) => name.replace("試験", "");
@@ -76,9 +77,9 @@ export default function LearnHubPage() {
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-1.5 md:px-6 md:py-9">
         <div className="text-center">
           {/* 見出しはデスクトップのみ（モバイルは下のカードで自明なため非表示） */}
-          <h1 className="hidden text-[26px] font-bold leading-snug md:block">3つのモードから選んで始めましょう</h1>
+          <h1 className="hidden text-[26px] font-bold leading-snug md:block">4つのモードから選んで始めましょう</h1>
           <p className="mt-1.5 hidden text-[15px] md:block" style={{ color: C.muted }}>
-            ステップで学習する・間違いを復習する・用語を引く。目的に合わせて使い分けられます。
+            ステップで学習する・間違いを復習する・問題を解く・用語を引く。目的に合わせて使い分けられます。
           </p>
           {/* 試験タブ（デスクトップのみ。モバイルは上部プルダウンで切替） */}
           <div className="mt-2.5 hidden flex-wrap justify-center gap-2 md:mt-5 md:flex">
@@ -171,39 +172,89 @@ export default function LearnHubPage() {
             </div>
           </div>
 
-          {/* ③ 用語集 */}
+          {/* ③ 問題演習（本物の過去問。出題モードへ直接遷移できるリンク付き） */}
           <div className="flex flex-col overflow-hidden rounded-[14px]" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-            <div className="flex h-[120px] items-center justify-center gap-2.5" style={{ background: C.goodSoft }}>
-              {["あ", "か", "さ"].map((k) => (
-                <span key={k} className="flex h-[38px] w-[38px] items-center justify-center rounded-[10px] bg-white text-[16px] font-bold" style={{ color: "#0F6E56" }}>
-                  {k}
-                </span>
-              ))}
-              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full" style={{ background: C.good }}>
-                <Search className="h-5 w-5 text-white" />
+            <div className="flex h-[120px] items-center justify-center gap-3.5" style={{ background: C.exSoft }}>
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white">
+                <PenLine className="h-6 w-6" style={{ color: C.ex }} />
+              </span>
+              <span className="flex flex-col gap-1.5">
+                {["ア", "イ", "ウ"].map((k, i) => (
+                  <span key={k} className="flex items-center gap-1.5">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-[11px] font-bold" style={{ color: C.ex }}>{k}</span>
+                    <span className="h-2 rounded" style={{ background: i === 1 ? C.ex : "#D9CCF3", width: i === 1 ? 44 : 32 }} />
+                  </span>
+                ))}
               </span>
             </div>
             <div className="flex flex-1 flex-col px-6 pb-5 pt-4">
-              <div className="text-[19px] font-bold">用語集</div>
+              <div className="text-[19px] font-bold">問題演習</div>
               <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
-                {loading ? "読み込み中…" : `収録 ${stats?.glossary ?? 0}語（3試験共通）`}
+                本物のIPA過去問・出題モード6種類
               </div>
-              <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
-                全用語を1ページに。五十音・検索・試験レベル・分野の絞り込みですぐ引けます。
-              </p>
+              <div className="mb-4 mt-2.5 flex-1">
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: "年度別", href: `/exam/${examId}/past?mode=year` },
+                    { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
+                    { label: "分野別", href: `/exam/${examId}/past?mode=category` },
+                    { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
+                    { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
+                    { label: "AI予想問題", href: `/exam/${examId}/ai` },
+                  ].map((m) => (
+                    <Link
+                      key={m.label}
+                      href={m.href}
+                      className="rounded-lg border py-1.5 text-center text-[12.5px] font-medium transition-colors hover:bg-gray-50"
+                      style={{ borderColor: C.line, color: "#33415A", background: "#FAFBFD" }}
+                    >
+                      {m.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
               <Link
-                href={`/learn/glossary?exam=${examId}`}
+                href={`/exam/${examId}/past`}
                 className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: C.good }}
+                style={{ background: C.ex }}
               >
-                用語集を開く
+                問題演習を始める
               </Link>
             </div>
           </div>
         </div>
 
+        {/* ④ 用語集（横長） */}
+        <div className="mt-5 flex flex-col gap-4 overflow-hidden rounded-[14px] md:flex-row md:items-center" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+          <div className="flex h-[92px] items-center justify-center gap-2.5 md:h-[112px] md:w-[260px] md:flex-none" style={{ background: C.goodSoft }}>
+            {["あ", "か", "さ"].map((k) => (
+              <span key={k} className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] bg-white text-[15px] font-bold" style={{ color: "#0F6E56" }}>
+                {k}
+              </span>
+            ))}
+            <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full" style={{ background: C.good }}>
+              <Search className="h-5 w-5 text-white" />
+            </span>
+          </div>
+          <div className="flex-1 px-6 pb-1 md:px-2 md:py-4">
+            <div className="text-[18px] font-bold">用語集はこちら</div>
+            <div className="mt-1 text-[13.5px]" style={{ color: C.muted }}>
+              {loading ? "読み込み中…" : `収録 ${stats?.glossary ?? 0}語（3試験共通）`}・全用語を1ページに。五十音・検索・試験レベル・分野の絞り込みですぐ引けます。
+            </div>
+          </div>
+          <div className="px-6 pb-5 md:py-4 md:pl-0 md:pr-6">
+            <Link
+              href={`/learn/glossary?exam=${examId}`}
+              className="block rounded-xl px-7 py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+              style={{ background: C.good }}
+            >
+              用語集を開く
+            </Link>
+          </div>
+        </div>
+
         <p className="mt-6 text-center text-[12.5px]" style={{ color: C.faint }}>
-          「間違えた問題の復習」の対象は、演習の解答記録から自動で作られます。
+          「間違えた問題の復習」「誤答復習」の対象は、演習の解答記録から自動で作られます。
         </p>
       </main>
       <MobileTabBar />
