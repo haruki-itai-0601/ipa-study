@@ -330,9 +330,11 @@ export default function PastExamPage() {
     );
   }
 
+  // 戻り先＝4モードハブ（学習・演習・復習）。ハブが無い高度区分などは試験ページへ
+  const hubHref = ["ip", "fe", "ap"].includes(examId) ? `/learn/${examId}` : `/exam/${examId}`;
   const headerBack =
     view === "hub" ? (
-      <Link href={`/exam/${examId}`} className="text-gray-400 hover:text-gray-600">
+      <Link href={hubHref} className="text-gray-400 hover:text-gray-600">
         <ArrowLeft className="w-6 h-6" />
       </Link>
     ) : (
