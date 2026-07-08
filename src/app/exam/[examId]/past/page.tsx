@@ -354,6 +354,10 @@ export default function PastExamPage() {
         {/* ハブ: モード選択 */}
         {view === "hub" && (
           <>
+            <h1 className="mb-6 text-center text-2xl font-bold text-gray-900 md:text-3xl">
+              {exam.name}
+              {sectionLabel(examId) ? ` ${sectionLabel(examId)}` : ""} 過去問演習
+            </h1>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">出題モードを選んでください</h2>
               <p className="text-sm text-gray-500">本物のIPA過去問{sectionLabel(examId) ? `（${sectionLabel(examId)}）` : ""}から出題されます</p>
