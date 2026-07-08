@@ -10,6 +10,7 @@ const BASE = "https://kakomon-labo.com";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: `${BASE}/`, changeFrequency: "daily", priority: 1 },
+    { url: `${BASE}/reform-2027`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/advanced`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${BASE}/challenge`, changeFrequency: "weekly", priority: 0.6 },
   ];
