@@ -444,9 +444,9 @@ export function DashboardMain() {
               );
             })}
 
-            {/* ② 試験を選ぶ（学習・復習・演習は試験ページ＝総合ハブ内で選択） */}
+            {/* ② 学習・演習・復習（試験を選ぶと総合ハブでやることを選択） */}
             <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
-              <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 試験を選ぶ
+              <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 学習・演習・復習
             </div>
             {EXAM_NAV.map(renderNavItem)}
             {renderNewExamGroup()}
