@@ -11,8 +11,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor, questionSource } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
-import { calcStreak, getActiveExam, toDayStrings } from "@/lib/streak";
-import { incTodayCount, remainingToday, TODAY_LIMIT, type Tier } from "@/lib/quota";
+import { calcStreak, fmtDateJst, getActiveExam, toDayStrings } from "@/lib/streak";
+import { getTodayCount, incTodayCount, remainingToday, TODAY_LIMIT, type Tier } from "@/lib/quota";
 import { type Question } from "@/components/quiz-runner";
 import {
   ArrowLeft, ArrowRight, CheckCircle, Flame, Loader2, LogIn, Pencil, RotateCcw, Sparkles, XCircle,
@@ -24,8 +24,33 @@ const C = {
 };
 
 const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: "エ" };
-const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
 const N = 5;
+
+// 出題を「日替わり固定」にするための決定的乱数（FNV-1aハッシュ→mulberry32）。
+// シード＝JST日付＋試験＋その日の実施回数。同じ日に開き直しても同じ5問、
+// 「もう5問」は実施回数が進むので別セットになる。
+function seededRng(seedStr: string): () => number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    h ^= seedStr.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const shuffleWith = <T,>(arr: T[], rnd: () => number) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 // データが無い人向けの腕試し出題分野（診断と同じ主要分野）
 const TRY_CATS: Record<string, string[]> = {
@@ -109,6 +134,8 @@ function TodayContent() {
     setSel(null);
     setResults([]);
     const supabase = createSupabaseBrowserClient();
+    // 日替わり固定のシード（実施回数が進むと別セット）
+    const rnd = seededRng(`${fmtDateJst(new Date())}:${examId}:${getTodayCount()}`);
     // 弱点のいちばん低い分野を出題元にする（無ければ腕試し分野からランダム）。
     // RPCが詰まっても出題を止めないよう5秒でフォールバックする。
     let cat: string | null = null;
@@ -129,7 +156,7 @@ function TodayContent() {
     } catch {}
     if (!cat) {
       const cats = TRY_CATS[examId] ?? TRY_CATS.ip;
-      cat = cats[Math.floor(Math.random() * cats.length)];
+      cat = cats[Math.floor(rnd() * cats.length)];
       setFromWeak(null);
     }
     const { data: ids } = await supabase
@@ -138,10 +165,14 @@ function TodayContent() {
       .eq("exam_id", examId)
       .eq("type", "past")
       .eq("category", cat)
-      .is("image_url", null);
-    const pick = shuffle(((ids ?? []) as { id: string }[]).map((r) => r.id)).slice(0, N);
+      .is("image_url", null)
+      .order("id"); // 取得順を固定して選抜を決定的にする
+    const pick = shuffleWith(((ids ?? []) as { id: string }[]).map((r) => r.id), rnd).slice(0, N);
     const { data } = await supabase.from("questions").select("*").in("id", pick);
-    const list = shuffle((data ?? []) as Question[]);
+    const list = shuffleWith(
+      ((data ?? []) as Question[]).slice().sort((a, b) => (a.id < b.id ? -1 : 1)),
+      rnd
+    );
     if (list.length === 0) {
       setPhase("done");
       return;

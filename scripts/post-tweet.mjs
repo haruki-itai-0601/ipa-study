@@ -9,10 +9,10 @@ import { renderPrCard } from "./pr-card.mjs";
 const SUPABASE_URL = "https://qnuedvivehjnfirhnclt.supabase.co";
 const SUPABASE_ANON = "sb_publishable_jKuepZmP0Pzj-p688WF8zg_FCGSFxc8";
 
+// 「今日の1問」はIP/FEのみで構成する（AP・高度区分は流さない）。DB側 get_daily_question も同じ絞り込み。
 const EXAMS = {
   ip: { name: "ITパスポート", tag: "#ITパスポート" },
   fe: { name: "基本情報技術者", tag: "#基本情報技術者試験" },
-  ap: { name: "応用情報技術者", tag: "#応用情報技術者試験" },
 };
 
 // X(Twitter) の文字数カウント近似：CJKは2、その他1、URLは23でカウント
@@ -142,7 +142,7 @@ const PR_POSTS = [
       "AIエージェントと解いて、弱点を分析、次の一手まで提案。気づいたら身につく学習サイトです。\n\n" +
       "#応用情報技術者試験",
     reply: "👉 過去問演習ラボ\nhttps://kakomon-labo.com",
-    card: { title: "AIエージェントと、\n最短で合格へ。", sub: "解くだけ。あとはAIが伴走します" },
+    card: { title: "AIとともに\n最短合格の道をハックする", sub: "解くだけ。あとはAIが伴走します" },
   },
   {
     text:

@@ -10,6 +10,7 @@ import { basicExams, displayCategory, learnCategoryGroups } from "@/lib/exams";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, BookOpen, ChevronRight, Loader2 } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -59,7 +60,7 @@ export default function LearnCoursePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 md:px-6">
+      <main className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:px-6 md:py-6">
         <div className="mb-5 flex items-start gap-3 rounded-2xl p-4" style={{ background: C.brandSoft, border: "1px solid #CFE0FB" }}>
           <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl text-white" style={{ background: C.brand }}>
             <BookOpen className="h-5 w-5" />
@@ -132,6 +133,7 @@ export default function LearnCoursePage() {
           </div>
         )}
       </main>
+      <MobileTabBar />
     </div>
   );
 }

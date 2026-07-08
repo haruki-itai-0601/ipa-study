@@ -11,6 +11,7 @@ import Link from "next/link";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { ArrowLeft, Loader2, Search, SearchX } from "lucide-react";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 
 const C = {
   bg: "#F5F7FA", card: "#FFFFFF", ink: "#15202E", muted: "#677488", faint: "#9AA6B6",
@@ -137,7 +138,7 @@ function GlossaryContent() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-7 md:px-6">
+      <main className="mx-auto max-w-4xl px-4 pb-24 pt-7 md:px-6 md:py-7">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-[24px] font-bold">用語集</h1>
           <span className="rounded-full px-3 py-1 text-[12.5px] font-bold" style={{ background: C.brandSoft, color: C.brandDeep }}>
@@ -260,6 +261,7 @@ function GlossaryContent() {
           </p>
         )}
       </main>
+      <MobileTabBar />
     </div>
   );
 }
