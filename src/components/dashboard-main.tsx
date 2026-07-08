@@ -372,19 +372,19 @@ export function DashboardMain() {
   }
 
   // 共通のナビ項目スタイル（B: 文字大きめ・存在感アップ）
-  // サイドバーは全項目＋Pro枠が一般的なノートPCの画面高に収まるよう、行間を詰めて運用する
-  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-1 text-[15px] font-medium transition-colors lg:text-[16px]";
+  // セクション統合で項目数が減ったぶん、行間をゆったり取って見やすくする
+  const navItem = "flex items-center gap-3 rounded-[10px] px-3 py-1.5 text-[15px] font-medium transition-colors lg:text-[16px]";
   // 2027年開始の新試験グループ（仮称表記は見出し側にまとめる）
   const renderNewExamGroup = () => (
     <>
-      <div className="mt-1 px-3 pb-0.5 text-[13px] font-bold lg:text-[13.5px]" style={{ color: C.muted }}>
+      <div className="mt-2.5 px-3 pb-1 text-[13px] font-bold lg:text-[13.5px]" style={{ color: C.muted }}>
         2027年開始の新試験
       </div>
       {NEW_EXAMS.map((it) => (
         <Link
           key={it.id}
           href={`/learn/${it.id}`}
-          className="block rounded-[10px] py-1 pl-7 pr-3 text-[15px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]"
+          className="block rounded-[10px] py-1.5 pl-7 pr-3 text-[15px] font-medium leading-snug transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]"
           style={{ color: C.ink }}
         >
           {it.label}
@@ -395,7 +395,7 @@ export function DashboardMain() {
   // 問題を解く / 学習する の項目（単リンク or 午前/午後サブ）
   const renderNavItem = (it: NavItem) =>
     it.href ? (
-      <Link key={it.id} href={it.href} className="block rounded-[10px] py-1 pl-7 pr-3 text-[15px] font-medium transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]" style={{ color: C.ink }}>
+      <Link key={it.id} href={it.href} className="block rounded-[10px] py-1.5 pl-7 pr-3 text-[15px] font-medium transition-colors hover:bg-gray-50 lg:pl-9 lg:text-[16px]" style={{ color: C.ink }}>
         {it.label}
       </Link>
     ) : (
@@ -426,8 +426,8 @@ export function DashboardMain() {
 
           <nav className="mt-0.5 flex flex-col gap-0">
             {/* ① ダッシュボードを選択（クリックで表示中の試験を切替） */}
-            <div className="flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
-              <LayoutDashboard className="h-5 w-5" style={{ color: C.brand }} /> ダッシュボードを選択
+            <div className="flex items-center gap-2 px-3 pb-1 pt-1 text-[16px] font-bold lg:text-[17px]" style={{ color: C.ink }}>
+              <LayoutDashboard className="h-[21px] w-[21px]" style={{ color: C.brand }} /> ダッシュボードを選択
             </div>
             {basicExams.map((ex) => {
               const on = ex.id === activeExam;
@@ -435,7 +435,7 @@ export function DashboardMain() {
                 <button
                   key={ex.id}
                   onClick={() => setActiveExam(ex.id)}
-                  className="flex w-full items-center rounded-[10px] py-1 pl-7 pr-3 text-left text-[15px] transition-colors lg:pl-9 lg:text-[16px]"
+                  className="flex w-full items-center rounded-[10px] py-1.5 pl-7 pr-3 text-left text-[15px] transition-colors lg:pl-9 lg:text-[16px]"
                   style={on ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 } : { color: C.ink, fontWeight: 500 }}
                 >
                   {shortJa(ex.name)}
@@ -443,14 +443,14 @@ export function DashboardMain() {
               );
             })}
 
-            {/* ② 学習・演習・復習（試験を選ぶと総合ハブでやることを選択） */}
-            <div className="mt-0.5 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[14.5px] font-bold lg:text-[15.5px]" style={{ color: C.ink }}>
-              <PenLine className="h-5 w-5" style={{ color: C.brand }} /> 学習・演習・復習
+            {/* ② 学習する・演習する・復習する（試験を選ぶと4モードハブでやることを選択） */}
+            <div className="mt-4 flex items-start gap-2 px-3 pb-1 pt-1 text-[16px] font-bold leading-snug lg:text-[17px]" style={{ color: C.ink }}>
+              <PenLine className="mt-0.5 h-[21px] w-[21px] flex-none" style={{ color: C.brand }} /> 学習する・演習する・復習する
             </div>
             {EXAM_NAV.map(renderNavItem)}
             {renderNewExamGroup()}
 
-            <div className="my-0.5 h-px" style={{ background: C.line }} />
+            <div className="my-2.5 h-px" style={{ background: C.line }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
               <Clock className="h-5 w-5" /> 学習履歴
             </Link>
