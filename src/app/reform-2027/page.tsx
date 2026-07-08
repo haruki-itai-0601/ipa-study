@@ -46,7 +46,7 @@ const jsonLd = {
       description: DESC,
       inLanguage: "ja",
       datePublished: "2026-07-08",
-      dateModified: "2026-07-08",
+      dateModified: "2026-07-09",
       author: { "@type": "Organization", name: "過去問演習ラボ" },
       publisher: { "@type": "Organization", name: "過去問演習ラボ" },
       mainEntityOfPage: "https://kakomon-labo.com/reform-2027",
@@ -75,7 +75,7 @@ const jsonLd = {
           name: "新しく増える試験区分はありますか？",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "IPAの改定案では、データマネジメント試験（仮称）と、高度区分を束ねるプロフェッショナルデジタルスキル試験（仮称）が示されています。いずれも正式名称・出題数・試験時間・合格基準は未発表です（2026年7月時点）。",
+            text: "IPAの改定案では、データマネジメント試験（仮称）と、応用情報・高度区分を束ねるプロフェッショナルデジタルスキル試験（仮称・マネジメント／データ・AI／システムの3区分）が示されています。試験時間・出題数の案は公表済み（例：プロフェッショナルデジタルスキル試験は科目A-1が90分60問、科目A-2＋科目Bが120分35問）ですが、正式名称・合格基準は未発表です（2026年7月時点）。",
           },
         },
         {
@@ -110,6 +110,57 @@ const MAPPING: { group: string; provisional: string; from: string; note: string 
     provisional: "プロフェッショナルデジタルスキル試験（仮称）",
     from: "システムアーキテクト／ネットワークスペシャリスト／エンベデッドシステムスペシャリスト",
     note: "設計・ネットワーク・組込みの知識を統合。",
+  },
+];
+
+// 新試験の試験時間・出題形式・出題数（IPA「検討状況」ページ 2026年4月28日更新の公表値。全問必須解答・今後変更の可能性あり）
+const FORMAT_TABLE: { exam: string; status: string; rows: { subject: string; time: string; style: string; count: string }[] }[] = [
+  {
+    exam: "ITパスポート試験",
+    status: "内容変更",
+    rows: [{ subject: "—", time: "120分", style: "多肢選択式（四肢択一）", count: "100問" }],
+  },
+  {
+    exam: "データマネジメント試験（仮称）",
+    status: "新設",
+    rows: [
+      { subject: "科目A", time: "120分（A＋B合計）", style: "多肢選択式（四肢択一）", count: "48問" },
+      { subject: "科目B", time: "", style: "多肢選択式", count: "12問" },
+    ],
+  },
+  {
+    exam: "情報セキュリティマネジメント試験",
+    status: "継続",
+    rows: [
+      { subject: "科目A", time: "120分（A＋B合計）", style: "多肢選択式（四肢択一）", count: "48問" },
+      { subject: "科目B", time: "", style: "多肢選択式", count: "12問" },
+    ],
+  },
+  {
+    exam: "基本情報技術者試験",
+    status: "継続",
+    rows: [
+      { subject: "科目A", time: "90分", style: "多肢選択式（四肢択一）", count: "60問" },
+      { subject: "科目B", time: "100分", style: "多肢選択式", count: "20問" },
+    ],
+  },
+  {
+    exam: "プロフェッショナルデジタルスキル試験（仮称）※マネジメント／データ・AI／システムの3区分共通",
+    status: "新設",
+    rows: [
+      { subject: "科目A-1（共通知識）", time: "90分", style: "多肢選択式（四肢択一）", count: "60問" },
+      { subject: "科目A-2（専門知識）", time: "120分（A-2＋B合計）", style: "多肢選択式（四肢択一）", count: "23問" },
+      { subject: "科目B（技能）", time: "", style: "多肢選択式", count: "12問" },
+    ],
+  },
+  {
+    exam: "情報処理安全確保支援士試験",
+    status: "出題形式・内容変更",
+    rows: [
+      { subject: "科目A-1", time: "45分", style: "多肢選択式（四肢択一）", count: "30問" },
+      { subject: "科目A-2", time: "35分", style: "多肢選択式（四肢択一）", count: "25問" },
+      { subject: "科目B", time: "120分", style: "多肢選択式", count: "12問" },
+    ],
   },
 ];
 
@@ -152,24 +203,24 @@ export default function Reform2027Page() {
 
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 space-y-8">
         {/* ヒーロー */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-8 md:px-9 md:py-10 shadow-rich-lg">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-600 px-6 py-12 md:px-9 md:py-16 shadow-rich-lg">
           <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
           <div className="relative">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
               <CalendarClock className="h-3.5 w-3.5" />
               2027年度 制度再編
             </span>
-            <h1 className="mt-3 text-2xl md:text-3xl font-bold leading-snug text-white">
+            <h1 className="mt-4 text-2xl md:text-3xl font-bold leading-snug text-white">
               2027年、情報処理技術者試験はこう変わる。
               <br className="hidden md:block" />
               「応用情報は廃止？」の答え合わせ。
             </h1>
-            <p className="mt-3 max-w-2xl text-sm md:text-[15px] leading-relaxed text-white/85">
-              結論からいえば <b className="text-white">廃止ではなく再編</b> です。現行方式は2026年度まで実施され、
-              2027年度から「科目A＋科目B・CBT多肢選択」の新体系へ移行する方向で検討が進んでいます。
+            <p className="mt-4 max-w-2xl text-sm md:text-[15px] leading-relaxed text-white/85">
+              結論からいえば <b className="text-white">廃止ではなく再編</b> です。応用情報と高度8区分は大きく統合され、
+              2027年度から「科目A＋科目B・CBT多肢選択」の新体系へ移行する方向で検討が進んでいます（現行方式は2026年度まで）。
               このページでは、何が変わり・いま何を準備できるのかを、IPAの一次情報にもとづいて整理します。
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/shindan/ap"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-white px-5 py-2.5 font-bold text-indigo-700 shadow-md transition-transform hover:-translate-y-0.5"
@@ -191,16 +242,18 @@ export default function Reform2027Page() {
         {/* 何が変わる */}
         <section className="space-y-3">
           <SectionTitle>何が変わるのか</SectionTitle>
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2">
             <Card className="border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich">
               <CardContent className="p-5">
                 <div className="mb-2 inline-flex rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-2.5 shadow-md">
                   <Layers className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="font-bold text-gray-900">科目A＋科目B型へ</h3>
+                <h3 className="font-bold text-gray-900">① 応用情報＋高度8区分 → 3つの新区分に統合</h3>
                 <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                  午前I・午前II・午後記述という区分けを見直し、プロフェッショナル区分は
-                  「科目A（共通知識＋専門知識）＋科目B（技能）」の構成に。
+                  いちばん大きな変化はここ。応用情報技術者と高度8区分（ST・PM・SM・AU・DB・SA・NW・ES）が合体して、
+                  <b className="text-gray-800">「プロフェッショナルデジタルスキル試験（仮称）」の3区分</b>
+                  （マネジメント／データ・AI／システム）に再編されます。さらに入門〜中級向けに
+                  <b className="text-gray-800">データマネジメント試験（仮称）が新設</b>されます。
                 </p>
               </CardContent>
             </Card>
@@ -209,10 +262,23 @@ export default function Reform2027Page() {
                 <div className="mb-2 inline-flex rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-2.5 shadow-md">
                   <BookOpenCheck className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="font-bold text-gray-900">CBT・多肢選択に</h3>
+                <h3 className="font-bold text-gray-900">② 「午前・午後」から「科目A＋科目B」へ</h3>
                 <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                  記述式が中心だった高度区分も、CBT（コンピュータ）での多肢選択式へ。
-                  情報処理安全確保支援士も出題形式が変わる方向です。
+                  午前I・午前II・午後（記述・論述）という区分けが無くなり、基本情報と同じ
+                  「科目A（知識）＋科目B（技能）」型に統一。プロフェッショナル3区分は
+                  <b className="text-gray-800">科目A-1（共通知識）＋科目A-2（専門知識）＋科目B（技能）</b>の構成です。
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-gray-200/70 bg-white/85 backdrop-blur-sm rounded-2xl shadow-rich">
+              <CardContent className="p-5">
+                <div className="mb-2 inline-flex rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-2.5 shadow-md">
+                  <Brain className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="font-bold text-gray-900">③ 全問CBT・多肢選択に（記述廃止）</h3>
+                <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                  記述・論述が中心だった高度区分も、CBT（コンピュータ受験）の多肢選択式へ。
+                  情報処理安全確保支援士も記述式から多肢選択式に変わる方向です（論述の扱いは2028年度以降に継続検討）。
                 </p>
               </CardContent>
             </Card>
@@ -221,10 +287,11 @@ export default function Reform2027Page() {
                 <div className="mb-2 inline-flex rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 p-2.5 shadow-md">
                   <CalendarClock className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="font-bold text-gray-900">2027年度スタート</h3>
+                <h3 className="font-bold text-gray-900">④ 2027年度に順次スタート</h3>
                 <p className="mt-1 text-sm leading-relaxed text-gray-600">
-                  新体系は2027年度からの開始が検討されています。現行方式は
-                  <b className="text-gray-800">2026年度まで</b>実施予定です。
+                  IPAの検討状況では、<b className="text-gray-800">2027年度春頃</b>にITパスポート・基本情報・情報セキュリティマネジメント、
+                  <b className="text-gray-800">2027年度夏〜秋頃</b>にデータマネジメント・プロフェッショナルデジタルスキル・支援士が開始予定。
+                  現行方式は<b className="text-gray-800">2026年度の実施をもって終了</b>予定です。
                 </p>
               </CardContent>
             </Card>
@@ -278,8 +345,10 @@ export default function Reform2027Page() {
         <section className="space-y-3">
           <SectionTitle>新試験の全体像（旧区分との対応）</SectionTitle>
           <p className="max-w-3xl text-sm leading-relaxed text-gray-600">
-            高度区分は大きく束ねられ、新設区分も加わる方向です。以下はIPAの改定案にもとづく整理で、
-            <b className="text-gray-800">区分名はすべて仮称</b>です（正式名称・出題数・試験時間・合格基準は未発表）。
+            応用情報と高度8区分は「プロフェッショナルデジタルスキル試験（仮称）」の3区分に大きく束ねられ、
+            応用情報で問われてきた共通知識は3区分共通の<b className="text-gray-800">科目A-1</b>に引き継がれます。
+            以下はIPAの改定案にもとづく整理で、<b className="text-gray-800">区分名はすべて仮称</b>です
+            （正式名称・合格基準は未発表。試験時間・出題数は検討中の案が公表されています＝下表）。
           </p>
           <div className="grid gap-3 md:grid-cols-3">
             {MAPPING.map((m) => (
@@ -302,6 +371,50 @@ export default function Reform2027Page() {
           <p className="text-xs leading-relaxed text-gray-400">
             ※ 新設の「データマネジメント試験（仮称）」は既存の高度区分に構成元がなく、ITパスポート等のデータ系知識からの
             ステップアップが想定されています。ITパスポート・基本情報からの学習導線づくりが有効です。
+          </p>
+        </section>
+
+        {/* 試験時間・出題数（IPA公表の検討中案） */}
+        <section className="space-y-3">
+          <SectionTitle>新試験の試験時間・出題数（IPA公表・検討中）</SectionTitle>
+          <p className="max-w-3xl text-sm leading-relaxed text-gray-600">
+            IPAの検討状況ページ（2026年4月28日更新）では、各試験の試験時間・出題形式・出題数の案が公表されています。
+            <b className="text-gray-800">全問必須解答</b>で、いずれも多肢選択式です（今後変更の可能性があります）。
+          </p>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200/70 bg-white/85 shadow-rich">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50/80 text-left text-xs text-gray-500">
+                  <th className="px-4 py-2.5 font-semibold">試験区分</th>
+                  <th className="px-3 py-2.5 font-semibold">科目</th>
+                  <th className="px-3 py-2.5 font-semibold">試験時間</th>
+                  <th className="px-3 py-2.5 font-semibold">出題形式</th>
+                  <th className="px-3 py-2.5 font-semibold">出題数</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FORMAT_TABLE.map((ex) =>
+                  ex.rows.map((r, i) => (
+                    <tr key={`${ex.exam}-${r.subject}`} className={i === 0 ? "border-t border-gray-200" : "border-t border-dashed border-gray-100"}>
+                      {i === 0 && (
+                        <td rowSpan={ex.rows.length} className="px-4 py-2.5 align-top">
+                          <div className="font-bold leading-snug text-gray-900">{ex.exam}</div>
+                          <span className="mt-1 inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-700">{ex.status}</span>
+                        </td>
+                      )}
+                      <td className="px-3 py-2.5 whitespace-nowrap text-gray-700">{r.subject}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap text-gray-700">{r.time}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap text-gray-700">{r.style}</td>
+                      <td className="px-3 py-2.5 whitespace-nowrap font-semibold text-gray-900">{r.count}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs leading-relaxed text-gray-400">
+            出典：IPA「情報処理技術者試験及び情報処理安全確保支援士試験の見直しの検討状況について」（2026年4月28日更新）。
+            記載は検討中の案であり、今後変更される場合があります。
           </p>
         </section>
 
@@ -364,11 +477,11 @@ export default function Reform2027Page() {
             <div className="space-y-1.5">
               <p>
                 本ページは、IPA（情報処理推進機構）が公開する
-                「情報処理技術者試験及び情報処理安全確保支援士試験の見直しの検討状況について」および
+                「情報処理技術者試験及び情報処理安全確保支援士試験の見直しの検討状況について」（2026年4月28日更新）および
                 「出題範囲等の改定案」にもとづいて整理したものです（2026年7月時点）。
               </p>
               <p>
-                新試験の<b>正式名称・出題数・試験時間・合格基準は未発表</b>であり、区分名は仮称です。
+                試験時間・出題数は<b>検討中の案として公表済み</b>ですが、新試験の<b>正式名称・合格基準は未発表</b>であり、区分名は仮称です。
                 最新情報は必ずIPA公式をご確認ください。制度の更新は
                 <Link href="/reform-2027" className="text-indigo-600 underline underline-offset-2">
                   本ページ

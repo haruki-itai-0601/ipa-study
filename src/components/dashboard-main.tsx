@@ -433,23 +433,26 @@ export function DashboardMain() {
             <div className="flex items-center gap-2 px-3 pb-1 pt-1 text-[16px] font-bold lg:text-[17px]" style={{ color: C.ink }}>
               <LayoutDashboard className="h-[21px] w-[21px]" style={{ color: C.brand }} /> ダッシュボードを選択
             </div>
-            {DASH_EXAMS.map((ex) => {
-              const on = ex.id === activeExam;
-              return (
-                <button
-                  key={ex.id}
-                  onClick={() => setActiveExam(ex.id)}
-                  className="flex w-full items-center rounded-[10px] py-1 pl-7 pr-3 text-left text-[15px] transition-colors lg:pl-9 lg:text-[16px]"
-                  style={on ? { background: C.brandSoft, color: C.brandDeep, fontWeight: 700 } : { color: C.ink, fontWeight: 500 }}
-                >
-                  {shortJa(ex.name)}
-                </button>
-              );
-            })}
+            {/* 試験はプルダウンで選択（新試験が増えてもサイドバーが縦に伸びない） */}
+            <div className="py-1 pl-7 pr-3 lg:pl-9">
+              <select
+                value={activeExam}
+                onChange={(e) => setActiveExam(e.target.value)}
+                aria-label="ダッシュボードに表示する試験"
+                className="w-full cursor-pointer rounded-[10px] border px-2.5 py-2 text-[15px] font-bold lg:text-[16px]"
+                style={{ borderColor: C.line2, background: C.brandSoft, color: C.brandDeep }}
+              >
+                {DASH_EXAMS.map((ex) => (
+                  <option key={ex.id} value={ex.id}>
+                    {shortJa(ex.name)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* ② 学習する・演習する・復習する（試験を選ぶと4モードハブでやることを選択） */}
-            <div className="mt-2 flex items-start gap-2 px-3 pb-0.5 pt-0.5 text-[16px] font-bold leading-snug lg:text-[17px]" style={{ color: C.ink }}>
-              <PenLine className="mt-0.5 h-[21px] w-[21px] flex-none" style={{ color: C.brand }} /> 学習する・演習する・復習する
+            {/* ② 学習・演習・復習する（試験を選ぶと4モードハブでやることを選択） */}
+            <div className="mt-2 flex items-center gap-2 px-3 pb-0.5 pt-0.5 text-[16px] font-bold lg:text-[17px]" style={{ color: C.ink }}>
+              <PenLine className="h-[21px] w-[21px] flex-none" style={{ color: C.brand }} /> 学習・演習・復習する
             </div>
             {EXAM_NAV.map(renderNavItem)}
             {renderNewExamGroup()}
