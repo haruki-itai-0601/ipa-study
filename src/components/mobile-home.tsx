@@ -183,8 +183,9 @@ export function MobileHome() {
           </span>
         </Link>
 
-        {/* AI合格診断（何も解いていない人の入口・今日の5問の直下で薄ピンクで少し目立たせる） */}
-        {hasData === false && (
+        {/* AI合格診断（何も解いていない人の入口・今日の5問の直下で薄ピンクで少し目立たせる）
+            診断ページがあるのはip/fe/apのみ（新試験・支援士は非表示） */}
+        {hasData === false && ["ip", "fe", "ap"].includes(exam) && (
           <Link
             href={`/shindan/${exam}`}
             className="mt-3 flex items-center gap-3 rounded-2xl p-4"

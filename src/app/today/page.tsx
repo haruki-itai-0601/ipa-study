@@ -9,7 +9,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { basicExams, displayCategory, learnCategoryFor, questionSource } from "@/lib/exams";
+import { basicExams, getExam, displayCategory, learnCategoryFor, questionSource, TRACK_SOURCES } from "@/lib/exams";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { calcStreak, fmtDateJst, getActiveExam, toDayStrings } from "@/lib/streak";
 import { getTodayCount, incTodayCount, remainingToday, TODAY_LIMIT, type Tier } from "@/lib/quota";
@@ -78,7 +78,7 @@ function TodayContent() {
 
   useEffect(() => {
     const e = sp.get("exam");
-    const id = e && basicExams.some((x) => x.id === e) ? e : getActiveExam();
+    const id = e && getExam(e) ? e : getActiveExam();
     setExam(id);
     examRef.current = id;
     (async () => {
@@ -154,19 +154,27 @@ function TodayContent() {
         setFromWeak(cat);
       }
     } catch {}
+    // 2027新試験は構成元試験の過去問を横断出題する
+    const sourceIds = TRACK_SOURCES[examId] ?? [examId];
     if (!cat) {
-      const cats = TRY_CATS[examId] ?? TRY_CATS.ip;
-      cat = cats[Math.floor(rnd() * cats.length)];
-      setFromWeak(null);
+      if (TRACK_SOURCES[examId]) {
+        // 新試験で弱点データが無いときは分野を絞らず構成元全体から出題
+        setFromWeak(null);
+      } else {
+        const cats = TRY_CATS[examId] ?? TRY_CATS.ip;
+        cat = cats[Math.floor(rnd() * cats.length)];
+        setFromWeak(null);
+      }
     }
-    const { data: ids } = await supabase
+    let idsQuery = supabase
       .from("questions")
       .select("id")
-      .eq("exam_id", examId)
+      .in("exam_id", sourceIds)
       .eq("type", "past")
-      .eq("category", cat)
       .is("image_url", null)
       .order("id"); // 取得順を固定して選抜を決定的にする
+    if (cat) idsQuery = idsQuery.eq("category", cat);
+    const { data: ids } = await idsQuery;
     const pick = shuffleWith(((ids ?? []) as { id: string }[]).map((r) => r.id), rnd).slice(0, N);
     const { data } = await supabase.from("questions").select("*").in("id", pick);
     const list = shuffleWith(
@@ -226,7 +234,7 @@ function TodayContent() {
 
   const correctCount = results.filter(Boolean).length;
   const wrongCount = results.length - correctCount;
-  const exam_ = basicExams.find((e) => e.id === exam);
+  const exam_ = getExam(exam);
 
   return (
     <div style={{ background: C.bg, color: C.ink, minHeight: "100vh" }} className="font-sans">
@@ -304,7 +312,7 @@ function TodayContent() {
             <div className="mt-3 rounded-2xl p-4.5 md:p-5" style={{ background: C.card, border: `1px solid ${C.line}`, padding: 18 }}>
               <p className="text-[15px] leading-relaxed">{q.question}</p>
             </div>
-            <p className="mt-1.5 text-[10.5px]" style={{ color: C.faint }}>{questionSource(exam, q.year, q.q_number)}</p>
+            <p className="mt-1.5 text-[10.5px]" style={{ color: C.faint }}>{questionSource(q.exam_id ?? exam, q.year, q.q_number)}</p>
 
             <div className="mt-3 space-y-2.5">
               {(["a", "b", "c", "d"] as const).map((key) => {

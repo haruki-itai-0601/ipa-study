@@ -1,12 +1,12 @@
 "use client";
 
 // モバイル共通の上部バー（ホーム/データ/学習/復習で共有）。
-// 左＝試験プルダウン（ITパスポート/基本情報技術者/応用情報技術者）、右＝試験日カウントダウン。
+// 左＝試験プルダウン（デスクトップと同じ顔ぶれ＝現行3試験＋2027新試験）、右＝試験日カウントダウン。
 // 試験切替時の挙動はページ側が決める（onExamChange）。試験日の設定は設定タブ(/settings)へ。
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { basicExams } from "@/lib/exams";
+import { getExam } from "@/lib/exams";
 import { daysUntil, getExamDate } from "@/lib/streak";
 import { Check, ChevronDown } from "lucide-react";
 
@@ -16,6 +16,20 @@ const C = {
 };
 
 const shortName = (name: string) => name.replace("試験", "");
+
+// デスクトップ（ダッシュボード選択・サイドバー）と同じ顔ぶれ。応用情報は再編案内(/reform-2027)へ
+const CURRENT_EXAMS = [
+  { id: "ip", label: "ITパスポート試験" },
+  { id: "fe", label: "基本情報技術者試験" },
+  { id: "sc", label: "情報処理安全確保支援士試験" },
+];
+const NEW_EXAMS = [
+  { id: "dm", label: "データマネジメント試験" },
+  { id: "pd-m", label: "プロフェッショナルデジタルスキル（マネジメント）" },
+  { id: "pd-d", label: "プロフェッショナルデジタルスキル（データ・AI）" },
+  { id: "pd-s", label: "プロフェッショナルデジタルスキル（システム）" },
+];
+const ALL_EXAMS = [...CURRENT_EXAMS, ...NEW_EXAMS];
 
 export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -36,7 +50,7 @@ export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChang
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const current = basicExams.find((e) => e.id === exam) ?? basicExams[0];
+  const current = ALL_EXAMS.find((e) => e.id === exam) ?? { id: exam, label: getExam(exam)?.name ?? "試験を選択" };
 
   return (
     <header
@@ -56,27 +70,47 @@ export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChang
             aria-haspopup="listbox"
             aria-expanded={open}
           >
-            {shortName(current.name)}
-            <ChevronDown className="h-4 w-4" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
+            <span className="max-w-[180px] truncate">{shortName(current.label)}</span>
+            <ChevronDown className="h-4 w-4 flex-none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
           </button>
           {open && (
             <div
-              className="absolute left-0 top-full z-30 mt-1.5 w-60 overflow-hidden rounded-xl border shadow-xl"
+              className="absolute left-0 top-full z-30 mt-1.5 w-72 overflow-hidden rounded-xl border shadow-xl"
               style={{ background: C.card, borderColor: C.line }}
               role="listbox"
             >
-              {basicExams.map((e) => {
+              <div className="px-4 pb-1 pt-2.5 text-[11px] font-bold" style={{ color: C.muted }}>現行試験</div>
+              {CURRENT_EXAMS.map((e) => {
                 const on = e.id === exam;
                 return (
                   <button
                     key={e.id}
                     onClick={() => { onExamChange(e.id); setOpen(false); }}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left text-[14.5px] font-bold"
+                    className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-[14px] font-bold leading-snug"
                     style={{ color: on ? C.brand : C.ink, background: on ? C.brandSoft : C.card }}
                     role="option"
                     aria-selected={on}
                   >
-                    {e.name}
+                    {e.label}
+                    {on && <Check className="h-4 w-4 flex-none" />}
+                  </button>
+                );
+              })}
+              <div className="mt-1 border-t px-4 pb-1 pt-2.5 text-[11px] font-bold" style={{ borderColor: C.line, color: "#BE185D" }}>
+                2027年開始の新試験（仮称）
+              </div>
+              {NEW_EXAMS.map((e) => {
+                const on = e.id === exam;
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => { onExamChange(e.id); setOpen(false); }}
+                    className="flex w-full items-center justify-between gap-2 px-4 py-2.5 text-left text-[14px] font-bold leading-snug"
+                    style={{ color: on ? C.brand : C.ink, background: on ? C.brandSoft : C.card }}
+                    role="option"
+                    aria-selected={on}
+                  >
+                    {e.label}
                     {on && <Check className="h-4 w-4 flex-none" />}
                   </button>
                 );
