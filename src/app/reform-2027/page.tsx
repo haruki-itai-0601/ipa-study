@@ -232,7 +232,7 @@ export default function Reform2027Page() {
               「応用情報は廃止？」の答え合わせ。
             </h1>
             <p className="mt-2 text-xs text-gray-400 md:hidden">最終更新 2026年7月9日</p>
-            <p className="mt-5 max-w-2xl text-[15px] leading-relaxed text-gray-600">
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 md:text-[17px] md:leading-[1.9]">
               結論からいえば<b className="text-gray-900">廃止ではなく再編</b>です。応用情報と高度8区分は大きく統合され、
               2027年度から「科目A＋科目B・CBT多肢選択」の新体系へ移行する方向で検討が進んでいます（現行方式は2026年度まで）。
               このページでは、何が変わり・いま何を準備できるのかを、IPAの一次情報にもとづいて整理します。
