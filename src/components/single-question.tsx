@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getExam, questionSource, displayCategory } from "@/lib/exams";
+import { setActiveExamStorage } from "@/lib/streak";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Lightbulb, ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,13 @@ const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: 
 export default function SingleQuestion({ q }: { q: SingleQ }) {
   const exam = getExam(q.exam_id);
   const [selected, setSelected] = useState<string | null>(null);
+
+  // X経由などで単発問題に着地した人の「選択中の試験」をこの問題の試験に合わせる。
+  // これが無いと、基本情報の問題から「ダッシュボードに戻る」と初期値のITパスポートが表示されて文脈がズレる。
+  useEffect(() => {
+    if (exam) setActiveExamStorage(q.exam_id);
+  }, [q.exam_id, exam]);
+
   const isAnswered = selected !== null;
   const isCorrect = selected === q.correct_answer;
 

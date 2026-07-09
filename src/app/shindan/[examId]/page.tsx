@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { basicExams, displayCategory, learnCategoryFor, questionSource } from "@/lib/exams";
+import { setActiveExamStorage } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { type Question } from "@/components/quiz-runner";
 import { BackToDashboard } from "@/components/back-to-dashboard";
@@ -84,6 +85,12 @@ export default function ShindanPage() {
   const [results, setResults] = useState<{ category: string; correct: boolean }[]>([]);
   const [ringScore, setRingScore] = useState(0); // 結果画面のゲージ演出（0→スコアへ伸びる）
   const startRef = useRef(0);
+
+  // 固定ポスト等から診断に着地した人の「選択中の試験」をこの診断の試験に合わせる
+  // （診断後にダッシュボードへ行っても同じ試験の画面が出るように）
+  useEffect(() => {
+    if (exam) setActiveExamStorage(examId);
+  }, [examId, exam]);
 
   async function start() {
     setPhase("loading");
