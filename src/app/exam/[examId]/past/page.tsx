@@ -392,8 +392,9 @@ export default function PastExamPage() {
               <p className="text-sm text-gray-500">本物のIPA過去問{secLabel ? `（${secLabel}）` : ""}から出題されます</p>
             </div>
             <div className="space-y-3">
-              {/* AI予想問題は新試験（横断出題）ではまだ未対応のため非表示 */}
-              {MODES.filter((m) => m.key !== "ai" || !isTrack).map((m) => {
+              {/* 新試験（横断出題）では 年度別・模試（タイマー）・AI予想問題 を一旦非表示
+                  （年度の意味が構成元ごとに異なる／タイマーの基準時間が未確定なため） */}
+              {MODES.filter((m) => !isTrack || !["year", "exam", "ai"].includes(m.key)).map((m) => {
                 const Icon = m.icon;
                 return (
                   <button

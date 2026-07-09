@@ -27,17 +27,17 @@ const NEW_EXAM_INFO: Record<string, { label: string; practice: string; ready?: b
   },
   "pd-m": {
     label: "プロフェッショナルデジタルスキル（マネジメント）試験（仮称）",
-    practice: "構成元となった ITストラテジスト・プロジェクトマネージャ・ITサービスマネージャ・システム監査技術者 の本物の過去問（科目A-2相当）から出題します。",
+    practice: "構成元となった ITストラテジスト・プロジェクトマネージャ・ITサービスマネージャ・システム監査技術者 の本物の過去問から出題",
     ready: true,
   },
   "pd-d": {
     label: "プロフェッショナルデジタルスキル（データ・AI）試験（仮称）",
-    practice: "構成元となった データベーススペシャリスト の本物の過去問（科目A-2相当）から出題します。AI・データ分析の新領域はシラバス公開後に追加予定です。",
+    practice: "構成元となった データベーススペシャリスト の本物の過去問から出題（AI・データ分析の新領域はシラバス公開後に追加予定）",
     ready: true,
   },
   "pd-s": {
     label: "プロフェッショナルデジタルスキル（システム）試験（仮称）",
-    practice: "構成元となった システムアーキテクト・ネットワークスペシャリスト・エンベデッドシステムスペシャリスト の本物の過去問（科目A-2相当）から出題します。",
+    practice: "構成元となった システムアーキテクト・ネットワークスペシャリスト・エンベデッドシステムスペシャリスト の本物の過去問から出題",
     ready: true,
   },
 };
@@ -258,9 +258,6 @@ export default function LearnHubPage() {
               ) : newExam?.ready ? (
                 // プロフェッショナルデジタルスキル系＝科目A-1／A-2／Bに区切って各ボタン
                 <div className="mt-2.5 flex-1 space-y-4">
-                  <p className="text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
-                    {newExam.practice}
-                  </p>
                   <div>
                     <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A-1（共通知識）</div>
                     <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
@@ -276,13 +273,15 @@ export default function LearnHubPage() {
                   </div>
                   <div>
                     <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A-2（専門知識）</div>
-                    <div className="mt-1.5 grid grid-cols-2 gap-2">
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      {newExam.practice}
+                    </p>
+                    {/* 年度別・模試（タイマー）は横断出題では一旦提供しない（年度の意味が構成元ごとに異なるため） */}
+                    <div className="mt-1.5 grid grid-cols-3 gap-2">
                       {[
-                        { label: "年度別", href: `/exam/${examId}/past?mode=year` },
                         { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
                         { label: "分野別", href: `/exam/${examId}/past?mode=category` },
                         { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
-                        { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
                       ].map((m) => (
                         <Link
                           key={m.label}
