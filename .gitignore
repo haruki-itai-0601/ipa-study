@@ -46,3 +46,7 @@ next-env.d.ts
 # daily-question 投稿済みログ（ローカル状態）
 scripts/.posted-questions.json
 data/past-questions/fe/render/
+
+# 収録作業用のローカル素材（PDF・ページ画像・作業SQL。リポジトリへ出さない）
+scratchpad/
+glossary_lists/

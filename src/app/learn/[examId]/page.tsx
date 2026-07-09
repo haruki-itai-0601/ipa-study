@@ -23,7 +23,7 @@ import { BackToDashboard } from "@/components/back-to-dashboard";
 const NEW_EXAM_INFO: Record<string, { label: string; practice: string; ready?: boolean }> = {
   dm: {
     label: "データマネジメント試験（仮称）",
-    practice: "新設試験のため過去問はありません。IPA公表のサンプル問題と、シラバスにもとづくAI予想問題を出題できるよう準備中です。",
+    practice: "新設試験のため過去問はありません。IPA公表のサンプル問題（科目A）を収録済み。シラバスにもとづくAI予想問題は準備中です。",
   },
   "pd-m": {
     label: "プロフェッショナルデジタルスキル（マネジメント）試験（仮称）",
@@ -240,7 +240,7 @@ export default function LearnHubPage() {
                 {newExam
                   ? newExam.ready
                     ? "構成元試験の本物の過去問・科目別に演習"
-                    : "構成元試験の過去問で対策（準備中）"
+                    : "IPA公表のサンプル問題＋AI予想問題（準備中）"
                   : examId === "fe"
                     ? "本物のIPA過去問・科目A／科目B"
                     : examId === "sc"
@@ -248,15 +248,43 @@ export default function LearnHubPage() {
                       : "本物のIPA過去問・出題モード6種類"}
               </div>
               {newExam && !newExam.ready ? (
-                // データマネジメント試験（構成元なし）＝準備中
-                <>
-                  <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
-                    {newExam.practice}
-                  </p>
-                  <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
-                    近日公開
-                  </span>
-                </>
+                // データマネジメント試験（構成元なし）＝IPAサンプル問題（科目A）＋科目BはIPAサイト＋AI予想問題は準備中
+                <div className="mt-2.5 flex-1 space-y-4">
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A（知識）サンプル問題</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      IPAが2026年6月に公表したサンプル問題（3問・解答例つき）を収録。新試験の出題イメージをつかめます
+                    </p>
+                    <Link
+                      href="/exam/dm/past?mode=random"
+                      className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      style={{ background: C.ex }}
+                    >
+                      サンプル問題を解く（科目A・3問）
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目B（技能）サンプル問題</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      長文シナリオ型（表の読み取りを含む）のため、IPA公式サイトのPDFで確認できます
+                    </p>
+                    <a
+                      href="https://www.ipa.go.jp/shiken/syllabus/henkou/2026/rcu1hd000000yulp-att/dm_kamoku_b_sample.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1.5 block w-full rounded-xl border-2 py-2.5 text-center text-[14px] font-bold transition-opacity hover:opacity-80"
+                      style={{ borderColor: C.ex, color: C.ex }}
+                    >
+                      IPA公式のPDFで見る ↗
+                    </a>
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>AI予想問題</div>
+                    <span className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+                      準備中（シラバス公開後に対応予定）
+                    </span>
+                  </div>
+                </div>
               ) : newExam?.ready ? (
                 // プロフェッショナルデジタルスキル系＝科目A-1／A-2／Bに区切って各ボタン
                 <div className="mt-2.5 flex-1 space-y-4">

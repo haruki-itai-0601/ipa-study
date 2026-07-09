@@ -375,7 +375,7 @@ export default function PastExamPage() {
           {headerBack}
           <div>
             <div className="text-sm text-gray-500">{exam.name}</div>
-            <div className="font-bold text-gray-900">過去問演習</div>
+            <div className="font-bold text-gray-900">{examId === "dm" ? "サンプル問題演習" : "過去問演習"}</div>
           </div>
           <BackToDashboard className="ml-auto" />
         </div>
@@ -387,14 +387,16 @@ export default function PastExamPage() {
           <>
             <h1 className="mb-6 text-center text-2xl font-bold text-gray-900 md:text-3xl">
               {exam.name}
-              {secLabel ? ` ${secLabel}` : ""} 過去問演習
+              {secLabel ? ` ${secLabel}` : ""} {examId === "dm" ? "サンプル問題演習" : "過去問演習"}
             </h1>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">出題モードを選んでください</h2>
               <p className="text-sm text-gray-500">
-                {isTrack && subjectA1
-                  ? "応用情報技術者試験 午前の本物の過去問（＝科目A-1の共通知識に相当）から出題されます"
-                  : `本物のIPA過去問${secLabel ? `（${secLabel}）` : ""}から出題されます`}
+                {examId === "dm"
+                  ? "IPA公表のサンプル問題（科目A・3問）から出題されます"
+                  : isTrack && subjectA1
+                    ? "応用情報技術者試験 午前の本物の過去問（＝科目A-1の共通知識に相当）から出題されます"
+                    : `本物のIPA過去問${secLabel ? `（${secLabel}）` : ""}から出題されます`}
               </p>
             </div>
             <div className="space-y-3">
@@ -402,12 +404,15 @@ export default function PastExamPage() {
                   （年度の意味が構成元ごとに異なる／タイマー基準未確定のため）。
                   科目A-1は応用情報 午前そのままなので年度別・模試も使える（AIのみ非表示） */}
               {MODES.filter((m) => {
+                // DMはサンプル問題3問のみ収録のため、年度別・模試・AIは非表示
+                if (examId === "dm") return ["random", "category", "wrong"].includes(m.key);
                 if (!isTrack) return true;
                 if (m.key === "ai") return false;
                 if (["year", "exam"].includes(m.key)) return subjectA1;
                 return true;
               }).map((m) => {
                 const Icon = m.icon;
+                const desc = examId === "dm" && m.key === "random" ? "サンプル問題3問をシャッフル出題" : m.desc;
                 return (
                   <button
                     key={m.key}
@@ -421,7 +426,7 @@ export default function PastExamPage() {
                       </div>
                       <div className="flex-1">
                         <div className="font-bold text-gray-900 text-base">{m.title}</div>
-                        <div className="text-sm text-gray-500">{m.desc}</div>
+                        <div className="text-sm text-gray-500">{desc}</div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0" />
                     </div>

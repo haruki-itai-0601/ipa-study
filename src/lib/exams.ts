@@ -453,6 +453,7 @@ const SECTION_LABEL: Record<string, string> = {
   ap: "午前",
   fe: "科目A",
   ip: "", // ITパスポートは午前/午後の区別なし
+  dm: "", // DMサンプル問題はyear側に「科目A サンプル問題」を持つため区分ラベル不要
 };
 
 // 高度系（午前Ⅰ・午前Ⅱ）かどうか

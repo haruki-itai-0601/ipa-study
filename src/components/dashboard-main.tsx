@@ -15,7 +15,6 @@ import { TopBarAccount } from "@/components/top-bar-account";
 import { MobileTopBar } from "@/components/mobile-top-bar";
 import {
   LayoutDashboard,
-  Clock,
   Settings,
   Sparkles,
   ArrowRight,
@@ -470,9 +469,6 @@ export function DashboardMain() {
             {renderNewExamGroup()}
 
             <div className="my-1.5 h-px" style={{ background: "#C6D0DD" }} />
-            <Link href="#" className={navItem} style={{ color: C.ink }}>
-              <Clock className="h-5 w-5" /> 学習履歴
-            </Link>
             <Link href={`/learn/${activeExam}/review`} className={navItem} style={{ color: C.ink }}>
               <RotateCcw className="h-5 w-5" /> 間違えた問題の復習
             </Link>
