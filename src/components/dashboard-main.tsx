@@ -49,7 +49,9 @@ type RadarItem = { label: string; acc: number; answered: number };
 type NavItem = { id: string; label: string; href?: string; subs?: { label: string; href: string }[] };
 // ダッシュボードを選択の対象（学習・演習・復習と同じ顔ぶれ）。
 // 応用情報は再編で2026年度までのため外し、サイドバー最下部の「2027年度以降の応用情報技術者について」で案内する
-const DASH_EXAMS = ["ip", "fe", "sc"].map((id) => getExam(id)!);
+// 新試験もダッシュボード対象（横断出題の解答がexam_id=pd-m等で記録されるため弱点分析・推移が動く）
+const DASH_EXAMS = ["ip", "fe", "sc", "dm", "pd-m", "pd-d", "pd-s"].map((id) => getExam(id)!);
+const DASH_CURRENT_IDS = ["ip", "fe", "sc"];
 // 学習・演習・復習（遷移先＝4モードハブ /learn/[試験]。学習コンテンツが無い試験は試験ページへ）
 const EXAM_NAV: NavItem[] = [
   { id: "ip", label: "ITパスポート", href: "/learn/ip" },
@@ -443,11 +445,20 @@ export function DashboardMain() {
                 className="w-full cursor-pointer rounded-[10px] border-2 px-2.5 py-2 text-[15px] font-bold lg:text-[16px]"
                 style={{ borderColor: "#EC4899", background: "#FDF2F8", color: "#BE185D" }}
               >
-                {DASH_EXAMS.map((ex) => (
-                  <option key={ex.id} value={ex.id}>
-                    {shortJa(ex.name)}
-                  </option>
-                ))}
+                <optgroup label="現行試験">
+                  {DASH_EXAMS.filter((ex) => DASH_CURRENT_IDS.includes(ex.id)).map((ex) => (
+                    <option key={ex.id} value={ex.id}>
+                      {shortJa(ex.name)}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="2027年開始の新試験（仮称）">
+                  {NEW_EXAMS.map((it) => (
+                    <option key={it.id} value={it.id}>
+                      {it.label}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
@@ -458,7 +469,7 @@ export function DashboardMain() {
             {EXAM_NAV.map(renderNavItem)}
             {renderNewExamGroup()}
 
-            <div className="my-1 h-px" style={{ background: C.line }} />
+            <div className="my-1.5 h-px" style={{ background: "#C6D0DD" }} />
             <Link href="#" className={navItem} style={{ color: C.ink }}>
               <Clock className="h-5 w-5" /> 学習履歴
             </Link>
