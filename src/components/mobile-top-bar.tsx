@@ -43,9 +43,12 @@ export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChang
       className="sticky top-0 z-20 border-b md:hidden"
       style={{ background: "rgba(255,255,255,0.92)", borderColor: C.line, backdropFilter: "blur(10px)" }}
     >
-      <div className="flex items-center gap-2 px-4 py-2.5">
-        {/* 試験プルダウン */}
+      <div className="flex items-center gap-2 px-4 pb-2.5 pt-2">
+        {/* 試験プルダウン（何の切替か分かるよう小さなラベルを添える） */}
         <div ref={ref} className="relative">
+          <div className="mb-0.5 pl-1 text-[10.5px] font-medium" style={{ color: C.muted }}>
+            試験の切り替えはこちらから
+          </div>
           <button
             onClick={() => setOpen((v) => !v)}
             className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[14px] font-bold"
