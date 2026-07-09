@@ -476,7 +476,7 @@ export function DashboardMain() {
             <Link
               href="/reform-2027"
               className="mt-0.5 flex items-start gap-3 rounded-[10px] px-3 py-1 text-[15px] font-bold leading-snug transition-colors hover:bg-gray-50 lg:text-[16px]"
-              style={{ color: C.brandDeep }}
+              style={{ color: "#BE185D" }}
             >
               <Newspaper className="mt-0.5 h-5 w-5 flex-none" />
               2027年度以降の応用情報技術者について
