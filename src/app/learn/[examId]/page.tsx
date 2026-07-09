@@ -276,26 +276,9 @@ export default function LearnHubPage() {
                     <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
                       {newExam.practice}
                     </p>
-                    {/* 年度別・模試（タイマー）は横断出題では一旦提供しない（年度の意味が構成元ごとに異なるため） */}
-                    <div className="mt-1.5 grid grid-cols-3 gap-2">
-                      {[
-                        { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
-                        { label: "分野別", href: `/exam/${examId}/past?mode=category` },
-                        { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
-                      ].map((m) => (
-                        <Link
-                          key={m.label}
-                          href={m.href}
-                          className="rounded-lg py-2 text-center text-[13.5px] font-bold transition-opacity hover:opacity-80"
-                          style={{ background: C.exSoft, color: C.ex }}
-                        >
-                          {m.label}
-                        </Link>
-                      ))}
-                    </div>
                     <Link
                       href={`/exam/${examId}/past`}
-                      className="mt-2 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
                       style={{ background: C.ex }}
                     >
                       科目A-2の問題演習を始める
