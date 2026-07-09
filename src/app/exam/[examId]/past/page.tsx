@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getExam, sectionLabel, displayCategory, questionCategoriesFor, TRACK_SOURCES } from "@/lib/exams";
+import { setActiveExamStorage } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { fetchAllRows, fetchByIdsChunked } from "@/lib/supabase-fetch";
 import { Card, CardContent } from "@/components/ui/card";
@@ -306,6 +307,11 @@ export default function PastExamPage() {
         return router.push(`/exam/${examId}/ai`);
     }
   };
+
+  // このページで見ている試験を「選択中の試験」として保存し、他ページへ引き継ぐ
+  useEffect(() => {
+    if (getExam(examId)) setActiveExamStorage(examId);
+  }, [examId]);
 
   useEffect(() => {
     // 学習分析などから ?mode=category&category=... で来たら、その分野演習を直接開始

@@ -23,14 +23,20 @@ const CURRENT_EXAMS = [
   { id: "fe", label: "基本情報技術者試験" },
   { id: "sc", label: "情報処理安全確保支援士試験" },
 ];
-// モバイルの狭い幅で1行に収めるため、プロフェッショナル系は半角カナ表記にする
 const NEW_EXAMS = [
   { id: "dm", label: "データマネジメント試験" },
-  { id: "pd-m", label: "ﾌﾟﾛﾌｪｯｼｮﾅﾙﾃﾞｼﾞﾀﾙｽｷﾙ（ﾏﾈｼﾞﾒﾝﾄ）" },
-  { id: "pd-d", label: "ﾌﾟﾛﾌｪｯｼｮﾅﾙﾃﾞｼﾞﾀﾙｽｷﾙ（ﾃﾞｰﾀ・AI）" },
-  { id: "pd-s", label: "ﾌﾟﾛﾌｪｯｼｮﾅﾙﾃﾞｼﾞﾀﾙｽｷﾙ（ｼｽﾃﾑ）" },
+  { id: "pd-m", label: "プロフェッショナルデジタルスキル（マネジメント）" },
+  { id: "pd-d", label: "プロフェッショナルデジタルスキル（データ・AI）" },
+  { id: "pd-s", label: "プロフェッショナルデジタルスキル（システム）" },
 ];
 const ALL_EXAMS = [...CURRENT_EXAMS, ...NEW_EXAMS];
+// 閉じた状態のボタン表示だけ短縮表記（リストは正式表記のまま）
+const BUTTON_LABELS: Record<string, string> = {
+  dm: "データマネジメント",
+  "pd-m": "PDスキル（マネジメント）",
+  "pd-d": "PDスキル（データ・AI）",
+  "pd-s": "PDスキル（システム）",
+};
 
 export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -71,7 +77,7 @@ export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChang
             aria-haspopup="listbox"
             aria-expanded={open}
           >
-            <span className="max-w-[180px] truncate">{shortName(current.label)}</span>
+            <span className="max-w-[180px] truncate">{BUTTON_LABELS[current.id] ?? shortName(current.label)}</span>
             <ChevronDown className="h-4 w-4 flex-none" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
           </button>
           {open && (

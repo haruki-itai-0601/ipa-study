@@ -2,6 +2,7 @@
 
 // get_answered_days_jst は RETURNS TABLE(day date) ＝ [{day:"YYYY-MM-DD"}] を返す。
 // 文字列配列と誤解しやすいので、ここで正規化して受ける。
+import { getExam } from "./exams";
 export function toDayStrings(data: unknown): string[] {
   if (!Array.isArray(data)) return [];
   return data
@@ -73,7 +74,8 @@ export function daysUntil(dateStr?: string | null): number | null {
 export function getActiveExam(): string {
   try {
     const v = localStorage.getItem("labActiveExam");
-    if (v === "ip" || v === "fe" || v === "ap") return v;
+    // 定義済みの試験ならすべて許可（2027新試験・支援士・高度区分を含む）
+    if (v && getExam(v)) return v;
   } catch {}
   return "ip";
 }

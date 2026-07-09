@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { basicExams } from "@/lib/exams";
+import { basicExams, getExam } from "@/lib/exams";
 import { setActiveExamStorage } from "@/lib/streak";
 import { fetchLearnTerms } from "@/lib/supabase-browser";
 import { fetchWrongPool } from "@/lib/review";
@@ -68,6 +68,11 @@ export default function LearnHubPage() {
   const [stats, setStats] = useState<{ cats: number; terms: number; glossary: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [wrong, setWrong] = useState<{ loggedIn: boolean; count: number } | null>(null);
+
+  // このページで見ている試験を「選択中の試験」として保存し、他ページ（ホーム/タブバー/ダッシュボード）へ引き継ぐ
+  useEffect(() => {
+    if (getExam(examId)) setActiveExamStorage(examId);
+  }, [examId]);
 
   useEffect(() => {
     let on = true;
@@ -422,6 +427,34 @@ export default function LearnHubPage() {
             </div>
           </div>
         </div>
+
+        {/* 新試験の「〜とは？」説明（気になる人向け・IPA一次情報へのリンク付き） */}
+        {newExam && (
+          <div className="mt-5 rounded-[14px] border-2 px-6 py-5" style={{ borderColor: "#EC4899", background: "#FDF2F8" }}>
+            <div className="text-[16px] font-bold" style={{ color: "#BE185D" }}>
+              {examId === "dm" ? "データマネジメント試験（仮称）とは？" : "プロフェッショナルデジタルスキル試験（仮称）とは？"}
+            </div>
+            <p className="mt-1.5 text-[14px] leading-relaxed" style={{ color: "#5B2340" }}>
+              {examId === "dm"
+                ? "2027年度に開始が検討されている新設試験。データ・AI利活用の基本知識・技能を問う、ITパスポートの次のステップです。「科目A（知識）＋科目B（技能）」構成の全問多肢選択式（CBT）で、試験時間120分・計60問の案が公表されています。"
+                : "2027年度に開始が検討されている新設試験。応用情報技術者と高度8区分を統合再編したもので、マネジメント／データ・AI／システムの3区分があります。「科目A-1（共通知識）＋科目A-2（専門知識）＋科目B（技能）」構成の全問多肢選択式（CBT）で、科目A-1は90分60問・科目A-2＋Bは120分35問の案が公表されています。"}
+            </p>
+            <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1 text-[13px] font-bold">
+              <a
+                href="https://www.ipa.go.jp/shiken/syllabus/henkou/2025/20260331.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:opacity-70"
+                style={{ color: "#BE185D" }}
+              >
+                IPA公式：新試験制度の検討状況（一次情報）
+              </a>
+              <Link href="/reform-2027" className="underline underline-offset-2 hover:opacity-70" style={{ color: "#BE185D" }}>
+                2027年試験再編ガイド（当サイトの解説）
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* ④ 用語集（横長） */}
         <div className="mt-5 flex flex-col gap-4 overflow-hidden rounded-[14px] md:flex-row md:items-center" style={{ background: C.card, border: `1px solid ${C.line}` }}>
