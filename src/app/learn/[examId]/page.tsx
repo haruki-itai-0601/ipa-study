@@ -322,6 +322,15 @@ export default function LearnHubPage() {
                       午前Ⅱの問題演習を始める
                     </Link>
                   </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>午後（記述式）</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      記述式のため収録対象外。2027年度からは多肢選択の科目B（技能）に変わる予定
+                    </p>
+                    <span className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+                      収録対象外
+                    </span>
+                  </div>
                 </div>
               ) : examId === "fe" ? (
                 // 基本情報＝科目A（午前）のモード＋科目B（午後）の入口を両方置く
