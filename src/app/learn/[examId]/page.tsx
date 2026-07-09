@@ -243,7 +243,9 @@ export default function LearnHubPage() {
                     : "構成元試験の過去問で対策（準備中）"
                   : examId === "fe"
                     ? "本物のIPA過去問・科目A／科目B"
-                    : "本物のIPA過去問・出題モード6種類"}
+                    : examId === "sc"
+                      ? "本物のIPA過去問・午前Ⅰ／午前Ⅱ"
+                      : "本物のIPA過去問・出題モード6種類"}
               </div>
               {newExam && !newExam.ready ? (
                 // データマネジメント試験（構成元なし）＝準備中
@@ -289,6 +291,36 @@ export default function LearnHubPage() {
                     <span className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
                       近日公開（シラバス公開後）
                     </span>
+                  </div>
+                </div>
+              ) : examId === "sc" ? (
+                // 支援士＝午前Ⅰ（高度共通）と午前Ⅱ（専門）の2本立て（PDSカードと同じ体裁）
+                <div className="mt-2.5 flex-1 space-y-4">
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>午前Ⅰ（共通知識）</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      高度試験で共通の午前Ⅰの本物の過去問から出題（応用情報レベルの共通知識）
+                    </p>
+                    <Link
+                      href="/exam/am1/past"
+                      className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      style={{ background: C.ex }}
+                    >
+                      午前Ⅰの問題演習を始める
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>午前Ⅱ（専門知識）</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      情報処理安全確保支援士の本物の過去問（午前Ⅱ）から出題
+                    </p>
+                    <Link
+                      href={`/exam/${examId}/past`}
+                      className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      style={{ background: C.ex }}
+                    >
+                      午前Ⅱの問題演習を始める
+                    </Link>
                   </div>
                 </div>
               ) : examId === "fe" ? (
