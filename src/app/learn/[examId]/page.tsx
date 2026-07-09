@@ -234,55 +234,154 @@ export default function LearnHubPage() {
               <div className="mt-2 text-[13.5px]" style={{ color: C.muted }}>
                 {newExam
                   ? newExam.ready
-                    ? "構成元試験の本物の過去問・出題モード5種類"
+                    ? "構成元試験の本物の過去問・科目別に演習"
                     : "構成元試験の過去問で対策（準備中）"
-                  : "本物のIPA過去問・出題モード6種類"}
+                  : examId === "fe"
+                    ? "本物のIPA過去問・科目A／科目B"
+                    : "本物のIPA過去問・出題モード6種類"}
               </div>
               {newExam && !newExam.ready ? (
-                <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
-                  {newExam.practice}
-                </p>
-              ) : (
-                <div className="mb-4 mt-2.5 flex-1">
-                  {newExam?.ready && (
-                    <p className="mb-2 text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
-                      {newExam.practice}
+                // データマネジメント試験（構成元なし）＝準備中
+                <>
+                  <p className="mb-4 mt-2.5 flex-1 text-[14.5px] leading-relaxed" style={{ color: C.muted }}>
+                    {newExam.practice}
+                  </p>
+                  <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+                    近日公開
+                  </span>
+                </>
+              ) : newExam?.ready ? (
+                // プロフェッショナルデジタルスキル系＝科目A-1／A-2／Bに区切って各ボタン
+                <div className="mt-2.5 flex-1 space-y-4">
+                  <p className="text-[12.5px] leading-relaxed" style={{ color: C.muted }}>
+                    {newExam.practice}
+                  </p>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A-1（共通知識）</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      応用情報 午前・高度 午前Ⅰの本物の過去問から出題
                     </p>
-                  )}
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: "年度別", href: `/exam/${examId}/past?mode=year` },
-                      { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
-                      { label: "分野別", href: `/exam/${examId}/past?mode=category` },
-                      { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
-                      { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
-                      // AI予想問題は新試験（横断出題）では未対応
-                      ...(newExam ? [] : [{ label: "AI予想問題", href: `/exam/${examId}/ai` }]),
-                    ].map((m) => (
-                      <Link
-                        key={m.label}
-                        href={m.href}
-                        className="rounded-lg py-2 text-center text-[14px] font-bold transition-opacity hover:opacity-80"
-                        style={{ background: C.exSoft, color: C.ex }}
-                      >
-                        {m.label}
-                      </Link>
-                    ))}
+                    <Link
+                      href={`/exam/${examId}/past?subject=a1`}
+                      className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      style={{ background: C.ex }}
+                    >
+                      科目A-1の問題演習を始める
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A-2（専門知識）</div>
+                    <div className="mt-1.5 grid grid-cols-2 gap-2">
+                      {[
+                        { label: "年度別", href: `/exam/${examId}/past?mode=year` },
+                        { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
+                        { label: "分野別", href: `/exam/${examId}/past?mode=category` },
+                        { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
+                        { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
+                      ].map((m) => (
+                        <Link
+                          key={m.label}
+                          href={m.href}
+                          className="rounded-lg py-2 text-center text-[13.5px] font-bold transition-opacity hover:opacity-80"
+                          style={{ background: C.exSoft, color: C.ex }}
+                        >
+                          {m.label}
+                        </Link>
+                      ))}
+                    </div>
+                    <Link
+                      href={`/exam/${examId}/past`}
+                      className="mt-2 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      style={{ background: C.ex }}
+                    >
+                      科目A-2の問題演習を始める
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目B（技能）</div>
+                    <span className="mt-1.5 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
+                      近日公開（シラバス公開後）
+                    </span>
                   </div>
                 </div>
-              )}
-              {newExam && !newExam.ready ? (
-                <span className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold" style={{ background: "#EDF1F6", color: C.faint }}>
-                  近日公開
-                </span>
+              ) : examId === "fe" ? (
+                // 基本情報＝科目A（午前）のモード＋科目B（午後）の入口を両方置く
+                <div className="mt-2.5 flex-1 space-y-4">
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A（午前）</div>
+                    <div className="mt-1.5 grid grid-cols-2 gap-2">
+                      {[
+                        { label: "年度別", href: `/exam/${examId}/past?mode=year` },
+                        { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
+                        { label: "分野別", href: `/exam/${examId}/past?mode=category` },
+                        { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
+                        { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
+                        { label: "AI予想問題", href: `/exam/${examId}/ai` },
+                      ].map((m) => (
+                        <Link
+                          key={m.label}
+                          href={m.href}
+                          className="rounded-lg py-2 text-center text-[13.5px] font-bold transition-opacity hover:opacity-80"
+                          style={{ background: C.exSoft, color: C.ex }}
+                        >
+                          {m.label}
+                        </Link>
+                      ))}
+                    </div>
+                    <Link
+                      href={`/exam/${examId}/past`}
+                      className="mt-2 block w-full rounded-xl py-2.5 text-center text-[14px] font-bold text-white transition-opacity hover:opacity-90"
+                      style={{ background: C.ex }}
+                    >
+                      科目Aの問題演習を始める
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目B（午後）</div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                      アルゴリズム・セキュリティの公開過去問を独自解説つきで
+                    </p>
+                    <Link
+                      href={`/exam/${examId}/b`}
+                      className="mt-1.5 block w-full rounded-xl border-2 py-2.5 text-center text-[14px] font-bold transition-colors hover:bg-white"
+                      style={{ borderColor: C.ex, color: C.ex }}
+                    >
+                      科目B（午後）を解く
+                    </Link>
+                  </div>
+                </div>
               ) : (
-                <Link
-                  href={`/exam/${examId}/past`}
-                  className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
-                  style={{ background: C.ex }}
-                >
-                  問題演習を始める
-                </Link>
+                // IP・支援士など＝従来どおり6モードチップ＋開始ボタン
+                <>
+                  <div className="mb-4 mt-2.5 flex-1">
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { label: "年度別", href: `/exam/${examId}/past?mode=year` },
+                        { label: "ランダム", href: `/exam/${examId}/past?mode=random` },
+                        { label: "分野別", href: `/exam/${examId}/past?mode=category` },
+                        { label: "誤答復習", href: `/exam/${examId}/past?mode=wrong` },
+                        { label: "模試（タイマー）", href: `/exam/${examId}/past?mode=exam` },
+                        { label: "AI予想問題", href: `/exam/${examId}/ai` },
+                      ].map((m) => (
+                        <Link
+                          key={m.label}
+                          href={m.href}
+                          className="rounded-lg py-2 text-center text-[14px] font-bold transition-opacity hover:opacity-80"
+                          style={{ background: C.exSoft, color: C.ex }}
+                        >
+                          {m.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                  <Link
+                    href={`/exam/${examId}/past`}
+                    className="block w-full rounded-xl py-3.5 text-center text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+                    style={{ background: C.ex }}
+                  >
+                    問題演習を始める
+                  </Link>
+                </>
               )}
             </div>
           </div>

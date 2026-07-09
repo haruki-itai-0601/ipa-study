@@ -23,11 +23,12 @@ const CURRENT_EXAMS = [
   { id: "fe", label: "基本情報技術者試験" },
   { id: "sc", label: "情報処理安全確保支援士試験" },
 ];
+// モバイルの狭い幅で1行に収めるため、プロフェッショナル系は半角カナ表記にする
 const NEW_EXAMS = [
   { id: "dm", label: "データマネジメント試験" },
-  { id: "pd-m", label: "プロフェッショナルデジタルスキル（マネジメント）" },
-  { id: "pd-d", label: "プロフェッショナルデジタルスキル（データ・AI）" },
-  { id: "pd-s", label: "プロフェッショナルデジタルスキル（システム）" },
+  { id: "pd-m", label: "ﾌﾟﾛﾌｪｯｼｮﾅﾙﾃﾞｼﾞﾀﾙｽｷﾙ（ﾏﾈｼﾞﾒﾝﾄ）" },
+  { id: "pd-d", label: "ﾌﾟﾛﾌｪｯｼｮﾅﾙﾃﾞｼﾞﾀﾙｽｷﾙ（ﾃﾞｰﾀ・AI）" },
+  { id: "pd-s", label: "ﾌﾟﾛﾌｪｯｼｮﾅﾙﾃﾞｼﾞﾀﾙｽｷﾙ（ｼｽﾃﾑ）" },
 ];
 const ALL_EXAMS = [...CURRENT_EXAMS, ...NEW_EXAMS];
 
@@ -75,7 +76,7 @@ export function MobileTopBar({ exam, onExamChange }: { exam: string; onExamChang
           </button>
           {open && (
             <div
-              className="absolute left-0 top-full z-30 mt-1.5 w-72 overflow-hidden rounded-xl border shadow-xl"
+              className="absolute left-0 top-full z-30 mt-1.5 max-h-[70vh] w-[min(20rem,calc(100vw-2.5rem))] overflow-y-auto rounded-xl border shadow-xl"
               style={{ background: C.card, borderColor: C.line }}
               role="listbox"
             >

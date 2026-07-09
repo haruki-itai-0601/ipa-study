@@ -108,8 +108,14 @@ export default function PastExamPage() {
   };
 
   // 2027新試験は構成元試験の過去問を横断出題する（それ以外は自分のexam_idのみ）
-  const sourceIds = TRACK_SOURCES[examId] ?? [examId];
   const isTrack = !!TRACK_SOURCES[examId];
+  // 2027新試験は構成元試験の過去問を横断出題。?subject=a1 のときは
+  // 科目A-1（共通知識）＝応用情報 午前＋高度 午前Ⅰ を出題ソースにする
+  const srcIds = () => {
+    const a1 = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("subject") === "a1";
+    return isTrack && a1 ? ["ap", "am1"] : TRACK_SOURCES[examId] ?? [examId];
+  };
+  const [subjectA1, setSubjectA1] = useState(false);
 
   // 年度選択画面に入るときに年度一覧を取得（target: 年度別演習 or 模試）
   const enterYearSelect = async (target: "year" | "exam") => {
@@ -119,7 +125,7 @@ export default function PastExamPage() {
     const supabase = createSupabaseBrowserClient();
     // DB側で集計（1000行上限の影響を受けない）
     const { data } = isTrack
-      ? await supabase.rpc("get_past_year_counts_multi", { p_exam_ids: sourceIds })
+      ? await supabase.rpc("get_past_year_counts_multi", { p_exam_ids: srcIds() })
       : await supabase.rpc("get_past_year_counts", { p_exam_id: examId });
     if (data) {
       const counts: Record<string, number> = {};
@@ -140,7 +146,7 @@ export default function PastExamPage() {
     const supabase = createSupabaseBrowserClient();
     // DB側で集計（1000行上限の影響を受けない）
     const { data } = isTrack
-      ? await supabase.rpc("get_past_category_counts_multi", { p_exam_ids: sourceIds })
+      ? await supabase.rpc("get_past_category_counts_multi", { p_exam_ids: srcIds() })
       : await supabase.rpc("get_past_category_counts", { p_exam_id: examId });
     if (data) {
       const list = (data as { category: string; n: number }[])
@@ -158,7 +164,7 @@ export default function PastExamPage() {
     const { data } = await supabase
       .from("questions")
       .select("*")
-      .in("exam_id", sourceIds)
+      .in("exam_id", srcIds())
       .eq("year", year)
       .eq("type", "past")
       .order("q_number");
@@ -171,7 +177,7 @@ export default function PastExamPage() {
     setLoading(true);
     const supabase = createSupabaseBrowserClient();
     const { data } = isTrack
-      ? await supabase.rpc("get_random_past_questions_multi", { p_exam_ids: sourceIds, p_count: RANDOM_COUNT })
+      ? await supabase.rpc("get_random_past_questions_multi", { p_exam_ids: srcIds(), p_count: RANDOM_COUNT })
       : await supabase.rpc("get_random_past_questions", { p_exam_id: examId, p_count: RANDOM_COUNT });
     setLoading(false);
     const picked = (data as Question[]) ?? [];
@@ -202,7 +208,7 @@ export default function PastExamPage() {
       supabase
         .from("questions")
         .select("*")
-        .in("exam_id", sourceIds)
+        .in("exam_id", srcIds())
         .eq("type", "past")
         .in("category", questionCategoriesFor(examId, category))
         .order("id")
@@ -228,7 +234,7 @@ export default function PastExamPage() {
       supabase
         .from("questions")
         .select("*")
-        .in("exam_id", sourceIds)
+        .in("exam_id", srcIds())
         .eq("type", "past")
         .in("category", questionCategoriesFor(examId, category))
         .order("id")
@@ -274,7 +280,7 @@ export default function PastExamPage() {
     const { data } = await supabase
       .from("questions")
       .select("*")
-      .in("exam_id", sourceIds)
+      .in("exam_id", srcIds())
       .eq("year", year)
       .eq("type", "past")
       .order("q_number");
@@ -304,6 +310,7 @@ export default function PastExamPage() {
   useEffect(() => {
     // 学習分析などから ?mode=category&category=... で来たら、その分野演習を直接開始
     const sp = new URLSearchParams(window.location.search);
+    setSubjectA1(sp.get("subject") === "a1"); // 見出し表示用（出題ソースはsrcIds()が都度URLを読む）
     const modeParam = sp.get("mode");
     if (modeParam === "category" && sp.get("category")) {
       const cat = sp.get("category") as string;
@@ -320,6 +327,9 @@ export default function PastExamPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examId]);
+
+  // 見出し用の科目ラベル（A-1モードのときは共通知識と明記）
+  const secLabel = isTrack && subjectA1 ? "科目A-1（共通知識）相当" : sectionLabel(examId);
 
   if (!exam) return null;
 
@@ -369,11 +379,11 @@ export default function PastExamPage() {
           <>
             <h1 className="mb-6 text-center text-2xl font-bold text-gray-900 md:text-3xl">
               {exam.name}
-              {sectionLabel(examId) ? ` ${sectionLabel(examId)}` : ""} 過去問演習
+              {secLabel ? ` ${secLabel}` : ""} 過去問演習
             </h1>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">出題モードを選んでください</h2>
-              <p className="text-sm text-gray-500">本物のIPA過去問{sectionLabel(examId) ? `（${sectionLabel(examId)}）` : ""}から出題されます</p>
+              <p className="text-sm text-gray-500">本物のIPA過去問{secLabel ? `（${secLabel}）` : ""}から出題されます</p>
             </div>
             <div className="space-y-3">
               {/* AI予想問題は新試験（横断出題）ではまだ未対応のため非表示 */}
