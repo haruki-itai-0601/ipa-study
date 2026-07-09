@@ -112,9 +112,10 @@ export default function PastExamPage() {
   const isTrack = !!TRACK_SOURCES[examId];
   // 2027新試験は構成元試験の過去問を横断出題。?subject=a1 のときは
   // 科目A-1（共通知識）＝応用情報 午前＋高度 午前Ⅰ を出題ソースにする
+  const isA1 = () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("subject") === "a1";
   const srcIds = () => {
-    const a1 = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("subject") === "a1";
-    return isTrack && a1 ? ["ap", "am1"] : TRACK_SOURCES[examId] ?? [examId];
+    // 科目A-1は「応用情報 午前」の過去問をそのまま使う（年度別・模試も応用情報の枠組みで成立させる）
+    return isTrack && isA1() ? ["ap"] : TRACK_SOURCES[examId] ?? [examId];
   };
   const [subjectA1, setSubjectA1] = useState(false);
 
@@ -287,7 +288,8 @@ export default function PastExamPage() {
       .order("q_number");
     setLoading(false);
     // 制限時間は本番準拠（IP=120分/FE科目A=90分/AP午前=150分/午前Ⅰ=50分/高度午前Ⅱ=40分）
-    const timer = examMinutes(examId) * 60;
+    // 科目A-1（応用情報 午前そのまま）は応用情報準拠の150分にする
+    const timer = examMinutes(isTrack && isA1() ? "ap" : examId) * 60;
     startQuiz((data as Question[]) ?? [], "模試", `${year} ・ 制限${timer / 60}分`, timer);
   };
 
@@ -353,8 +355,8 @@ export default function PastExamPage() {
     );
   }
 
-  // 戻り先＝4モードハブ（学習・演習・復習）。ハブが無い高度区分などは試験ページへ
-  const hubHref = ["ip", "fe", "ap"].includes(examId) ? `/learn/${examId}` : `/exam/${examId}`;
+  // 戻り先＝4モードハブ（学習・演習・復習）。ハブが無い高度区分のみ試験ページへ
+  const hubHref = ["ip", "fe", "ap", "sc", "dm"].includes(examId) || isTrack ? `/learn/${examId}` : `/exam/${examId}`;
   const headerBack =
     view === "hub" ? (
       <Link href={hubHref} className="text-gray-400 hover:text-gray-600">
@@ -389,12 +391,22 @@ export default function PastExamPage() {
             </h1>
             <div className="mb-6">
               <h2 className="text-lg font-bold text-gray-900 mb-1">出題モードを選んでください</h2>
-              <p className="text-sm text-gray-500">本物のIPA過去問{secLabel ? `（${secLabel}）` : ""}から出題されます</p>
+              <p className="text-sm text-gray-500">
+                {isTrack && subjectA1
+                  ? "応用情報技術者試験 午前の本物の過去問（＝科目A-1の共通知識に相当）から出題されます"
+                  : `本物のIPA過去問${secLabel ? `（${secLabel}）` : ""}から出題されます`}
+              </p>
             </div>
             <div className="space-y-3">
-              {/* 新試験（横断出題）では 年度別・模試（タイマー）・AI予想問題 を一旦非表示
-                  （年度の意味が構成元ごとに異なる／タイマーの基準時間が未確定なため） */}
-              {MODES.filter((m) => !isTrack || !["year", "exam", "ai"].includes(m.key)).map((m) => {
+              {/* 新試験の科目A-2（横断出題）では 年度別・模試・AI を非表示
+                  （年度の意味が構成元ごとに異なる／タイマー基準未確定のため）。
+                  科目A-1は応用情報 午前そのままなので年度別・模試も使える（AIのみ非表示） */}
+              {MODES.filter((m) => {
+                if (!isTrack) return true;
+                if (m.key === "ai") return false;
+                if (["year", "exam"].includes(m.key)) return subjectA1;
+                return true;
+              }).map((m) => {
                 const Icon = m.icon;
                 return (
                   <button

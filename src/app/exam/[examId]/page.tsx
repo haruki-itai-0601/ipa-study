@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, BookOpen, Zap, ArrowLeft, Target, TrendingUp, FileText, PenLine, Sparkles, ChevronRight, Mountain, BookA, RotateCcw } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 
@@ -98,6 +98,8 @@ export default async function ExamPage({
   const { examId } = await params;
   const exam = getExam(examId);
   if (!exam) notFound();
+  // 2027新試験は専用ランディングを持たず、4モードハブ（学習・演習・復習）に一本化する
+  if (["dm", "pd-m", "pd-d", "pd-s"].includes(examId)) redirect(`/learn/${examId}`);
   const sec = sectionLabel(examId);
   const m = metaOf(examId);
   const land = landingOf(examId);

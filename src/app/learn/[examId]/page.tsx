@@ -261,7 +261,7 @@ export default function LearnHubPage() {
                   <div>
                     <div className="text-[13.5px] font-bold" style={{ color: C.ink }}>科目A-1（共通知識）</div>
                     <p className="mt-0.5 text-[12px] leading-relaxed" style={{ color: C.muted }}>
-                      応用情報 午前・高度 午前Ⅰの本物の過去問から出題
+                      応用情報技術者試験 午前の本物の過去問から出題（共通知識＝科目A-1に相当）
                     </p>
                     <Link
                       href={`/exam/${examId}/past?subject=a1`}
