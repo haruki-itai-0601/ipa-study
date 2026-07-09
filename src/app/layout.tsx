@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { AuthProvider } from "@/components/auth-provider";
 import { SiteFooter } from "@/components/site-footer";
+import { jsonLdScript } from "@/lib/json-ld";
 import "./globals.css";
 
 // Google Analytics 4 測定ID（公開値）
@@ -67,7 +68,7 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
+            __html: jsonLdScript({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: SITE_NAME,

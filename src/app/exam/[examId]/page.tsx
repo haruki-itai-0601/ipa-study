@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { jsonLdScript } from "@/lib/json-ld";
 
 // 試験ごとの検索向けメタデータ（タイトル・説明）。
 // 各ページを「ITパスポート専門」「応用情報専門」として検索エンジンに認識させるための要。
@@ -110,7 +111,7 @@ export default async function ExamPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdScript({
             "@context": "https://schema.org",
             "@type": "Course",
             name: `${exam.name} 過去問演習`,

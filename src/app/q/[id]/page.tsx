@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import SingleQuestion, { type SingleQ } from "@/components/single-question";
 import { BackToDashboard } from "@/components/back-to-dashboard";
+import { jsonLdScript } from "@/lib/json-ld";
 
 type Question = SingleQ;
 
@@ -80,7 +81,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ id: s
     <div className="min-h-screen">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(quizLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(quizLd) }}
       />
       <header className="bg-white/70 backdrop-blur-xl border-b border-gray-200/70 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 flex items-center gap-3">

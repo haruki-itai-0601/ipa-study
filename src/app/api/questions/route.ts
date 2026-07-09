@@ -37,32 +37,63 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const { data, error } = await supabase
+    // 全件取得（ログイン限定）は従来どおり全カラムを返す。
+    if (returnAll) {
+      const { data, error } = await supabase
+        .from("questions")
+        .select("*")
+        .eq("exam_id", exam_id)
+        .eq("type", type)
+        .order("created_at", { ascending: false })
+        .limit(ALL_CAP);
+      if (error) {
+        console.error("Supabase select error:", error);
+        return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
+      }
+      return NextResponse.json({ questions: data ?? [] });
+    }
+
+    // ランダム出題（無認証）は、まず id だけのプール（数KB）を取得して抽選し、
+    // 当選した count 件だけ全カラムを取得する。これで匿名の1リクエストあたり転送量を
+    // 従来の約300行(≈285KB)から数KBへ削減しつつ、リクエストごとのランダム性は維持する。
+    const { data: idRows, error: idErr } = await supabase
       .from("questions")
-      .select("*")
+      .select("id")
       .eq("exam_id", exam_id)
       .eq("type", type)
       .order("created_at", { ascending: false })
-      .limit(returnAll ? ALL_CAP : POOL_CAP);
+      .limit(POOL_CAP);
 
-    if (error) {
-      console.error("Supabase select error:", error);
+    if (idErr) {
+      console.error("Supabase select error:", idErr);
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
 
-    const all = data ?? [];
-
-    if (returnAll) {
-      return NextResponse.json({ questions: all });
-    }
-
-    // 取得した上限内プールから count 件をランダム抽出（Fisher–Yates で偏りなく）
-    for (let i = all.length - 1; i > 0; i--) {
+    const ids = (idRows ?? []).map((r) => r.id as string);
+    // Fisher–Yates で偏りなくシャッフルし、count 件を選ぶ
+    for (let i = ids.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [all[i], all[j]] = [all[j], all[i]];
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    const chosen = ids.slice(0, count);
+    if (chosen.length === 0) {
+      return NextResponse.json({ questions: [] });
     }
 
-    return NextResponse.json({ questions: all.slice(0, count) });
+    const { data: full, error: fullErr } = await supabase
+      .from("questions")
+      .select("*")
+      .in("id", chosen);
+    if (fullErr) {
+      console.error("Supabase select error:", fullErr);
+      return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
+    }
+
+    // .in() の返却順は不定なので、抽選した順序に並べ直す
+    const byId = new Map((full ?? []).map((q) => [q.id, q]));
+    const questions = chosen.map((id) => byId.get(id)).filter(Boolean);
+
+    return NextResponse.json({ questions });
   } catch (error) {
     console.error("Unexpected error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 import { Brain, ChevronLeft, ChevronRight, Sparkles, ArrowRight, Info } from "lucide-react";
+import { jsonLdScript } from "@/lib/json-ld";
 
 const TITLE = "2027年 情報処理技術者試験の再編ガイド｜応用情報はどう変わる？";
 const DESC =
@@ -169,7 +170,7 @@ export default function Reform2027Page() {
       {/* 構造化データ */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
       {/* ヘッダー（共通パターン） */}

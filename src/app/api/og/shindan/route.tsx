@@ -171,7 +171,14 @@ export async function GET(request: Request) {
           </div>
         </div>
       ),
-      { width: 1200, height: 630, fonts }
+      {
+        width: 1200,
+        height: 630,
+        fonts,
+        // 出力は許可済みクエリパラメータの純粋関数。CDNでキャッシュして
+        // 無認証エンドポイントの再ラスタライズによるCPU/コスト増幅を封じる（Xクローラも高速化）。
+        headers: { "Cache-Control": "public, max-age=86400, s-maxage=604800, immutable" },
+      }
     );
   }
 

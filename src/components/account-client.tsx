@@ -71,7 +71,9 @@ export function AccountClient() {
   useEffect(() => {
     if (loading || !user || user.is_anonymous) return;
     const next = new URLSearchParams(window.location.search).get("next");
-    if (next && next.startsWith("/") && !next.startsWith("//")) {
+    // オープンリダイレクト対策：先頭スラッシュのみ許可。バックスラッシュ・制御文字は
+    // ブラウザのURL正規化で "//" 相当になり外部サイトへ飛べるため拒否（/admin/login と同じガード）。
+    if (next && next.startsWith("/") && !next.startsWith("//") && !/[\\\t\r\n]/.test(next)) {
       window.location.href = next;
     }
   }, [loading, user]);
