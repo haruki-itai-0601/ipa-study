@@ -15,10 +15,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/challenge`, changeFrequency: "weekly", priority: 0.6 },
   ];
 
+  // 2027年開始の新試験。/exam/[id] は /learn/[id] へリダイレクトするため、
+  // sitemapには実体である学習ハブ（/learn）の方を載せる。
+  const NEW_EXAM_IDS = ["dm", "pd-m", "pd-d", "pd-s"];
+
   // 試験区分ページ（トップ＋演習メニュー）
   for (const e of exams) {
-    entries.push({ url: `${BASE}/exam/${e.id}`, changeFrequency: "weekly", priority: 0.9 });
+    if (!NEW_EXAM_IDS.includes(e.id)) {
+      entries.push({ url: `${BASE}/exam/${e.id}`, changeFrequency: "weekly", priority: 0.9 });
+    }
     entries.push({ url: `${BASE}/exam/${e.id}/past`, changeFrequency: "weekly", priority: 0.8 });
+  }
+
+  // 学習ハブ（新試験はここが検索の入口）
+  const LEARN_HUB_IDS = ["ip", "fe", "ap", "sc", ...NEW_EXAM_IDS];
+  for (const id of LEARN_HUB_IDS) {
+    entries.push({
+      url: `${BASE}/learn/${id}`,
+      changeFrequency: "weekly",
+      priority: NEW_EXAM_IDS.includes(id) ? 0.9 : 0.7,
+    });
+  }
+
+  // 用語集・AI合格診断（登録不要の入口ページ）
+  entries.push({ url: `${BASE}/learn/glossary`, changeFrequency: "weekly", priority: 0.7 });
+  for (const id of ["ip", "fe", "ap"]) {
+    entries.push({ url: `${BASE}/shindan/${id}`, changeFrequency: "monthly", priority: 0.7 });
   }
 
   // 全問題ページ（/q/[id]）＝1万件超のロングテールSEO資産
