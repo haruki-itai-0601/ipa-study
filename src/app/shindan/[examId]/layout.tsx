@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { basicExams } from "@/lib/exams";
+import { diagExams } from "@/lib/exams";
 
 // AI合格診断ランディングのメタデータ（試験別タイトル＋汎用OGPカード）。
 export async function generateMetadata({
@@ -8,7 +8,7 @@ export async function generateMetadata({
   params: Promise<{ examId: string }>;
 }): Promise<Metadata> {
   const { examId } = await params;
-  const exam = basicExams.find((e) => e.id === examId);
+  const exam = diagExams.find((e) => e.id === examId);
   if (!exam) return { title: "AI合格診断｜過去問演習ラボ" };
   const short = exam.name.replace("試験", "");
   const title = `${short} AI合格診断｜10問でAIが合格可能性と弱点を診断`;

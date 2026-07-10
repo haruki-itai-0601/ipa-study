@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { basicExams, displayCategory, learnCategoryGroups } from "@/lib/exams";
+import { diagExams, DIAG_CATS, displayCategory, learnCategoryGroups } from "@/lib/exams";
 import { ArrowRight, Brain } from "lucide-react";
 
 // AI合格診断のシェア用着地ページ。/shindan/[examId]/r?s=40&w=セキュリティ
@@ -8,7 +8,8 @@ import { ArrowRight, Brain } from "lucide-react";
 // パラメータ次第で内容が変わるページなので検索インデックスはさせない。
 
 const CATEGORY_WHITELIST = new Set<string>([
-  ...basicExams.flatMap((e) => e.categories),
+  ...Object.values(DIAG_CATS).flat(), // 診断が実際に出す分野名（=questionsの実カテゴリ）
+  ...diagExams.flatMap((e) => e.categories),
   ...Object.values(learnCategoryGroups).flatMap((groups) => groups.flatMap((g) => g.categories)),
 ]);
 
@@ -18,7 +19,7 @@ type Props = {
 };
 
 function parse(examId: string, s?: string, w?: string) {
-  const exam = basicExams.find((e) => e.id === examId);
+  const exam = diagExams.find((e) => e.id === examId);
   const score = Math.max(0, Math.min(100, parseInt(s ?? "0", 10) || 0));
   const weak = w && CATEGORY_WHITELIST.has(w) ? w : "";
   const band = score >= 65 ? "合格圏" : score >= 40 ? "あと少し" : "要対策";

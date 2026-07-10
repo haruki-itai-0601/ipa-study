@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { basicExams, learnCategoryGroups } from "@/lib/exams";
+import { diagExams, DIAG_CATS, learnCategoryGroups } from "@/lib/exams";
 
 // AI合格診断のシェア用OGP画像（1200x630）を動的生成する。
 // - スコア入り: /api/og/shindan?e=fe&s=40&w=セキュリティ（白背景・ダッシュボード風）
@@ -19,7 +19,8 @@ async function loadFont() {
 
 // 弱点名は実在の分野名のみ許可（任意文字列の描画を防ぐ＝サブセットフォント外の文字対策も兼ねる）
 const CATEGORY_WHITELIST = new Set<string>([
-  ...basicExams.flatMap((e) => e.categories),
+  ...Object.values(DIAG_CATS).flat(), // 診断が実際に出す分野名（=questionsの実カテゴリ。これが弱点表示の正）
+  ...diagExams.flatMap((e) => e.categories),
   ...Object.values(learnCategoryGroups).flatMap((groups) => groups.flatMap((g) => g.categories)),
 ]);
 
@@ -76,7 +77,7 @@ function Ring({
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const exam = basicExams.find((x) => x.id === (searchParams.get("e") ?? "fe"));
+  const exam = diagExams.find((x) => x.id === (searchParams.get("e") ?? "fe"));
   const examName = exam ? exam.name : "情報処理技術者試験";
   const sRaw = searchParams.get("s");
   const generic = sRaw === null; // ランディング用（スコアなしの汎用カード）
@@ -117,7 +118,7 @@ export async function GET(request: Request) {
                 弱点を示します
               </div>
               <div style={{ display: "flex", fontSize: 24, opacity: 0.9, marginTop: 18 }}>
-                対応：ITパスポート／基本情報／応用情報（午前）
+                対応：ITパスポート／基本情報／情報処理安全確保支援士
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 25, opacity: 0.92, width: "100%" }}>
@@ -247,11 +248,16 @@ export async function GET(request: Request) {
           ) : null}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 26, color: MUTED }}>
             <div style={{ display: "flex" }}>10問・3分・登録不要で診断できます</div>
-            <div style={{ display: "flex" }}>対応：ITパスポート／基本情報／応用情報（午前）</div>
+            <div style={{ display: "flex" }}>kakomon-labo.com</div>
           </div>
         </div>
       </div>
     ),
-    { width: 1200, height: 630, fonts }
+    {
+      width: 1200,
+      height: 630,
+      fonts,
+      headers: { "Cache-Control": "public, max-age=86400, s-maxage=604800, immutable" },
+    }
   );
 }

@@ -33,14 +33,15 @@ function roundRect(x, px, py, w, h, r) {
 }
 
 // フラスコ＋液面チェックのマークを描く（中心cx, 上端top, 全体高さhでスケール）
-function drawFlaskMark(x, cx, top, h) {
+// stroke=本体・液面・泡の色（デフォルト白＝濃色背景用／白背景では brand 青を渡す）
+function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   const s = h / 300; // 基準300px設計
   const lw = 26 * s;
   x.lineCap = "round";
   x.lineJoin = "round";
 
   // 本体（口→首→三角フラスコ）
-  x.strokeStyle = "#ffffff";
+  x.strokeStyle = stroke;
   x.lineWidth = lw;
   x.beginPath();
   x.moveTo(cx - 30 * s, top + 10 * s); // 口の左
@@ -56,8 +57,8 @@ function drawFlaskMark(x, cx, top, h) {
   x.lineTo(cx + 52 * s, top + 10 * s);
   x.stroke();
 
-  // 液体（白面）— フラスコ内側の底までみっちり満たす
-  x.fillStyle = "#ffffff";
+  // 液体（面）— フラスコ内側の底までみっちり満たす
+  x.fillStyle = stroke;
   x.beginPath();
   x.moveTo(cx - 58 * s, top + 162 * s);
   x.lineTo(cx - 94 * s, top + 239 * s);
@@ -76,7 +77,7 @@ function drawFlaskMark(x, cx, top, h) {
   x.stroke();
 
   // 泡
-  x.fillStyle = "#ffffff";
+  x.fillStyle = stroke;
   x.beginPath(); x.arc(cx + 52 * s, top + 108 * s, 11 * s, 0, Math.PI * 2); x.fill();
   x.beginPath(); x.arc(cx + 76 * s, top + 74 * s, 7 * s, 0, Math.PI * 2); x.fill();
   x.beginPath(); x.arc(cx + 30 * s, top + 66 * s, 5 * s, 0, Math.PI * 2); x.fill();
@@ -123,82 +124,84 @@ function drawFlaskMark(x, cx, top, h) {
   const c = createCanvas(W, H);
   const x = c.getContext("2d");
 
-  const g = x.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, INDIGO);
-  g.addColorStop(1, VIOLET);
-  x.fillStyle = g;
+  // ダッシュボードと同じ配色（白基調・ブランド青・正解の緑）
+  const INK = "#15202E", MUTED = "#677488", BRAND = "#1D4ED8";
+  const BRANDSOFT = "#EAF0FE", LINE = "#E7EBF1", GOODC = "#0F8A5F", GOODSOFT = "#E3F4EC";
+
+  // 背景（白）
+  x.fillStyle = "#FFFFFF";
   x.fillRect(0, 0, W, H);
 
-  // 淡い装飾円
-  x.fillStyle = "rgba(255,255,255,0.07)";
+  // 淡い装飾円（ブランドソフト）
+  x.fillStyle = BRANDSOFT;
   x.beginPath(); x.arc(W - 90, 60, 220, 0, Math.PI * 2); x.fill();
-  x.beginPath(); x.arc(300, H + 60, 220, 0, Math.PI * 2); x.fill();
+  x.beginPath(); x.arc(300, H + 70, 210, 0, Math.PI * 2); x.fill();
 
   // 左のセーフエリア外（アバター裏）にはフラスコを薄く敷いて世界観だけ出す
   x.save();
-  x.globalAlpha = 0.16;
-  drawFlaskMark(x, 205, 120, 300);
+  x.globalAlpha = 0.10;
+  drawFlaskMark(x, 205, 120, 300, BRAND);
   x.restore();
 
   const LEFT = 435;
 
   // キッカー（タグライン）
   x.textAlign = "left";
-  x.fillStyle = "rgba(255,255,255,0.92)";
+  x.fillStyle = BRAND;
   x.font = "bold 34px NotoJP";
   x.fillText("AIとともに最短合格の道をハックする", LEFT, 120);
 
   // ブランド名（大）
-  x.fillStyle = "#ffffff";
+  x.fillStyle = INK;
   x.font = "bold 102px NotoJP";
   x.fillText("過去問演習ラボ", LEFT, 232);
 
-  // 対象試験（カードに被らない幅に収める）
-  x.fillStyle = "rgba(255,255,255,0.85)";
+  // 対象試験
+  x.fillStyle = MUTED;
   x.font = "bold 26px NotoJP";
   x.fillText("ITパスポート／基本情報／応用情報／支援士／2027年新試験", LEFT, 288);
 
-  // 特徴チップ（3つ合計がカード左端 x=1180 を超えない長さに）
-  const chips = ["過去問1万問超 無料", "AI弱点分析", "午後記述AI採点"];
+  // 特徴チップ（ブランドソフト背景＋ブランド文字。3つ合計がカードに被らない長さに）
+  const chips = ["過去問1万問超 無料", "弱点分析", "弱点分析に応じたレコメンド"];
   let cx2 = LEFT;
-  const cy = 330;
-  x.font = "bold 25px NotoJP";
+  const cy = 328;
+  x.font = "bold 21px NotoJP";
   for (const t of chips) {
-    const w = x.measureText(t).width + 44;
-    x.fillStyle = "rgba(255,255,255,0.16)";
-    roundRect(x, cx2, cy, w, 52, 26);
+    const w = x.measureText(t).width + 38;
+    x.fillStyle = BRANDSOFT;
+    roundRect(x, cx2, cy, w, 50, 25);
     x.fill();
-    x.strokeStyle = "rgba(255,255,255,0.35)";
-    x.lineWidth = 2;
-    roundRect(x, cx2, cy, w, 52, 26);
-    x.stroke();
-    x.fillStyle = "#ffffff";
-    x.fillText(t, cx2 + 22, cy + 35);
-    cx2 += w + 16;
+    x.fillStyle = BRAND;
+    x.fillText(t, cx2 + 19, cy + 33);
+    cx2 += w + 13;
   }
 
   // ドメイン
-  x.fillStyle = "rgba(255,255,255,0.78)";
+  x.fillStyle = MUTED;
   x.font = "bold 26px NotoJP";
   x.fillText("kakomon-labo.com", LEFT, 448);
 
   // 右：ミニクイズカード（少し傾けてステッカー風に）
   const cardW = 268, cardH = 316;
-  const cardX = 1180, cardY = 92;
+  const cardX = 1190, cardY = 92;
   x.save();
   x.translate(cardX + cardW / 2, cardY + cardH / 2);
   x.rotate((-3.2 * Math.PI) / 180);
   x.translate(-(cardX + cardW / 2), -(cardY + cardH / 2));
-  // 影
-  x.fillStyle = "rgba(0,0,0,0.22)";
-  roundRect(x, cardX + 8, cardY + 12, cardW, cardH, 20);
+  // 影（白背景なので薄く）
+  x.fillStyle = "rgba(21,32,46,0.12)";
+  roundRect(x, cardX + 6, cardY + 10, cardW, cardH, 20);
   x.fill();
-  // カード本体
+  // カード本体（白＋薄い枠線）
   x.fillStyle = "#ffffff";
   roundRect(x, cardX, cardY, cardW, cardH, 20);
   x.fill();
+  x.strokeStyle = LINE;
+  x.lineWidth = 2;
+  roundRect(x, cardX, cardY, cardW, cardH, 20);
+  x.stroke();
   // 問題文のダミー行
-  x.fillStyle = "#E2E8F0";
+  x.fillStyle = LINE;
   roundRect(x, cardX + 24, cardY + 26, cardW - 48, 13, 6.5); x.fill();
   roundRect(x, cardX + 24, cardY + 48, cardW - 92, 13, 6.5); x.fill();
   // 選択肢 4行（ウ=正解ハイライト）
@@ -207,26 +210,26 @@ function drawFlaskMark(x, cx, top, h) {
     const ry = cardY + 86 + i * 56;
     const isAns = i === 2;
     if (isAns) {
-      x.fillStyle = "#DCFCE7";
+      x.fillStyle = GOODSOFT;
       roundRect(x, cardX + 16, ry - 8, cardW - 32, 48, 12);
       x.fill();
     }
     // 記号チップ
-    x.fillStyle = isAns ? GREEN : "#EEF2FF";
+    x.fillStyle = isAns ? GOODC : BRANDSOFT;
     x.beginPath(); x.arc(cardX + 44, ry + 16, 15, 0, Math.PI * 2); x.fill();
-    x.fillStyle = isAns ? "#ffffff" : INDIGO;
+    x.fillStyle = isAns ? "#ffffff" : BRAND;
     x.font = "bold 17px NotoJP";
     x.textAlign = "center";
     x.fillText(label, cardX + 44, ry + 22);
     x.textAlign = "left";
     // 選択肢ダミーバー
-    x.fillStyle = isAns ? "#86EFAC" : "#E2E8F0";
+    x.fillStyle = isAns ? "#86EFAC" : LINE;
     roundRect(x, cardX + 70, ry + 8, isAns ? 150 : 130, 13, 6.5);
     x.fill();
   });
   x.restore();
 
-  // カードに重なる「2027年新試験対応」ピンクバッジ（ステッカー風）
+  // カードに重なる「2027年新試験対応」ピンクバッジ（白背景に映えるアクセント）
   const badge = "2027年開始の新試験にも対応";
   x.font = "bold 23px NotoJP";
   const bw = x.measureText(badge).width + 40;

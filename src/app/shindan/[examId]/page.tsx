@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { basicExams, displayCategory, learnCategoryFor, questionSource } from "@/lib/exams";
+import { diagExams, DIAG_CATS, displayCategory, learnCategoryFor, questionSource } from "@/lib/exams";
 import { setActiveExamStorage } from "@/lib/streak";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { type Question } from "@/components/quiz-runner";
@@ -28,11 +28,6 @@ const optionLabels: Record<string, string> = { a: "ア", b: "イ", c: "ウ", d: 
 const shuffle = <T,>(arr: T[]) => [...arr].sort(() => Math.random() - 0.5);
 
 // 診断で使う5分野（×2問=10問）。試験ごとに主要領域を散らす。
-const DIAG_CATS: Record<string, string[]> = {
-  ip: ["セキュリティ", "ネットワーク", "企業活動", "経営戦略マネジメント", "プロジェクトマネジメント"],
-  fe: ["セキュリティ", "ネットワーク", "データベース", "アルゴリズムとプログラミング", "経営戦略マネジメント"],
-  ap: ["セキュリティ", "ネットワーク", "データベース", "システム開発技術", "経営戦略マネジメント"],
-};
 
 function bandOf(score: number) {
   if (score >= 65) return { label: "合格圏", fg: C.good, soft: C.goodSoft };
@@ -75,7 +70,7 @@ function ScoreRing({
 export default function ShindanPage() {
   const params = useParams();
   const examId = params.examId as string;
-  const exam = basicExams.find((e) => e.id === examId);
+  const exam = diagExams.find((e) => e.id === examId);
   const cats = DIAG_CATS[examId] ?? DIAG_CATS.fe;
 
   const [phase, setPhase] = useState<Phase>("intro");
@@ -213,8 +208,10 @@ export default function ShindanPage() {
                 className="inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-full p-1 shadow-sm"
                 style={{ background: "#FFFFFF", border: `1px solid ${C.line}` }}
               >
-                {basicExams.map((e) => {
+                {diagExams.map((e) => {
                   const active = e.id === examId;
+                  // タブ表示名：支援士は「情報処理安全確保支援士」（試験を除く）、他は技術者試験/試験を除く短縮
+                  const tabName = e.name.replace("技術者試験", "").replace("試験", "");
                   return (
                     <Link
                       key={e.id}
@@ -226,8 +223,7 @@ export default function ShindanPage() {
                           : { color: "#33415A" }
                       }
                     >
-                      {e.name.replace("技術者試験", "").replace("試験", "")}
-                      {e.id === "ap" ? "（午前）" : ""}
+                      {tabName}
                     </Link>
                   );
                 })}

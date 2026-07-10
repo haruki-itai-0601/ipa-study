@@ -364,6 +364,20 @@ export const basicExams = BASIC_EXAM_IDS.map((id) => exams.find((e) => e.id === 
 export const advancedExams = ADVANCED_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
 export const am1Exam = exams.find((e) => e.id === "am1")!;
 
+// AI合格診断の対象試験（現行3試験。応用情報は2026年度で終了のため外し、支援士を採用）。
+// ダッシュボードの「現行試験」プルダウンと顔ぶれを揃える。
+export const DIAG_EXAM_IDS = ["ip", "fe", "sc"] as const;
+export const diagExams = DIAG_EXAM_IDS.map((id) => exams.find((e) => e.id === id)!);
+
+// AI合格診断で各試験から出題する分野（＝questionsテーブルの実カテゴリ名）。
+// 診断・弱点表示・OGP画像で共有する（OGPのホワイトリスト＝ここが正）。
+export const DIAG_CATS: Record<string, string[]> = {
+  ip: ["セキュリティ", "ネットワーク", "企業活動", "経営戦略マネジメント", "プロジェクトマネジメント"],
+  fe: ["セキュリティ", "ネットワーク", "データベース", "アルゴリズムとプログラミング", "経営戦略マネジメント"],
+  // 情報処理安全確保支援士（午前Ⅱ・専門）。収録数の多い5分野から出題。
+  sc: ["ネットワークセキュリティ", "暗号技術", "セキュリティ運用・管理", "マルウェア・攻撃手法", "認証・アクセス制御"],
+};
+
 export function getExam(id: string) {
   return exams.find((e) => e.id === id);
 }

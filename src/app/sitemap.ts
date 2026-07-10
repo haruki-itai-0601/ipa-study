@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 用語集・AI合格診断（登録不要の入口ページ）
   entries.push({ url: `${BASE}/learn/glossary`, changeFrequency: "weekly", priority: 0.7 });
-  for (const id of ["ip", "fe", "ap"]) {
+  for (const id of ["ip", "fe", "sc"]) {
     entries.push({ url: `${BASE}/shindan/${id}`, changeFrequency: "monthly", priority: 0.7 });
   }
 
