@@ -233,27 +233,27 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   // 「2027年新試験対応」ピンク吹き出し。タグラインと被らないよう中段に置き、
   // 尻尾（矢印）の先端をクイズカード左端にくっつけて「この演習に対応」を示す。
   const badge = "2027年開始の新試験にも対応";
-  x.font = "bold 22px NotoJP";
-  const bpadX = 22, bh = 46;
+  x.font = "bold 25px NotoJP";
+  const bpadX = 26, bh = 62; // 縦幅を増やしてしっかりした吹き出しに
   const bw = x.measureText(badge).width + bpadX * 2;
-  const tailTip = cardX;               // カード左端（矢印の接続先）
-  const tailY = cardY + 86 + 2 * 56;   // 正解「ウ」の行の中心を指す
-  const gap = 16;                      // 尻尾の長さ
+  const tailTip = cardX;                     // カード左端（矢印の接続先）
+  const tailY = cardY + 86 + 2 * 56 + 16;    // 正解「ウ」の行の中心あたりを指す
+  const gap = 18;                            // 尻尾の長さ
   const bx = tailTip - gap - bw;
   const by = tailY - bh / 2;
   x.fillStyle = "#EC4899";
   roundRect(x, bx, by, bw, bh, bh / 2);
   x.fill();
-  // 尻尾（右向き三角・先端＝カード左端）
+  // 尻尾（右向き三角・先端＝カード左端）。縦幅に合わせて大きめに
   x.beginPath();
-  x.moveTo(bx + bw - 1, tailY - 13);
+  x.moveTo(bx + bw - 1, tailY - 18);
   x.lineTo(tailTip, tailY);
-  x.lineTo(bx + bw - 1, tailY + 13);
+  x.lineTo(bx + bw - 1, tailY + 18);
   x.closePath();
   x.fill();
   x.fillStyle = "#ffffff";
   x.textAlign = "left";
-  x.fillText(badge, bx + bpadX, by + 31);
+  x.fillText(badge, bx + bpadX, by + 40);
 
   writeFileSync(join(OUT_DIR, "header.png"), c.toBuffer("image/png"));
   console.log("✅ marketing/x/header.png (1500×500)");
