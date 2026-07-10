@@ -160,10 +160,10 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   x.font = "bold 102px NotoJP";
   x.fillText("過去問演習ラボ", LEFT, 232);
 
-  // 対象試験
+  // 対象試験（正式名称・現行3試験。2027対応は右上バッジで表現）
   x.fillStyle = MUTED;
-  x.font = "bold 26px NotoJP";
-  x.fillText("ITパスポート／基本情報／応用情報／支援士／2027年新試験", LEFT, 288);
+  x.font = "bold 22px NotoJP";
+  x.fillText("ITパスポート試験／基本情報技術者試験／情報処理安全確保支援士試験", LEFT, 288);
 
   // 特徴チップ（ブランドソフト背景＋ブランド文字。3つ合計がカードに被らない長さに）
   const chips = ["過去問1万問超 無料", "弱点分析", "弱点分析に応じたレコメンド"];
@@ -185,13 +185,10 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   x.font = "bold 26px NotoJP";
   x.fillText("kakomon-labo.com", LEFT, 448);
 
-  // 右：ミニクイズカード（少し傾けてステッカー風に）
+  // 右：ミニクイズカード（傾けず真っ直ぐ）
   const cardW = 268, cardH = 316;
   const cardX = 1190, cardY = 92;
   x.save();
-  x.translate(cardX + cardW / 2, cardY + cardH / 2);
-  x.rotate((-3.2 * Math.PI) / 180);
-  x.translate(-(cardX + cardW / 2), -(cardY + cardH / 2));
   // 影（白背景なので薄く）
   x.fillStyle = "rgba(21,32,46,0.12)";
   roundRect(x, cardX + 6, cardY + 10, cardW, cardH, 20);
@@ -233,21 +230,16 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   });
   x.restore();
 
-  // カードに重なる「2027年新試験対応」ピンクバッジ（白背景に映えるアクセント）
+  // カードに重なる「2027年新試験対応」ピンクバッジ（傾けず真っ直ぐ・白背景に映えるアクセント）
   const badge = "2027年開始の新試験にも対応";
   x.font = "bold 23px NotoJP";
   const bw = x.measureText(badge).width + 40;
   const bx = cardX - 96, by = 58;
-  x.save();
-  x.translate(bx + bw / 2, by + 23);
-  x.rotate((-3.2 * Math.PI) / 180);
-  x.translate(-(bx + bw / 2), -(by + 23));
   x.fillStyle = "#EC4899";
   roundRect(x, bx, by, bw, 46, 23);
   x.fill();
   x.fillStyle = "#ffffff";
   x.fillText(badge, bx + 20, by + 31);
-  x.restore();
 
   writeFileSync(join(OUT_DIR, "header.png"), c.toBuffer("image/png"));
   console.log("✅ marketing/x/header.png (1500×500)");
