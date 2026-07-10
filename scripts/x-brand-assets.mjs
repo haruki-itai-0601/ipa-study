@@ -156,11 +156,11 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
 
   const LEFT = 486;
 
-  // キッカー（タグライン）
+  // キッカー（タグライン）＝ヘッダーの主役。カード左端(1190)に被らない範囲で大きく
   x.textAlign = "left";
   x.fillStyle = "#AFC6F0"; // 淡いブランド青
-  x.font = "bold 33px NotoJP";
-  x.fillText("AIとともに最短合格の道をハックする", LEFT, 132);
+  x.font = "bold 40px NotoJP";
+  x.fillText("AIとともに最短合格の道をハックする", LEFT, 128);
 
   // 対象試験（正式名称・現行3試験。2027対応は右上バッジで表現）
   x.fillStyle = SLATE;
