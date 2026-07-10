@@ -88,8 +88,10 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
 // ---------------------------------------------------------------------------
 {
   const S = 400;
-  const c = createCanvas(S, S);
+  const SS = 2; // 2倍解像度で描画（Xが縮小して鮮明に）
+  const c = createCanvas(S * SS, S * SS);
   const x = c.getContext("2d");
+  x.scale(SS, SS);
 
   const g = x.createLinearGradient(0, 0, S, S);
   g.addColorStop(0, INDIGO);
@@ -121,8 +123,10 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
 // ---------------------------------------------------------------------------
 {
   const W = 1500, H = 500;
-  const c = createCanvas(W, H);
+  const SS = 2; // スーパーサンプリング（2倍解像度で描画→Xが縮小して鮮明に）
+  const c = createCanvas(W * SS, H * SS);
   const x = c.getContext("2d");
+  x.scale(SS, SS); // 論理座標は 1500×500 のまま、物理解像度だけ2倍
 
   // ダッシュボードと同じ配色（白基調・ブランド青・正解の緑）
   const INK = "#15202E", MUTED = "#677488", BRAND = "#1D4ED8";
