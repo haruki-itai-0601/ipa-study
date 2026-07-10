@@ -234,21 +234,19 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   // 尻尾（矢印）の先端をクイズカード左端にくっつけて「この演習に対応」を示す。
   const badge = "2027年開始の新試験にも対応";
   x.font = "bold 25px NotoJP";
-  const bpadX = 26, bh = 62; // 縦幅を増やしてしっかりした吹き出しに
+  const bpadX = 26, bh = 62; // 縦幅のあるしっかりした吹き出し
   const bw = x.measureText(badge).width + bpadX * 2;
-  const tailTip = cardX;                     // カード左端（矢印の接続先）
-  const tailY = cardY + 86 + 2 * 56 + 16;    // 正解「ウ」の行の中心あたりを指す
-  const gap = 18;                            // 尻尾の長さ
-  const bx = tailTip - gap - bw;
-  const by = tailY - bh / 2;
+  const bx = cardX - 26 - bw; // 本体右端をカードの少し左に
+  const by = 306;             // 吹き出しは下寄りに配置
   x.fillStyle = "#EC4899";
   roundRect(x, bx, by, bw, bh, bh / 2);
   x.fill();
-  // 尻尾（右向き三角・先端＝カード左端）。縦幅に合わせて大きめに
+  // 尻尾（矢印）は本体の右上から斜め上へ伸ばし、先端をカード左辺の上部（アの行あたり）に当てる
+  const tipX = cardX, tipY = cardY + 100;
   x.beginPath();
-  x.moveTo(bx + bw - 1, tailY - 18);
-  x.lineTo(tailTip, tailY);
-  x.lineTo(bx + bw - 1, tailY + 18);
+  x.moveTo(bx + bw - 10, by + 8);
+  x.lineTo(tipX, tipY);
+  x.lineTo(bx + bw - 10, by + 36);
   x.closePath();
   x.fill();
   x.fillStyle = "#ffffff";
