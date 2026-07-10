@@ -232,7 +232,7 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
 
   // 「2027年新試験対応」ピンク吹き出し。タグラインと被らないよう中段に置き、
   // 尻尾（矢印）の先端をクイズカード左端にくっつけて「この演習に対応」を示す。
-  const badge = "2027年開始の新試験にも対応";
+  const badge = "2027年開始の新試験にも順次対応";
   x.font = "bold 25px NotoJP";
   const bpadX = 26, bh = 62; // 縦幅のあるしっかりした吹き出し
   const bw = x.measureText(badge).width + bpadX * 2;
