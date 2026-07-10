@@ -236,17 +236,18 @@ function drawFlaskMark(x, cx, top, h, stroke = "#ffffff") {
   x.font = "bold 25px NotoJP";
   const bpadX = 26, bh = 62; // 縦幅のあるしっかりした吹き出し
   const bw = x.measureText(badge).width + bpadX * 2;
-  const bx = cardX - 26 - bw; // 本体右端をカードの少し左に
-  const by = 306;             // 吹き出しは下寄りに配置（位置は固定）
+  // 矢印の先端を正解「ウ」の行の高さに合わせ、本体中心もそこに揃えて水平にする
+  const tipX = cardX, tipY = cardY + 86 + 2 * 56 + 16; // 「ウ」の記号の高さ
+  const bx = cardX - 26 - bw;
+  const by = tipY - bh / 2;
   x.fillStyle = "#EC4899";
   roundRect(x, bx, by, bw, bh, bh / 2);
   x.fill();
-  // 尻尾（矢印）は太めに、ほぼ水平で本体右辺→カード左辺へ当てる（吹き出しらしく）
-  const tipX = cardX, tipY = by + bh / 2;
+  // 尻尾（矢印）は太めに、水平で本体右辺→「ウ」の左（カード左辺）へ当てる
   x.beginPath();
-  x.moveTo(bx + bw - 2, by + 13);
+  x.moveTo(bx + bw - 2, tipY - 18);
   x.lineTo(tipX, tipY);
-  x.lineTo(bx + bw - 2, by + 49);
+  x.lineTo(bx + bw - 2, tipY + 18);
   x.closePath();
   x.fill();
   x.fillStyle = "#ffffff";
