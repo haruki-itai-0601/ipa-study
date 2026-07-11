@@ -60,7 +60,7 @@
 > ✅ 2027年開始の新試験に最速対応（IPAサンプル問題も収録済み）
 >
 > まずは5分・10問のAI合格診断で今の実力チェック👇
-> https://kakomon-labo.com/shindan/fe
+> https://kakomon-labo.com/shindan/ip
 >
 > #基本情報技術者試験 #ITパスポート
 
