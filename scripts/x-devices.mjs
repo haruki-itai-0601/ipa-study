@@ -2,7 +2,7 @@
 // 「スマホでもPCでもどちらでも使える」を1枚で伝える。実UIをブランド配色で忠実に再現。
 // 出力: marketing/x/devices.png（1600×900・2倍解像度）
 // 実行: node scripts/x-devices.mjs
-import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
+import { createCanvas, GlobalFonts, loadImage } from "@napi-rs/canvas";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -236,8 +236,11 @@ x.save();
 x.shadowColor = "rgba(0,0,0,0.45)"; x.shadowBlur = 50; x.shadowOffsetY = 26;
 x.fillStyle = "#0B1220"; rr(x, lapX - 16, lapY - 16, lapScreenW + 32, lapScreenH + 32, 20); x.fill();
 x.restore();
-// 画面
-drawDashboard(x, lapX, lapY, lapScreenW, lapScreenH);
+// 画面＝本物のPCダッシュボードのスクショ（16:10でぴったり）
+const deskImg = await loadImage(join(OUT, "shot-desktop.png"));
+x.save(); rr(x, lapX, lapY, lapScreenW, lapScreenH, 8); x.clip();
+x.drawImage(deskImg, lapX, lapY, lapScreenW, lapScreenH);
+x.restore();
 // ベゼル枠線
 x.strokeStyle = "#20293b"; x.lineWidth = 2; rr(x, lapX - 16, lapY - 16, lapScreenW + 32, lapScreenH + 32, 20); x.stroke();
 // ベース（底板）
@@ -258,7 +261,16 @@ x.save();
 x.shadowColor = "rgba(0,0,0,0.5)"; x.shadowBlur = 44; x.shadowOffsetY = 22;
 x.fillStyle = "#0B1220"; rr(x, phX - 12, phY - 12, phW + 24, phH + 24, 44); x.fill();
 x.restore();
-drawPhoneHome(x, phX, phY, phW, phH);
+// 画面＝本物のスマホ「今日の5問」のスクショ（cover-fitで中央）
+const mobImg = await loadImage(join(OUT, "shot-mobile.png"));
+x.save(); rr(x, phX, phY, phW, phH, 30); x.clip();
+x.fillStyle = "#F5F7FA"; x.fillRect(phX, phY, phW, phH);
+{
+  const s = Math.max(phW / mobImg.width, phH / mobImg.height);
+  const dw = mobImg.width * s, dh = mobImg.height * s;
+  x.drawImage(mobImg, phX + (phW - dw) / 2, phY + (phH - dh) / 2, dw, dh);
+}
+x.restore();
 // 枠線
 x.strokeStyle = "#20293b"; x.lineWidth = 3; rr(x, phX - 12, phY - 12, phW + 24, phH + 24, 44); x.stroke();
 // ダイナミックアイランド
