@@ -50,7 +50,7 @@ const main = async () => {
       const data = await res.json();
       if (!Array.isArray(data)) return;
       for (const q of data) {
-        if (q && q.question && q.correct_answer) correctByQ.set(q.question.replace(/\s+/g, "").slice(0, 40), q.correct_answer);
+        if (q && q.question && q.correct_answer) correctByQ.set(q.question.replace(/\s+/g, ""), q.correct_answer); // 全文で照合
       }
     } catch {}
   });
@@ -66,14 +66,11 @@ const main = async () => {
   await clickByText(page, /診断をはじめる/);
   await sleep(2500);
   for (let i = 0; i < 10; i++) {
-    const wantCorrect = i < 7; // 7問正解/3問不正解 ≒ 70点(合格圏)
-    // 出題文＝main内で選択肢ボタンより前にある最長の段落
-    const qnorm = await page.evaluate(() => {
-      const ps = [...document.querySelectorAll("main p")].map((p) => p.textContent.replace(/\s+/g, ""));
-      return ps.sort((a, b) => b.length - a.length)[0] || "";
-    });
+    const wantCorrect = i < 7; // 7問正解/3問不正解 = 70点(合格圏)
+    // main全文を正規化し、傍受した各問題文(全文)が含まれるかで現在の問題を特定（堅牢）
+    const mainNorm = await page.evaluate(() => (document.querySelector("main")?.innerText || "").replace(/\s+/g, ""));
     let ans = null;
-    for (const [key, a] of correctByQ) { if (qnorm && (qnorm.includes(key) || key.includes(qnorm.slice(0, 30)))) { ans = a; break; } }
+    for (const [key, a] of correctByQ) { if (key.length > 8 && mainNorm.includes(key)) { ans = a; break; } }
     let clickKana = ans ? KANA[ans] : null;
     if (clickKana && !wantCorrect) clickKana = ["ア", "イ", "ウ", "エ"].filter((k) => k !== clickKana)[0];
     const clicked = await page.evaluate((kana) => {
@@ -118,6 +115,22 @@ const main = async () => {
   await hideDevOverlay(page);
   await page.screenshot({ path: join(OUT, "shot-desktop.png"), clip: { x: 0, y: 0, width: 1512, height: 945 } });
   console.log("✅ marketing/x/shot-desktop.png");
+
+  // ── 余力分：PR用のスクショ（best-effort） ──
+  const mobileShot = async (url, name) => {
+    try {
+      await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+      await page.goto(BASE + url, { waitUntil: "networkidle2" });
+      await sleep(1600);
+      await hideDevOverlay(page);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: join(OUT, name), clip: { x: 0, y: 0, width: 390, height: 844 } });
+      console.log("✅ marketing/x/" + name);
+    } catch (e) { console.warn("skip " + name + ":", e.message); }
+  };
+  await mobileShot("/learn/glossary?exam=fe", "shot-glossary.png");     // 用語集
+  await mobileShot("/learn/ip/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3", "shot-path.png"); // 学習パス(IPセキュリティ)
+  await mobileShot("/q/12f2a394-b313-4347-9f8c-ecd6afa17e50", "shot-figure.png"); // 図つき問題(論理回路)
 
   await browser.close();
 };

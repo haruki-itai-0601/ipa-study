@@ -110,10 +110,15 @@
 
 ---
 
-## 撮影が必要な画像（余裕があるとき順次）
-- 午後AI採点の結果（/exam/ap/pm で1問採点）
-- 用語集（/learn/glossary）
-- 学習パス（/learn/[examId]/[category] のジグザグ）
-- 図つき問題（高度区分の図あり問題）
+## 撮影済み画像（marketing/x/・そのまま添付可）
+本物のサイトの実スクショ（`node scripts/capture-screens.mjs` で自動生成）:
+- `shot-diagnosis.png` … AI合格診断の結果（🧠 #1）
+- `shot-mobile.png` … 今日の5問ホーム（📱 #2）
+- `shot-desktop.png` … 弱点分析ダッシュボード（💻 #3）
+- `shot-glossary.png` … 用語集2,348語（#5）
+- `shot-path.png` … 学習コンテンツ（用語カード・#6）
+- `shot-figure.png` … 図つき問題（論理回路・#10）
+- `devices.png` … PC＋スマホのデバイス合成（#2/#3や固定ポストのヒーローに）
 
-既に撮影済み（固定ポスト用）: AI診断結果／今日の5問ホーム／弱点分析ダッシュボード → PRにも流用可。
+まだ手動撮影が必要:
+- 午後AI採点の結果（#4）… Proログイン＋AI採点の実行が要るため自動化保留。会員でログインして /exam/ap/pm で1問採点した画面をスクショ。
