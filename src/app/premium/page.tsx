@@ -4,10 +4,11 @@ import { PremiumClient } from "@/components/premium-client";
 import { BackToDashboard } from "@/components/back-to-dashboard";
 
 export const metadata = {
-  title: "プレミアム会員のご案内｜過去問演習ラボ",
+  // 【2026-08-26】有料プランの提供終了に伴い、価格の記載を削除し検索対象から除外
+  title: "有料プランの提供終了について｜過去問演習ラボ",
   description:
-    "月額300円（年額3,000円）で午後問題の記述式をAIが○△×＋講評で採点。応用情報技術者試験の記述対策を効率化します。",
-  // Stripeからの ?checkout=success|cancel 変種を正規URLへ集約
+    "有料プランの新規申し込みは終了しました。過去問演習・弱点分析・用語集などの機能は引き続きすべて無料でご利用いただけます。",
+  robots: { index: false, follow: true },
   alternates: { canonical: "/premium" },
 };
 
@@ -27,7 +28,7 @@ export default function PremiumPage() {
             <div className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-lg p-1.5">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-gray-900">プレミアム会員</span>
+            <span className="font-bold text-gray-900">有料プランについて</span>
           </div>
           <BackToDashboard />
         </div>

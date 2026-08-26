@@ -11,7 +11,7 @@ const KEY = "labOnboardedV1";
 const FEATURES = [
   "過去問演習は すべて無料",
   "弱点を分野別に自動分析・可視化",
-  "応用情報の午後記述は AIが採点・講評",
+  "IT用語集2,348語も無料で使える",
   "弱点に合わせて「次の一手」を提案",
 ];
 
@@ -71,7 +71,7 @@ export function OnboardingPopup() {
           <span className="inline-block">合格は遠い。</span>
         </h2>
         <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: "#677488" }}>
-          過去問演習は無料。<b className="inline-block" style={{ color: "#15202E" }}>弱点を分析</b>して次の一手を提案し、自分で採点できない記述問題は<b className="inline-block" style={{ color: "#15202E" }}>AIが採点</b>します。
+          本物のIPA過去問が<b className="inline-block" style={{ color: "#15202E" }}>すべて無料</b>。解くほど<b className="inline-block" style={{ color: "#15202E" }}>弱点を分析</b>して、次にやるべき分野を提案します。
         </p>
 
         <ul className="mt-4 space-y-2.5">

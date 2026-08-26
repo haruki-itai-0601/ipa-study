@@ -260,10 +260,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                     <span className="font-semibold text-violet-700">記述はAIが○△×＋講評で採点します。</span>
                   ) : (
                     <span>
-                      記述の<span className="font-semibold text-violet-700">AI採点は有料会員限定</span>です。
-                      <Link href="/premium" className="underline text-violet-700 hover:text-violet-900">
-                        詳しく見る
-                      </Link>
+                      記述のAI採点は<span className="font-semibold text-violet-700">現在ご利用いただけません</span>。公式解答例と見比べて自己採点してください。
                     </span>
                   )}
                 </p>
@@ -318,10 +315,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
                   {g.status === "pending" && <p className="text-violet-500">AIが採点中…</p>}
                   {g.status === "member_only" && (
                     <p className="flex items-center gap-1 font-semibold text-violet-700">
-                      <Lock className="w-4 h-4" /> AI採点は有料会員限定です —{" "}
-                      <Link href="/premium" className="underline hover:text-violet-900">
-                        プレミアムのご案内
-                      </Link>
+                      <Lock className="w-4 h-4" /> AI採点は現在ご利用いただけません
                     </p>
                   )}
                   {g.status === "unanswered" && (
@@ -402,10 +396,7 @@ export default function PmGrader({ pmQuestionId }: { pmQuestionId: string }) {
           )}
           {hasTextAnswered && !isMember && (
             <p className="flex items-center justify-center gap-1.5 text-sm text-violet-700 font-semibold">
-              <Lock className="w-4 h-4" /> 記述のAI採点は有料会員限定です —{" "}
-              <Link href="/premium" className="underline hover:text-violet-900">
-                月額300円〜
-              </Link>
+              <Lock className="w-4 h-4" /> 記述のAI採点は現在ご利用いただけません
             </p>
           )}
         </div>

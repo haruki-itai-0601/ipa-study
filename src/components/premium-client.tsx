@@ -181,13 +181,13 @@ export function PremiumClient() {
     return (
       <Card className="border-2 border-violet-200">
         <CardContent className="p-5 space-y-4">
-          <PlanSummary plan={plan} setPlan={setPlan} />
+          {/* 【2026-08-26】有料プランの提供を終了。価格表(PlanSummary)は非表示 */}
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3.5 space-y-1.5">
             <p className="flex items-center gap-1.5 font-bold text-amber-700">
-              <Wrench className="w-4 h-4" /> ただいま準備中です
+              <Wrench className="w-4 h-4" /> 有料プランの提供は終了しました
             </p>
             <p className="text-sm text-gray-600 leading-relaxed">
-              プレミアム会員のお申し込みは現在準備中です。近日中の公開に向けて調整しています。今しばらくお待ちください。
+              現在、新規のお申し込みは受け付けておりません。過去問演習・弱点分析・用語集など、サイトの機能は引き続きすべて無料でご利用いただけます。
             </p>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">

@@ -1,3 +1,5 @@
-// 機能フラグ。Stripe本番審査が完了し本番キー(sk_live/本番whsec)へ差し替え済み＝決済を有効化。
-// 一時停止したい場合は false に戻して push する。
-export const PAYMENTS_ENABLED = true;
+// 機能フラグ。
+// 【2026-08-26 有料プランを販売停止】他案件優先でプロジェクトを維持モードへ。
+// 停止理由: (1)売り文句のAIレコメンドが実装上到達不能 (2)AI採点対象の応用情報は2026年度で終了
+// (3)在庫201設問固定でトライアル中に消費し切れる設計。再開時は true に戻して push。
+export const PAYMENTS_ENABLED = false;

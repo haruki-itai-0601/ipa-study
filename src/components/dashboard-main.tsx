@@ -345,7 +345,7 @@ export function DashboardMain() {
   // 閲覧上限ゲートの案内（ティア別）
   const lockTier = isGuest
     ? { msg: "未ログインは1日3回まで閲覧できます。無料会員登録すると1日7回に増えます。", href: "/account", label: "無料会員登録" }
-    : { msg: "無料会員は1日7回まで閲覧できます。Pro（有料）なら無制限に見られます。", href: "/premium", label: "Proにアップグレード" };
+    : { msg: "無料会員は1日7回まで閲覧できます。時間をおいて再度お試しください。", href: "/", label: "ホームへ戻る" };
 
   const trend = useMemo(() => {
     const accArr = timeline.map((t) => (t.answered > 0 ? Math.round((t.correct / t.answered) * 100) : 0));
@@ -490,7 +490,8 @@ export function DashboardMain() {
             </Link>
           </nav>
 
-          {!isPremium && (
+          {/* 【2026-08-26】有料プラン販売停止に伴いPro導線を撤去 */}
+          {false && (
             <div className="mt-auto mb-0.5 rounded-[14px] px-3 py-2.5 text-white" style={{ background: C.dark }}>
               <b className="text-[13px]">Pro で午後も最短合格</b>
               <p className="my-0.5 text-[11.5px]" style={{ color: "#A9B6CC" }}>記述AI採点・詳細弱点分析が使い放題</p>
@@ -788,8 +789,7 @@ export function DashboardMain() {
               ) : activeExam === "ap" && pmTab === "pm" ? (
                 <div className="mt-4 flex flex-col items-center justify-center rounded-xl px-4 py-10 text-center" style={{ background: C.bg, border: `1px dashed ${C.line2}` }}>
                   <Lock className="mb-2 h-6 w-6" style={{ color: C.faint }} />
-                  <p className="text-[13px] font-bold">午後（記述）の分析は Pro 機能です</p>
-                  <Link href="/premium" className="mt-1.5 text-[12px] font-bold" style={{ color: C.brand }}>Proを見る →</Link>
+                  <p className="text-[13px] font-bold">午後（記述）の分析は現在ご利用いただけません</p>
                 </div>
               ) : loading ? (
                 <div className="flex items-center justify-center gap-2 py-14" style={{ color: C.faint }}><Loader2 className="h-5 w-5 animate-spin" /> 読み込み中…</div>

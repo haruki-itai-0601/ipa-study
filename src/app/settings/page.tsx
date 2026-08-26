@@ -196,7 +196,8 @@ export default function SettingsPage() {
             </button>
             {err && <p className="mt-2 text-center text-[12px]" style={{ color: C.bad }}>{err}</p>}
           </div>
-        ) : (
+        ) : false ? (
+          /* 【2026-08-26】有料プラン販売停止に伴い非表示 */
           <Link href="/premium" className="block rounded-2xl p-4" style={{ background: C.dark }}>
             <div className="flex items-center gap-2.5">
               <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl" style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}>
@@ -225,7 +226,7 @@ export default function SettingsPage() {
               いつでも解約OK・解約後も請求期間の末日まで利用できます
             </p>
           </Link>
-        )}
+        ) : null}
 
         <SectionLabel>サポート・情報</SectionLabel>
         <div className="overflow-hidden rounded-2xl" style={rowStyle}>

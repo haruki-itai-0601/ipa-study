@@ -270,17 +270,13 @@ function TodayContent() {
               <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: C.muted }}>
                 {tier === "guest"
                   ? `未ログインは1日${TODAY_LIMIT.guest}回まで。無料会員登録すると1日${TODAY_LIMIT.free}回に増えます。`
-                  : `無料会員は1日${TODAY_LIMIT.free}回まで。Pro（有料）なら回数無制限で解けます。`}
+                  : `無料会員は1日${TODAY_LIMIT.free}回まで。時間をおいて再度お試しください。`}
               </p>
               {tier === "guest" ? (
                 <Link href="/account" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white" style={{ background: C.brand }}>
                   <LogIn className="h-5 w-5" /> 無料会員登録・ログイン
                 </Link>
-              ) : (
-                <Link href="/premium" className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-white" style={{ background: "#0E1B33" }}>
-                  <Sparkles className="h-5 w-5" /> Proにアップグレード
-                </Link>
-              )}
+              ) : null}
               <Link href="/" className="mt-3 inline-block text-[13px] font-bold" style={{ color: C.brand }}>
                 ホームに戻る
               </Link>
