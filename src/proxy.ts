@@ -1,9 +1,23 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { verifyAdminToken } from "@/lib/admin-token";
+import { GATE_COOKIE, gateEnabled, verifyGateToken } from "@/lib/site-gate";
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // 【2026-10-13】サイト全体のパスワードゲート（オーナー専用公開）。
+  // 環境変数 SITE_PASSWORD が設定されているときだけ有効。未設定なら従来どおり誰でも閲覧可。
+  // 解除したいときは Vercel の環境変数から SITE_PASSWORD を削除する。
+  if (gateEnabled() && pathname !== "/gate" && pathname !== "/api/gate") {
+    const ok = await verifyGateToken(request.cookies.get(GATE_COOKIE)?.value);
+    if (!ok) {
+      const gateUrl = new URL("/gate", request.url);
+      const back = pathname + request.nextUrl.search;
+      if (back !== "/") gateUrl.searchParams.set("next", back);
+      return NextResponse.redirect(gateUrl);
+    }
+  }
 
   // /admin/setup は TOTP_SECRET 未設定時のみ通過
   if (pathname.startsWith("/admin/setup")) {
